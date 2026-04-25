@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const { getUsers } = require('./controllers/userController');
 
 const server = express();
 const PORT = 3000;
@@ -13,7 +14,7 @@ server.use(express.urlencoded({ limit: '100kb', extended: true })); // Limita el
 
 server.use(cors({ // No permite solicitudes de otros orígenes que no estén en la lista de allowedOrigins
   origin: function (origin, callback) {
-    if (allowedOrigins.includes(origin)) { // Se puede agregar "!origin ||" para testeos 
+    if (!origin || allowedOrigins.includes(origin)) { // Se puede agregar "!origin ||" para testeos 
       callback(null, true);
     } else {
       callback(new Error('No permitido por CORS'));
@@ -24,9 +25,13 @@ server.use(cors({ // No permite solicitudes de otros orígenes que no estén en 
   credentials: true
 }));
 
+
 server.get('/', (req, res) => {
     res.status(200).send('Bienvenido a la API de Knowbeat!');
 });
+
+server.get('/users', getUsers);
+
 
 server.listen(PORT, async () => {
     console.log('La API está corriendo en el puerto ', PORT);
