@@ -1,0 +1,54 @@
+import { useState } from 'react';
+import Register_card from './register_card';
+import styles from './form_card.module.css'
+
+function Login_card({ onLoginSuccess }){
+    const [showRegister, setShowRegister] = useState(false);
+    const [password, setPassword] = useState("");
+    const [username, setEmail] = useState("");
+
+    if (showRegister) {
+        return <Register_card switchToLogin={() => setShowRegister(false)} />;
+    }
+
+    async function fetchLogin(event) {
+        event.preventDefault(); // evita recargar la página
+    
+        try {
+            const response = await axios.post("http://localhost:3000/login", {
+                username,
+                password
+            });
+
+            onLoginSuccess(response.data.token); // redirige
+        } catch (err) {
+            console.error("Error en login:", err);
+            alert("Usuario o contraseña incorrectos");
+        }
+    }
+
+    return(
+        <div className={styles.card}>
+            <section className={styles.section} id={styles.main_section}>
+                <h2>Iniciar Sesión</h2>
+                <form action="" className={styles.form}>
+                    <label htmlFor="email">Email</label>
+                    <input type="text" id='email' className={styles.input} onChange={(event) => setEmail(event.target.value)}/>
+                    <label htmlFor="password">Contraseña</label>
+                    <input type="password" id='password' className={styles.input} onChange={(event) => setPassword(event.target.value)}/>
+                    <div className={styles.forgot_password}>
+                        <a href="#">Olvidé mi contraseña</a>
+                    </div>
+                    <button type='submit' className={styles.button}>Iniciar Sesión</button>
+                </form>
+            </section>
+            <section className={styles.section} id={styles.change_section}>
+                <h2>¿No tiene cuenta?</h2>
+                <p>Registrese aquí</p>
+                <button className={styles.button} onClick={() => setShowRegister(true)}>Registrarse</button>
+            </section>
+        </div>
+    )
+}
+
+export default Login_card
