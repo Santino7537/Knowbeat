@@ -1,4 +1,6 @@
-<img src="misc/Banner Knowbeat.PNG" style="border: 3px solid white; border-radius: 10px;"/><br>
+<p align="center">
+  <img src="misc/Banner KnowBeat.PNG" width="100%">
+</p>
 <br>
 
 ## Introducción
