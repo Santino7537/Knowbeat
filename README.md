@@ -1,3 +1,6 @@
+<img src="misc/Banner Knowbeat.PNG" style="border: 3px solid white; border-radius: 10px;"/><br>
+<br>
+
 ## Introducción
 
 **Knowbeat** es un sitio web social orientada al aprendizaje musical, tanto teórico como práctico, en la cual cualquier persona, con o sin conocimientos previos, puede ingresar, aprender y practicar con lecciones didácticas divididas por secciones tematizadas, a su vez nuestro sitio cuenta con una comunidad en la cual múltiples personas pueden interactuar con publicaciones de otros miembros de la comunidad, lo cual permite que los usuarios aprendan y puedan despejarse dudas posibles.
