@@ -66,3 +66,8 @@
 .forgot_password a:hover {
   text-decoration: underline;
 }
+
+.password_strength {
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
