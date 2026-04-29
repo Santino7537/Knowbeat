@@ -25,7 +25,7 @@ server.use(cors({ // No permite solicitudes de otros orígenes que no estén en 
     }
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-user-id'],
   credentials: true
 }));
 
