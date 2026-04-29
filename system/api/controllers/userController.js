@@ -12,18 +12,63 @@ const login = async (req, res) => {
 
   let user;
 
+  // Comprueba si el usuario existe y obtiene su información
   try {
     [user] = await db.query('SELECT * FROM user WHERE username = ?;', [username]);
-    if (user.length === 0) return res.status(400).json({ message: 'Usuario no encontrado' });
+    if (user.length === 0) return res.status(400).json({ message: 'Usuario o contraseña incorrecta' });
     user = user[0];
   } catch (error) {
-    res.status(500).json({ error: 'Error al obtener usuarios' });
+    return res.status(500).json({ error: 'Error al obtener usuario' });
   }
 
+  // Comprueba si la contraseña es correcta
   const compare = await bcrypt.compare(password, user.password);
   if (!compare) return res.status(400).json({ message: 'Usuario o contraseña incorrecta' });
 
   res.json({ message: 'Login exitoso', user });
+};
+
+const register = async (req, res) => {
+  const { email, username, password } = req.body;
+
+  // if (password) req.body.password = "[REDACTED]"; esto es si se guarda el body
+
+  if (!username || !password || !email) {
+    return res.status(400).json({ message: 'Nombre de usuario, contraseña o email faltante' });
+  }
+
+  // Comprueba si el nombre de usuario o email ya existen
+  try {
+    [existingUsername] = await db.query('SELECT * FROM user WHERE username = ?;', [username]);
+    if (existingUsername.length !== 0) return res.status(400).json({ message: 'El nombre de usuario ya está registrado' });
+  } catch (error) {
+    return res.status(500).json({ error: 'Error al comprobar nombre de usuario' });
+  }
+
+  try {
+    [existingMail] = await db.query('SELECT * FROM user WHERE email = ?;', [email]);
+    if (existingMail.length !== 0) return res.status(400).json({ message: 'El email ya está registrado' });
+  } catch (error) {
+    return res.status(500).json({ error: 'Error al comprobar email' });
+  }
+
+  // Prepara campos para la creación del usuario
+  const hashedPassword = await bcrypt.hash(password, 10);
+  const penaltyDate = new Date("2000-01-01");
+  const dvh = 0 // No existe el cálculo todavía, por ahora es un valor de prueba
+
+  let user;
+
+  // Crea el usuario en la base de datos
+  try {
+    user = await db.query('INSERT INTO user (role_id, username, email, password, picture, configuration, penalty_date, eliminated, dvh) VALUES (1, ?, ?, ?, "prueba.png", "{}", ?, 0, ?);',
+      [username, email, hashedPassword, penaltyDate, dvh]);
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ error: 'Error al crear usuario' });
+  }
+
+  res.json({ message: 'Registro exitoso', user });
 };
 
 const getUsers = async (req, res) => {
@@ -56,6 +101,7 @@ const deleteUser = async (req, res) => {
 
 module.exports = {
   login,
+  register,
   getUsers,
   deleteUser
 };

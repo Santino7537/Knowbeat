@@ -1,6 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const { login, getUsers, deleteUser } = require('./controllers/userController');
+const { login, register, getUsers, deleteUser } = require('./controllers/userController');
 const isAdmin = require('./middlewares/isAdmin');
 
 const server = express();
@@ -33,6 +33,7 @@ server.get('/', (req, res) => {
 });
 
 server.post('/login', login)
+server.post('/register', register)
 
 server.get('/users', getUsers);
 
