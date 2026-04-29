@@ -1,9 +1,11 @@
 const express = require('express');
 const cors = require('cors');
-const { getUsers } = require('./controllers/userController');
+const { getUsers, deleteUser } = require('./controllers/userController');
+const isAdmin = require('./middlewares/isAdmin');
 
 const server = express();
 const PORT = 3000;
+
 const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:3000'
@@ -32,6 +34,10 @@ server.get('/', (req, res) => {
 
 server.get('/users', getUsers);
 
+// DELETE /users/:id (Momentaneo)
+// En HEADERS x-user-id: 1 (para testing, se tiene que cambiar despues)
+
+server.delete('/delUsers/:id', isAdmin, deleteUser);
 
 server.listen(PORT, async () => {
     console.log('La API está corriendo en el puerto ', PORT);
