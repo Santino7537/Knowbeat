@@ -2,28 +2,23 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "./CSS/AdminView.css";
 
-// 🔌 AXIOS CONFIG
-const api = axios.create({
-  baseURL: "http://localhost:3000",
-  headers: {
-    "Content-Type": "application/json",
-    "x-user-id": 1, // ⚠️ asegurate que este usuario sea admin (role_id = 2)
-  },
-});
-
 export default function AdminView() {
   const [tab, setTab] = useState("users");
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // 📥 traer usuarios (único endpoint real que tenés)
   useEffect(() => {
     fetchUsers();
   }, []);
 
   const fetchUsers = async () => {
+    const token = localStorage.getItem("token");
     try {
-      const res = await api.get("/users"); // ⚠️ ajustá si tu ruta real es distinta
+      const res = await axios.get("http://localhost:3000/users", {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
       setUsers(res.data);
     } catch (err) {
       console.error("Error cargando usuarios:", err);
@@ -32,10 +27,14 @@ export default function AdminView() {
     }
   };
 
-  // 🗑 eliminar usuario
   const deleteUser = async (id) => {
+    const token = localStorage.getItem("token");
     try {
-      await api.delete(`/delUsers/${id}`);
+      await axios.delete(`http://localhost:3000/delUsers/${id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
       fetchUsers();
     } catch (err) {
       console.error("Error eliminando usuario:", err);
