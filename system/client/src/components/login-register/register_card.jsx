@@ -62,18 +62,18 @@ function Register_card({ switchToLogin }){
         <section className={styles.section}>
             <h2>Registrate</h2>
             <form className={styles.form}>
-            <label htmlFor="email">Correo electrónico</label>
-            <input type="email" id="email" className={styles.input} placeholder="ejemplo@mail.com" onChange={(event) => setEmail(event.target.value)} />
-            <label htmlFor="usuario">Usuario</label>
-            <input type="text" id="usuario" className={styles.input} placeholder="Nombre de usuario" onChange={(event) => setUsername(event.target.value)} />
-            <label htmlFor="contraseña">Contraseña</label>
-            <input type="password" id="contraseña" className={styles.input} onChange={(event) => setPassword(event.target.value)} />
-            <div className={styles.password_strength} style={{ color: getColor(strength) }}>
-                {getLabel(strength)}
-            </div>
-            <button type="button" className={styles.button} onClick={() => fetchRegister()}>
-                Registrarse
-            </button>
+                <label htmlFor="email">Correo electrónico</label>
+                <input type="email" id="email" className={styles.input} placeholder="ejemplo@mail.com" onChange={(event) => setEmail(event.target.value)} />
+                <label htmlFor="usuario">Usuario</label>
+                <input type="text" id="usuario" className={styles.input} placeholder="Nombre de usuario" onChange={(event) => setUsername(event.target.value)} />
+                <label htmlFor="contraseña">Contraseña</label>
+                <input type="password" id="contraseña" className={styles.input} onChange={(event) => setPassword(event.target.value)} />
+                <div className={styles.password_strength} style={{ color: getColor(strength) }}>
+                    {getLabel(strength)}
+                </div>
+                <button type="button" className={styles.button} onClick={() => fetchRegister()}>
+                    Registrarse
+                </button>
             </form>
         </section>
         </div>

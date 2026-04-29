@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import Register_card from './register_card';
 import styles from './form_card.module.css'
+import axios from 'axios'
 
 function Login_card({ onLoginSuccess }){
     const [showRegister, setShowRegister] = useState(false);
@@ -31,7 +32,7 @@ function Login_card({ onLoginSuccess }){
         <div className={styles.card}>
             <section className={styles.section} id={styles.main_section}>
                 <h2>Iniciar Sesión</h2>
-                <form action="" className={styles.form}>
+                <form className={styles.form} onSubmit={fetchLogin}>
                     <label htmlFor="username">Nombre de usuario</label>
                     <input type="text" id='username' className={styles.input} onChange={(event) => setUsername(event.target.value)}/>
                     <label htmlFor="password">Contraseña</label>
