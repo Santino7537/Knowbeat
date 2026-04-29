@@ -6,11 +6,11 @@ import { useNavigate } from "react-router-dom";
 
 function Login(){
     const [showLogin, setShowLogin] = useState(true);
-    // const navigate = useNavigate();
+    const navigate = useNavigate();
 
     function handleLoginSuccess(token) {
         localStorage.setItem("token", token);
-        // navigate("/"); // redirige a la página principal
+        navigate("/"); // redirige a la página principal
     }
 
     return(
