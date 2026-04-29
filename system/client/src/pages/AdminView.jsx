@@ -1,188 +1,187 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 import "./CSS/AdminView.css";
 
-const reportsData = [
-  {
-    id: 1,
-    reason: "Contenido inapropiado",
-    reporter: "Ana López",
-    reported: "Usuario123",
-    description: "Publicó contenido no relacionado con música",
-    date: "Hace 2 horas",
-    status: "pending",
-    type: "Usuario",
+// 🔌 AXIOS CONFIG
+const api = axios.create({
+  baseURL: "http://localhost:3000",
+  headers: {
+    "Content-Type": "application/json",
+    "x-user-id": 1, // ⚠️ asegurate que este usuario sea admin (role_id = 2)
   },
-  {
-    id: 2,
-    reason: "Spam",
-    reporter: "Carlos Méndez",
-    reported: "Publicación #542",
-    description: "Promoción repetida",
-    date: "Hace 5 horas",
-    status: "pending",
-    type: "Publicación",
-  },
-];
-
-const usersData = [
-  {
-    id: 1,
-    name: "Ana López",
-    username: "@ana_piano",
-    role: "Usuario",
-    status: "active",
-    joined: "Enero 2025",
-  },
-  {
-    id: 2,
-    name: "Carlos Méndez",
-    username: "@carlos_guitar",
-    role: "Moderador",
-    status: "active",
-    joined: "Diciembre 2024",
-  },
-  {
-    id: 3,
-    name: "Usuario123",
-    username: "@user123",
-    role: "Usuario",
-    status: "penalized",
-    joined: "Marzo 2025",
-  },
-];
+});
 
 export default function AdminView() {
-  const [tab, setTab] = useState("reports");
+  const [tab, setTab] = useState("users");
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // 📥 traer usuarios (único endpoint real que tenés)
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const fetchUsers = async () => {
+    try {
+      const res = await api.get("/users"); // ⚠️ ajustá si tu ruta real es distinta
+      setUsers(res.data);
+    } catch (err) {
+      console.error("Error cargando usuarios:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 🗑 eliminar usuario
+  const deleteUser = async (id) => {
+    try {
+      await api.delete(`/delUsers/${id}`);
+      fetchUsers();
+    } catch (err) {
+      console.error("Error eliminando usuario:", err);
+    }
+  };
+
+  // funciones desactivadas (porque no existen endpoints todavía)
+  const disabledAction = () => {
+    alert("Esta función todavía no está disponible");
+  };
+
+  if (loading) return <p className="admin">Cargando...</p>;
 
   return (
     <div className="admin">
       <h1>Panel de Administración</h1>
       <p className="subtitle">
-        Gestiona reportes, usuarios y moderación
+        Gestiona usuarios, reportes y anuncios
       </p>
 
       {/* STATS */}
       <div className="stats">
         <div className="card">
-          <p>Reportes Pendientes</p>
-          <h2>12</h2>
+          <p>Total usuarios</p>
+          <h2>{users.length}</h2>
         </div>
         <div className="card">
-          <p>Usuarios Activos</p>
-          <h2>1247</h2>
+          <p>Reportes</p>
+          <h2>—</h2>
         </div>
         <div className="card">
-          <p>Usuarios Penalizados</p>
-          <h2>8</h2>
+          <p>Penalizaciones</p>
+          <h2>—</h2>
         </div>
         <div className="card">
-          <p>Reportes Resueltos</p>
-          <h2>156</h2>
+          <p>Anuncios</p>
+          <h2>—</h2>
         </div>
       </div>
 
       {/* TABS */}
       <div className="tabs">
-        <button onClick={() => setTab("reports")} className={tab === "reports" ? "active" : ""}>
+        <button
+          onClick={() => setTab("reports")}
+          className={tab === "reports" ? "active" : ""}
+        >
           Reportes
         </button>
-        <button onClick={() => setTab("users")} className={tab === "users" ? "active" : ""}>
+        <button
+          onClick={() => setTab("users")}
+          className={tab === "users" ? "active" : ""}
+        >
           Usuarios
         </button>
-        <button onClick={() => setTab("announcements")} className={tab === "announcements" ? "active" : ""}>
+        <button
+          onClick={() => setTab("announcements")}
+          className={tab === "announcements" ? "active" : ""}
+        >
           Anuncios
         </button>
       </div>
 
-      {/* REPORTES */}
+      {/* REPORTES (UI SOLAMENTE) */}
       {tab === "reports" && (
         <div className="section">
-          {reportsData.map((r) => (
-            <div key={r.id} className="report-card">
-              <div className="report-header">
-                <div>
-                  <h3>{r.reason}</h3>
-                  <p className="meta">
-                    Reportado por <b>{r.reporter}</b> · {r.date}
-                  </p>
-                </div>
+          <div className="report-card">
+            <h3>Sección en desarrollo</h3>
+            <p className="meta">
+              Los reportes estarán disponibles cuando el backend esté listo
+            </p>
 
-                <div className="badges">
-                  <span className={r.status === "pending" ? "badge pending" : "badge done"}>
-                    {r.status === "pending" ? "Pendiente" : "Resuelto"}
-                  </span>
-                  <span className="badge outline">{r.type}</span>
-                </div>
-              </div>
-
-              <p><b>Objetivo:</b> {r.reported}</p>
-              <p className="desc">{r.description}</p>
-
-              {r.status === "pending" && (
-                <div className="actions">
-                  <button>Ver</button>
-                  <button className="danger">Penalizar</button>
-                  <button>Resolver</button>
-                </div>
-              )}
+            <div className="actions">
+              <button onClick={disabledAction}>Ver</button>
+              <button className="danger" onClick={disabledAction}>
+                Penalizar
+              </button>
+              <button onClick={disabledAction}>
+                Resolver
+              </button>
             </div>
-          ))}
+          </div>
         </div>
       )}
 
-      {/* USERS */}
+      {/* USERS (FUNCIONAL) */}
       {tab === "users" && (
         <div className="section">
           <div className="header">
             <h2>Gestión de Usuarios</h2>
-            <button className="primary">Crear Anuncio</button>
           </div>
 
-          {usersData.map((u) => (
+          {users.map((u) => (
             <div key={u.id} className="user-card">
               <div className="user-info">
                 <div className="avatar">
-                  {u.name.split(" ").map(n => n[0]).join("")}
+                  {u.username?.[0]?.toUpperCase()}
                 </div>
 
                 <div>
                   <div className="user-name">
-                    {u.name}
-                    <span className="badge outline">{u.role}</span>
-                    {u.status === "penalized" && (
-                      <span className="badge danger">Penalizado</span>
-                    )}
+                    {u.username}
+                    <span className="badge outline">
+                      Rol: {u.role_id}
+                    </span>
                   </div>
 
-                  <p className="meta">
-                    {u.username} · Se unió en {u.joined}
-                  </p>
+                  <p className="meta">{u.email}</p>
                 </div>
               </div>
 
               <div className="actions">
-                <button>Ver Perfil</button>
-                <button>Asignar Rol</button>
-                {u.status === "active" ? (
-                  <button className="danger">Penalizar</button>
-                ) : (
-                  <button>Quitar Penalización</button>
-                )}
+                <button
+                  className="danger"
+                  onClick={() => deleteUser(u.id)}
+                >
+                  Eliminar
+                </button>
               </div>
             </div>
           ))}
         </div>
       )}
 
-      {/* ANUNCIOS */}
+      {/* ANUNCIOS (UI SOLAMENTE) */}
       {tab === "announcements" && (
         <div className="section">
           <h2>Crear Anuncio</h2>
 
-          <input placeholder="Título..." className="input" />
-          <textarea placeholder="Mensaje..." className="input" />
+          <input
+            placeholder="Título..."
+            className="input"
+            disabled
+          />
 
-          <button className="primary">Enviar</button>
+          <textarea
+            placeholder="Mensaje..."
+            className="input"
+            disabled
+          />
+
+          <button
+            className="primary"
+            onClick={disabledAction}
+          >
+            Enviar
+          </button>
         </div>
       )}
     </div>
