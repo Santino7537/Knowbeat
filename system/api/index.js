@@ -1,10 +1,12 @@
+require('dotenv').config(); // Carga las variables de entorno desde el archivo .env
+
 const express = require('express');
 const cors = require('cors');
 const { login, register, getUsers, deleteUser } = require('./controllers/userController');
 const isAdmin = require('./middlewares/isAdmin');
 
 const server = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000
 
 const allowedOrigins = [
   'http://localhost:5173',
