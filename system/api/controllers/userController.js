@@ -1,5 +1,8 @@
 const db = require('../config/db');
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+
+const SECRET = process.env.SECRET;
 
 const login = async (req, res) => {
   const { username, password } = req.body;
@@ -25,7 +28,8 @@ const login = async (req, res) => {
   const compare = await bcrypt.compare(password, user.password);
   if (!compare) return res.status(400).json({ message: 'Usuario o contraseña incorrecta' });
 
-  res.json({ message: 'Login exitoso', user });
+  const token = jwt.sign({ user_id: user.id }, SECRET, { expiresIn: '8h' });
+  res.json({ message: 'Logueo exitoso!', token });
 };
 
 const register = async (req, res) => {
