@@ -5,7 +5,7 @@ import styles from './form_card.module.css'
 function Login_card({ onLoginSuccess }){
     const [showRegister, setShowRegister] = useState(false);
     const [password, setPassword] = useState("");
-    const [username, setEmail] = useState("");
+    const [username, setUsername] = useState("");
 
     if (showRegister) {
         return <Register_card switchToLogin={() => setShowRegister(false)} />;
@@ -32,8 +32,8 @@ function Login_card({ onLoginSuccess }){
             <section className={styles.section} id={styles.main_section}>
                 <h2>Iniciar Sesión</h2>
                 <form action="" className={styles.form}>
-                    <label htmlFor="email">Email</label>
-                    <input type="text" id='email' className={styles.input} onChange={(event) => setEmail(event.target.value)}/>
+                    <label htmlFor="username">Nombre de usuario</label>
+                    <input type="text" id='username' className={styles.input} onChange={(event) => setUsername(event.target.value)}/>
                     <label htmlFor="password">Contraseña</label>
                     <input type="password" id='password' className={styles.input} onChange={(event) => setPassword(event.target.value)}/>
                     <div className={styles.forgot_password}>
