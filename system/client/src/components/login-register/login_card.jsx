@@ -2,14 +2,9 @@ import { useState } from 'react';
 import Register_card from './register_card';
 import styles from './form_card.module.css'
 
-function Login_card({ onLoginSuccess }){
-    const [showRegister, setShowRegister] = useState(false);
+function Login_card({ onLoginSuccess ,  switchToRegister }){
     const [password, setPassword] = useState("");
     const [username, setUsername] = useState("");
-
-    if (showRegister) {
-        return <Register_card switchToLogin={() => setShowRegister(false)} />;
-    }
 
     async function fetchLogin(event) {
         event.preventDefault(); // evita recargar la página
@@ -31,7 +26,7 @@ function Login_card({ onLoginSuccess }){
         <div className={styles.card}>
             <section className={styles.section} id={styles.main_section}>
                 <h2>Iniciar Sesión</h2>
-                <form action="" className={styles.form}>
+                <form action="" className={styles.form} onSubmit={ fetchLogin }>
                     <label htmlFor="username">Nombre de usuario</label>
                     <input type="text" id='username' className={styles.input} onChange={(event) => setUsername(event.target.value)}/>
                     <label htmlFor="password">Contraseña</label>
@@ -39,13 +34,13 @@ function Login_card({ onLoginSuccess }){
                     <div className={styles.forgot_password}>
                         <a href="#">Olvidé mi contraseña</a>
                     </div>
-                    <button type='submit' className={styles.button}>Iniciar Sesión</button>
+                    <button type='submit' className={styles.button} onClick={() => fetchLogin()}>Iniciar Sesión</button>
                 </form>
             </section>
             <section className={styles.section} id={styles.change_section}>
                 <h2>¿No tiene cuenta?</h2>
                 <p>Registrese aquí</p>
-                <button className={styles.button} onClick={() => setShowRegister(true)}>Registrarse</button>
+                <button className={styles.button} onClick={ switchToRegister }>Registrarse</button>
             </section>
         </div>
     )

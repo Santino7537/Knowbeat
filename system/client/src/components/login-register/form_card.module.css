@@ -1,6 +1,6 @@
 .card{
-    width: 48%;
-    height: 26rem;
+    width: 100%;
+    height: 100%;
     border-radius: 10px;
     background-color: rgb(230, 230, 230);
     overflow: hidden;
@@ -58,7 +58,7 @@
 }
 
 .forgot_password a {
-  color: #bdc3c7;
+  color: #85898b;
   text-decoration: none;
   font-size: 0.9rem;
 }
