@@ -2,7 +2,10 @@ require('dotenv').config(); // Carga las variables de entorno desde el archivo .
 
 const express = require('express');
 const cors = require('cors');
-const { login, register, getUsers, deleteUser } = require('./controllers/userController');
+
+const { login, register, getUsers } = require('./controllers/userController');
+const { changeRole, deleteUser} = require('./controllers/adminController');
+
 const isAdmin = require('./middlewares/isAdmin');
 const checkToken = require('./middlewares/checkToken');
 
@@ -25,7 +28,7 @@ server.use(cors({ // No permite solicitudes de otros orígenes que no estén en 
       callback(new Error('No permitido por CORS'));
     }
   },
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'x-user-id'],
   credentials: true
 }));
@@ -40,10 +43,9 @@ server.post('/register', register);
 
 server.get('/users', checkToken, getUsers);
 
-// DELETE /users/:id (Momentaneo)
-// En HEADERS x-user-id: 1 (para testing, se tiene que cambiar despues)
+server.patch('/changeRole/:id', checkToken, isAdmin, changeRole )
 
-server.delete('/delUsers/:id', checkToken, isAdmin, deleteUser);
+server.patch('/delUsers/:id', checkToken, isAdmin, deleteUser);
 
 server.listen(PORT, async () => {
     console.log('La API está corriendo en el puerto ', PORT);

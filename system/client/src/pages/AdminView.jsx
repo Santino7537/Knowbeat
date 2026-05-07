@@ -30,11 +30,15 @@ export default function AdminView() {
   const deleteUser = async (id) => {
     const token = localStorage.getItem("token");
     try {
-      await axios.delete(`http://localhost:3000/delUsers/${id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
+      await axios.patch(
+        `http://localhost:3000/delUsers/${id}`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
       });
+      
       fetchUsers();
     } catch (err) {
       console.error("Error eliminando usuario:", err);
