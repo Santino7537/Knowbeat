@@ -4,7 +4,7 @@ import styles from "./css/login_register.module.css";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-function Login(){
+function Login_register(){
     const [showLogin, setShowLogin] = useState(true);
     // const navigate = useNavigate();
 
@@ -30,4 +30,4 @@ function Login(){
     )
 }
 
-export default Login
+export default Login_register
