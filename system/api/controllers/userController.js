@@ -4,6 +4,8 @@ const jwt = require('jsonwebtoken');
 
 const SECRET = process.env.SECRET;
 
+
+
 const login = async (req, res) => {
   const { username, password } = req.body;
 
@@ -33,7 +35,38 @@ const login = async (req, res) => {
 };
 
 const register = async (req, res) => {
+
   const { email, username, password } = req.body;
+    
+  // Detectamos el idioma desde el header antes del INSERT
+  const langHeader = req.headers['accept-language'] || 'es';
+  const detectedLang = langHeader.startsWith('en') ? 'en-US' : 'es-AR';
+
+  // Se crea el JSON que contiene la configuración del usuario:
+  const config_json = JSON.stringify({
+    privacidad: {
+      cuenta_privada: false,
+      visibilidad_progreso: "todos",
+      mensajeria_restringida: false,
+      mostrar_actividad: true
+    },
+    preferencia: {
+      notacion: "americana",
+      ejercicios_microfono: true,
+      ejercicios_escucha: true,
+      notificaciones: {
+        recordatorio_racha: true,
+        emails: true,
+        menciones: true,
+        likes: true,
+        avisos_comunidad: true
+      }
+    },
+    apariencia: {
+      idioma: detectedLang,
+      modo_oscuro: true
+    }
+   });
 
   // if (password) req.body.password = "[REDACTED]"; esto es si se guarda el body
 
@@ -43,14 +76,14 @@ const register = async (req, res) => {
 
   // Comprueba si el nombre de usuario o email ya existen
   try {
-    [existingUsername] = await db.query('SELECT * FROM user WHERE username = ?;', [username]);
+    const [existingUsername] = await db.query('SELECT id FROM user WHERE username = ?;', [username]);
     if (existingUsername.length !== 0) return res.status(400).json({ message: 'El nombre de usuario ya está registrado' });
   } catch (error) {
     return res.status(500).json({ error: 'Error al comprobar nombre de usuario' });
   }
 
   try {
-    [existingMail] = await db.query('SELECT * FROM user WHERE email = ?;', [email]);
+    [existingMail] = await db.query('SELECT id FROM user WHERE email = ?;', [email]);
     if (existingMail.length !== 0) return res.status(400).json({ message: 'El email ya está registrado' });
   } catch (error) {
     return res.status(500).json({ error: 'Error al comprobar email' });
@@ -65,8 +98,8 @@ const register = async (req, res) => {
 
   // Crea el usuario en la base de datos
   try {
-    user = await db.query('INSERT INTO user (role_id, username, email, password, picture, configuration, penalty_date, eliminated, dvh) VALUES (1, ?, ?, ?, "prueba.png", "{}", ?, 0, ?);',
-      [username, email, hashedPassword, penaltyDate, dvh]);
+    user = await db.query('INSERT INTO user (role_id, username, email, password, picture, configuration, penalty_date, eliminated, dvh) VALUES (1, ?, ?, ?, "prueba.png", ?, ?, 0, ?);',
+      [username, email, hashedPassword, config_json, penaltyDate, dvh]);
   } catch (error) {
     console.log(error);
     return res.status(500).json({ error: 'Error al crear usuario' });
