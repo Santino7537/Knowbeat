@@ -121,8 +121,137 @@ const getUsers = async (req, res) => {
 
 };
 
+const changeConfig = async (req, res) => {
+
+  function iterate(obj, path = "") {
+
+    // Detecta como se llama el campo, y el contenido que tiene
+    for (const [reg, value] of Object.entries(obj)) {
+
+      // Va formando el campo "preferencias.notificaciones.etc"
+      const newPath = path ? `${path}.${reg}` : reg;
+
+      // Si encuentra otro objeto, sigue recorriendo
+      if (
+        typeof(value) == 'object' &&
+        value !== null &&
+        !Array.isArray(value)
+      ) {
+
+        return iterate(value, newPath);
+
+      } else {
+
+        return {
+          // Devuelve el path completo y el valor final
+          type: newPath,
+          content: value
+        };
+
+      }
+    }
+  }
+
+  const userId = req.params.id;
+
+  // req.body devuelve un obj de los cambios que se efectuaron
+  const result = iterate(req.body);
+
+  // Si no encontró nada válido
+  if (!result) {
+    return res.status(400).json({
+      error: 'Configuración inválida'
+    });
+  }
+
+  const configType = result.type;
+  const configValue = result.content;
+
+  /* =========================
+     SEGURIDAD
+     ========================= */
+
+  // Configuraciones permitidas
+  const allowedConfigs = {
+
+    // PRIVACIDAD
+    'privacidad.cuenta_privada': 'boolean',
+    'privacidad.visibilidad_progreso': 'string',
+    'privacidad.mensajeria_restringida': 'boolean',
+    'privacidad.mostrar_actividad': 'boolean',
+
+    // PREFERENCIAS
+    'preferencia.notacion': 'string',
+    'preferencia.ejercicios_microfono': 'boolean',
+    'preferencia.ejercicios_escucha': 'boolean',
+
+    // NOTIFICACIONES
+    'preferencia.notificaciones.recordatorio_racha': 'boolean',
+    'preferencia.notificaciones.emails': 'boolean',
+    'preferencia.notificaciones.menciones': 'boolean',
+    'preferencia.notificaciones.likes': 'boolean',
+    'preferencia.notificaciones.avisos_comunidad': 'boolean',
+
+    // APARIENCIA
+    'apariencia.idioma': 'string',
+    'apariencia.modo_oscuro': 'boolean'
+
+  };
+
+  // Verifica que la config exista
+  if (!(configType in allowedConfigs)) {
+
+    return res.status(400).json({
+      error: 'Configuración no permitida'
+    });
+
+  }
+
+  // Verifica tipo de dato
+  if (typeof(configValue) !== allowedConfigs[configType]) {
+
+    return res.status(400).json({
+      error: 'Tipo de dato inválido'
+    });
+
+  }
+
+
+  try {
+
+    const sqlPath = `$.${configType}`;
+
+    const [resultDB] = await db.query(
+      'UPDATE user SET configuration = JSON_SET(configuration, ?, ?) WHERE id = ?',
+      [sqlPath, configValue, userId]
+    );
+
+    if (resultDB.affectedRows === 0) {
+
+      return res.status(404).json({
+        error: 'Usuario no encontrado'
+      });
+
+    }
+
+    res.json({
+      message: 'Se cambió la configuración exitosamente'
+    });
+
+  } catch (error) {
+
+    console.error(error);
+
+    res.status(500).json({
+      error: 'Error al cambiar la configuración del usuario'
+    });
+
+  }
+};
+
 module.exports = {
   login,
   register,
   getUsers,
+  changeConfig,
 };

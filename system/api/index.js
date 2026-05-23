@@ -3,7 +3,7 @@ require('dotenv').config(); // Carga las variables de entorno desde el archivo .
 const express = require('express');
 const cors = require('cors');
 
-const { login, register, getUsers } = require('./controllers/userController');
+const { login, register, getUsers, changeConfig } = require('./controllers/userController');
 const { changeRole, deleteUser} = require('./controllers/adminController');
 
 const isAdmin = require('./middlewares/isAdmin');
@@ -38,13 +38,14 @@ server.get('/', (req, res) => {
     res.status(200).send('Bienvenido a la API de Knowbeat!');
 });
 
+// Users
+server.get('/users', checkToken, getUsers);
 server.post('/login', login);
 server.post('/register', register);
+server.patch('/changeConfig', checkToken, changeConfig)
 
-server.get('/users', checkToken, getUsers);
-
+//Admins
 server.patch('/changeRole/:id', checkToken, isAdmin, changeRole )
-
 server.patch('/delUsers/:id', checkToken, isAdmin, deleteUser);
 
 server.listen(PORT, async () => {
