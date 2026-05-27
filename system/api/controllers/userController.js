@@ -1,6 +1,7 @@
 const db = require('../config/db');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const { ComputeDVHFromObject } = require('../utils/dvhHelpers');
 
 const SECRET = process.env.SECRET;
 
@@ -35,6 +36,10 @@ const login = async (req, res) => {
 const register = async (req, res) => {
 
   const { email, username, password } = req.body;
+
+  if (!username || !password || !email) {
+    return res.status(400).json({ message: 'Nombre de usuario, contraseña o email faltante' });
+  }
     
   // Detectamos el idioma desde el header antes del INSERT
   const langHeader = req.headers['accept-language'] || 'es';
@@ -68,10 +73,6 @@ const register = async (req, res) => {
 
   // if (password) req.body.password = "[REDACTED]"; esto es si se guarda el body
 
-  if (!username || !password || !email) {
-    return res.status(400).json({ message: 'Nombre de usuario, contraseña o email faltante' });
-  }
-
   // Comprueba si el nombre de usuario o email ya existen
   try {
     const [existingUsername] = await db.query('SELECT id FROM user WHERE username = ?;', [username]);
@@ -90,14 +91,24 @@ const register = async (req, res) => {
   // Prepara campos para la creación del usuario
   const hashedPassword = await bcrypt.hash(password, 10);
   const penaltyDate = new Date("2000-01-01");
-  const dvh = 0 // No existe el cálculo todavía, por ahora es un valor de prueba
 
-  let user;
+  let userPayload = {
+    role_id: 1,
+    username,
+    email,
+    password: hashedPassword,
+    picture: "prueba.png",
+    configuration: config_json,
+    penalty_date: penaltyDate,
+    eliminated: 0
+  };
+
+  userPayload.dvh = ComputeDVHFromObject(userPayload);
 
   // Crea el usuario en la base de datos
   try {
-    user = await db.query('INSERT INTO user (role_id, username, email, password, picture, configuration, penalty_date, eliminated, dvh) VALUES (1, ?, ?, ?, "prueba.png", ?, ?, 0, ?);',
-      [username, email, hashedPassword, config_json, penaltyDate, dvh]);
+    user = await db.query('INSERT INTO user (role_id, username, email, password, picture, configuration, penalty_date, eliminated, dvh) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);',
+      Object.values(userPayload));
   } catch (error) {
     console.log(error);
     return res.status(500).json({ error: 'Error al crear usuario' });
