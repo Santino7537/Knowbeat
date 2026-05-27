@@ -4,8 +4,6 @@ const jwt = require('jsonwebtoken');
 
 const SECRET = process.env.SECRET;
 
-
-
 const login = async (req, res) => {
   const { username, password } = req.body;
 
