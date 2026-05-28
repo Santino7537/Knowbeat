@@ -1,4 +1,5 @@
 import AdminView from './pages/AdminView.jsx'
+import Settings from './pages/Settings.jsx'
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useState } from 'react'
 import Login from './pages/login_register.jsx'
@@ -10,10 +11,11 @@ function App() {
     <>
       <Routes>
         {/* Rutas públicas */}
-        <Route path="/" element={<Login />} />
+        <Route path="/register" element={<Login />} />
+        <Route path="/settings" element={<Settings />} />
 
         {/* Rutas protegidas */}
-        <Route path="/admin" element={<AdminView />} />
+        <Route path="/" element={<AdminView />} />
       </Routes>
     </>
   )
