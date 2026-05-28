@@ -1,0 +1,144 @@
+.courses-container {
+  min-height: 100vh;
+  background: #0f172a;
+  color: white;
+  padding: 40px;
+  font-family: "Inter", "Segoe UI", sans-serif;
+}
+
+/* HEADER */
+.courses-header {
+  margin-bottom: 30px;
+}
+
+.courses-header h1 {
+  font-size: 32px;
+  font-weight: 700;
+}
+
+.courses-header p {
+  color: #94a3b8;
+  margin-top: 5px;
+}
+
+/* GRID */
+.courses-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+/* CARD */
+.course-card {
+  background: rgba(30, 41, 59, 0.6);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 16px;
+  padding: 20px;
+  transition: 0.3s ease;
+}
+
+.course-card:hover {
+  transform: translateY(-5px);
+  border-color: rgba(59, 130, 246, 0.4);
+  box-shadow: 0 10px 30px rgba(37, 99, 235, 0.15);
+}
+
+/* TOP */
+.course-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.course-top h2 {
+  font-size: 18px;
+}
+
+/* BADGES */
+.badge {
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+
+.enrolled {
+  background: rgba(34, 197, 94, 0.15);
+  color: #22c55e;
+}
+
+.not-enrolled {
+  background: rgba(148, 163, 184, 0.15);
+  color: #94a3b8;
+}
+
+/* PROGRESS */
+.progress-section {
+  margin-top: 15px;
+}
+
+.progress-text {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: #cbd5e1;
+  margin-bottom: 6px;
+}
+
+.progress-bar {
+  height: 6px;
+  background: #111827;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #2563eb, #3b82f6);
+  transition: 0.4s ease;
+}
+
+/* NOT STARTED */
+.not-started {
+  margin-top: 15px;
+  font-size: 13px;
+  color: #94a3b8;
+}
+
+/* BUTTONS */
+.course-actions {
+  margin-top: 15px;
+}
+
+.btn {
+  width: 100%;
+  padding: 10px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  transition: 0.3s;
+}
+
+.primary {
+  background: #2563eb;
+  color: white;
+}
+
+.primary:hover {
+  background: #1d4ed8;
+}
+
+.secondary {
+  background: rgba(255, 255, 255, 0.06);
+  color: white;
+}
+
+.secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* LOADER */
+.loader {
+  color: #94a3b8;
+}

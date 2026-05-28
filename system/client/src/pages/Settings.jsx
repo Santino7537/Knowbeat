@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 
 import "./CSS/Settings.css";
+import Sidebar from "../components/Sidebar";
 
 const Settings = () => {
 
@@ -29,7 +30,6 @@ const Settings = () => {
   ====================================================== */
 
   const defaultSettings = {
-
     privacidad: {
       cuenta_privada: false,
       visibilidad_progreso: "todos",
@@ -38,21 +38,16 @@ const Settings = () => {
     },
 
     preferencia: {
-
       notacion: "americana",
-
       ejercicios_microfono: true,
-
       ejercicios_escucha: true,
 
       notificaciones: {
-
         recordatorio_racha: true,
         emails: true,
         menciones: true,
         likes: true,
         avisos_comunidad: true
-
       }
     },
 
@@ -73,22 +68,16 @@ const Settings = () => {
   ====================================================== */
 
   useEffect(() => {
-
-    // Si no hay usuario guardado
     if (!storedUser) {
       setLoading(false);
       return;
     }
 
-    // Si existe configuración guardada
     if (storedUser.configuration) {
-
       setSettings(storedUser.configuration);
-
     }
 
     setLoading(false);
-
   }, []);
 
   /* ======================================================
@@ -96,21 +85,11 @@ const Settings = () => {
   ====================================================== */
 
   useEffect(() => {
-
     if (settings.apariencia.modo_oscuro) {
-
-      document.body.classList.remove(
-        "light-mode"
-      );
-
+      document.body.classList.remove("light-mode");
     } else {
-
-      document.body.classList.add(
-        "light-mode"
-      );
-
+      document.body.classList.add("light-mode");
     }
-
   }, [settings]);
 
   /* ======================================================
@@ -118,9 +97,7 @@ const Settings = () => {
   ====================================================== */
 
   const updateConfig = async (body) => {
-
     try {
-
       await axios.patch(
         `http://localhost:3000/user/update/config/${userId}`,
         body,
@@ -130,92 +107,49 @@ const Settings = () => {
           }
         }
       );
-
-      console.log(
-        "Configuración actualizada"
-      );
-
     } catch (error) {
-
-      console.error(
-        "Error actualizando configuración:",
-        error
-      );
-
+      console.error("Error actualizando configuración:", error);
     }
   };
 
   /* ======================================================
-     ACTUALIZAR LOCAL STORAGE
+     LOCAL STORAGE
   ====================================================== */
 
-  const updateLocalStorageUser = (
-    updatedSettings
-  ) => {
-
+  const updateLocalStorageUser = (updatedSettings) => {
     const updatedUser = {
-
       ...storedUser,
-
       configuration: updatedSettings
-
     };
 
     localStorage.setItem(
       "user",
       JSON.stringify(updatedUser)
     );
-
   };
 
   /* ======================================================
-     TOGGLES SIMPLES
+     TOGGLES
   ====================================================== */
 
-  const handleToggle = async (
-    section,
-    key,
-    value
-  ) => {
-
+  const handleToggle = async (section, key, value) => {
     const updatedSettings = {
-
       ...settings,
-
       [section]: {
-
         ...settings[section],
-
         [key]: value
-
       }
-
     };
 
-    // Actualiza React
     setSettings(updatedSettings);
+    updateLocalStorageUser(updatedSettings);
 
-    // Actualiza localStorage
-    updateLocalStorageUser(
-      updatedSettings
-    );
-
-    // Actualiza backend
     await updateConfig({
-
       [section]: {
-
         [key]: value
-
       }
-
     });
-
   };
-
-  /* ======================================================
-     TOGGLES ANIDADOS
-  ====================================================== */
 
   const handleNestedToggle = async (
     parent,
@@ -223,50 +157,27 @@ const Settings = () => {
     key,
     value
   ) => {
-
     const updatedSettings = {
-
       ...settings,
-
       [parent]: {
-
         ...settings[parent],
-
         [section]: {
-
           ...settings[parent][section],
-
           [key]: value
-
         }
-
       }
-
     };
 
-    // Actualiza React
     setSettings(updatedSettings);
+    updateLocalStorageUser(updatedSettings);
 
-    // Actualiza localStorage
-    updateLocalStorageUser(
-      updatedSettings
-    );
-
-    // Actualiza backend
     await updateConfig({
-
       [parent]: {
-
         [section]: {
-
           [key]: value
-
         }
-
       }
-
     });
-
   };
 
   /* ======================================================
@@ -274,13 +185,11 @@ const Settings = () => {
   ====================================================== */
 
   if (loading) {
-
     return (
       <div className="settings-loading">
         <div className="loader"></div>
       </div>
     );
-
   }
 
   /* ======================================================
@@ -288,301 +197,175 @@ const Settings = () => {
   ====================================================== */
 
   return (
+    <div style={{ display: "flex" }}>
 
-    <div className="settings-page">
+      {/* SIDEBAR */}
+      <Sidebar />
 
-      <div className="settings-container">
+      {/* CONTENIDO PRINCIPAL */}
+      <div style={{ marginLeft: "240px", width: "100%" }}>
 
-        {/* =========================================
-            HEADER
-        ========================================= */}
+        <div className="settings-page">
 
-        <div className="settings-header">
+          <div className="settings-container">
 
-          <div>
+            {/* HEADER */}
+            <div className="settings-header">
+              <div>
+                <h1>Configuración</h1>
+                <p>Administrá tu cuenta y preferencias</p>
+              </div>
+            </div>
 
-            <h1>Configuración</h1>
+            {/* TABS */}
+            <div className="settings-tabs">
 
-            <p>
-              Administrá tu cuenta y preferencias
-            </p>
+              <button
+                className={activeTab === "notificaciones" ? "active" : ""}
+                onClick={() => setActiveTab("notificaciones")}
+              >
+                Notificaciones
+              </button>
+
+              <button
+                className={activeTab === "privacidad" ? "active" : ""}
+                onClick={() => setActiveTab("privacidad")}
+              >
+                Privacidad
+              </button>
+
+              <button
+                className={activeTab === "apariencia" ? "active" : ""}
+                onClick={() => setActiveTab("apariencia")}
+              >
+                Apariencia
+              </button>
+
+            </div>
+
+            {/* PRIVACIDAD */}
+            {activeTab === "privacidad" && (
+              <div className="settings-card">
+                <h2>Privacidad</h2>
+
+                <div className="setting-item">
+                  <div>
+                    <h3>Cuenta Privada</h3>
+                    <p>Solo seguidores aprobados podrán ver tu perfil</p>
+                  </div>
+
+                  <label className="switch">
+                    <input
+                      type="checkbox"
+                      checked={settings.privacidad.cuenta_privada}
+                      onChange={(e) =>
+                        handleToggle(
+                          "privacidad",
+                          "cuenta_privada",
+                          e.target.checked
+                        )
+                      }
+                    />
+                    <span className="slider"></span>
+                  </label>
+                </div>
+
+                <div className="setting-item">
+                  <div>
+                    <h3>Mostrar Actividad</h3>
+                    <p>Mostrar actividad reciente</p>
+                  </div>
+
+                  <label className="switch">
+                    <input
+                      type="checkbox"
+                      checked={settings.privacidad.mostrar_actividad}
+                      onChange={(e) =>
+                        handleToggle(
+                          "privacidad",
+                          "mostrar_actividad",
+                          e.target.checked
+                        )
+                      }
+                    />
+                    <span className="slider"></span>
+                  </label>
+                </div>
+
+              </div>
+            )}
+
+            {/* NOTIFICACIONES */}
+            {activeTab === "notificaciones" && (
+              <div className="settings-card">
+                <h2>Notificaciones</h2>
+
+                {Object.entries(settings.preferencia.notificaciones).map(
+                  ([key, value]) => (
+                    <div className="setting-item" key={key}>
+                      <div>
+                        <h3>{key.replaceAll("_", " ")}</h3>
+                      </div>
+
+                      <label className="switch">
+                        <input
+                          type="checkbox"
+                          checked={value}
+                          onChange={(e) =>
+                            handleNestedToggle(
+                              "preferencia",
+                              "notificaciones",
+                              key,
+                              e.target.checked
+                            )
+                          }
+                        />
+                        <span className="slider"></span>
+                      </label>
+                    </div>
+                  )
+                )}
+              </div>
+            )}
+
+            {/* APARIENCIA */}
+            {activeTab === "apariencia" && (
+              <div className="settings-card">
+                <h2>Apariencia</h2>
+
+                <div className="setting-item">
+                  <div>
+                    <h3>Modo Oscuro</h3>
+                    <p>Cambiá entre tema claro y oscuro</p>
+                  </div>
+
+                  <label className="switch">
+                    <input
+                      type="checkbox"
+                      checked={settings.apariencia.modo_oscuro}
+                      onChange={(e) =>
+                        handleToggle(
+                          "apariencia",
+                          "modo_oscuro",
+                          e.target.checked
+                        )
+                      }
+                    />
+                    <span className="slider"></span>
+                  </label>
+                </div>
+
+              </div>
+            )}
 
           </div>
 
         </div>
 
-        {/* =========================================
-            TABS
-        ========================================= */}
-
-        <div className="settings-tabs">
-
-          <button
-            className={
-              activeTab === "notificaciones"
-                ? "active"
-                : ""
-            }
-
-            onClick={() =>
-              setActiveTab("notificaciones")
-            }
-          >
-            Notificaciones
-          </button>
-
-          <button
-            className={
-              activeTab === "privacidad"
-                ? "active"
-                : ""
-            }
-
-            onClick={() =>
-              setActiveTab("privacidad")
-            }
-          >
-            Privacidad
-          </button>
-
-          <button
-            className={
-              activeTab === "apariencia"
-                ? "active"
-                : ""
-            }
-
-            onClick={() =>
-              setActiveTab("apariencia")
-            }
-          >
-            Apariencia
-          </button>
-
-        </div>
-
-        {/* =========================================
-            PRIVACIDAD
-        ========================================= */}
-
-        {
-          activeTab === "privacidad" && (
-
-            <div className="settings-card">
-
-              <h2>Privacidad</h2>
-
-              {/* CUENTA PRIVADA */}
-
-              <div className="setting-item">
-
-                <div>
-
-                  <h3>Cuenta Privada</h3>
-
-                  <p>
-                    Solo seguidores aprobados
-                    podrán ver tu perfil
-                  </p>
-
-                </div>
-
-                <label className="switch">
-
-                  <input
-                    type="checkbox"
-
-                    checked={
-                      settings.privacidad
-                        .cuenta_privada
-                    }
-
-                    onChange={(e) =>
-                      handleToggle(
-                        "privacidad",
-                        "cuenta_privada",
-                        e.target.checked
-                      )
-                    }
-                  />
-
-                  <span className="slider"></span>
-
-                </label>
-
-              </div>
-
-              {/* MOSTRAR ACTIVIDAD */}
-
-              <div className="setting-item">
-
-                <div>
-
-                  <h3>
-                    Mostrar Actividad
-                  </h3>
-
-                  <p>
-                    Mostrar actividad reciente
-                  </p>
-
-                </div>
-
-                <label className="switch">
-
-                  <input
-                    type="checkbox"
-
-                    checked={
-                      settings.privacidad
-                        .mostrar_actividad
-                    }
-
-                    onChange={(e) =>
-                      handleToggle(
-                        "privacidad",
-                        "mostrar_actividad",
-                        e.target.checked
-                      )
-                    }
-                  />
-
-                  <span className="slider"></span>
-
-                </label>
-
-              </div>
-
-            </div>
-
-          )
-        }
-
-        {/* =========================================
-            NOTIFICACIONES
-        ========================================= */}
-
-        {
-          activeTab === "notificaciones" && (
-
-            <div className="settings-card">
-
-              <h2>Notificaciones</h2>
-
-              {
-                Object.entries(
-                  settings.preferencia
-                    .notificaciones
-                ).map(([key, value]) => (
-
-                  <div
-                    className="setting-item"
-                    key={key}
-                  >
-
-                    <div>
-
-                      <h3>
-                        {
-                          key.replaceAll(
-                            "_",
-                            " "
-                          )
-                        }
-                      </h3>
-
-                    </div>
-
-                    <label className="switch">
-
-                      <input
-                        type="checkbox"
-
-                        checked={value}
-
-                        onChange={(e) =>
-                          handleNestedToggle(
-                            "preferencia",
-                            "notificaciones",
-                            key,
-                            e.target.checked
-                          )
-                        }
-                      />
-
-                      <span className="slider"></span>
-
-                    </label>
-
-                  </div>
-
-                ))
-              }
-
-            </div>
-
-          )
-        }
-
-        {/* =========================================
-            APARIENCIA
-        ========================================= */}
-
-        {
-          activeTab === "apariencia" && (
-
-            <div className="settings-card">
-
-              <h2>Apariencia</h2>
-
-              <div className="setting-item">
-
-                <div>
-
-                  <h3>Modo Oscuro</h3>
-
-                  <p>
-                    Cambiá entre tema claro y oscuro
-                  </p>
-
-                </div>
-
-                <label className="switch">
-
-                  <input
-                    type="checkbox"
-
-                    checked={
-                      settings.apariencia
-                        .modo_oscuro
-                    }
-
-                    onChange={(e) =>
-                      handleToggle(
-                        "apariencia",
-                        "modo_oscuro",
-                        e.target.checked
-                      )
-                    }
-                  />
-
-                  <span className="slider"></span>
-
-                </label>
-
-              </div>
-
-            </div>
-
-          )
-        }
-
       </div>
 
     </div>
-
   );
-
 };
 
 export default Settings;

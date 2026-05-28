@@ -1,6 +1,7 @@
 import AdminView from './pages/AdminView.jsx'
 import Settings from './pages/Settings.jsx'
 import Landing from './pages/Landing.jsx'
+import Courses from './pages/Courses.jsx';
 
 import {
   BrowserRouter,
@@ -57,6 +58,13 @@ function App() {
           path="/"
           element={
             <Landing />
+          }
+        />
+
+        <Route
+          path="/courses"
+          element={
+            <Courses />
           }
         />
 

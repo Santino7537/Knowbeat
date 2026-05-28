@@ -1,0 +1,64 @@
+.sidebar {
+  width: 240px;
+  height: 100vh;
+  position: fixed;
+  left: 0;
+  top: 0;
+
+  background: rgba(17, 24, 39, 0.75);
+  backdrop-filter: blur(14px);
+
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+
+  display: flex;
+  flex-direction: column;
+
+  padding: 20px;
+  font-family: "Inter", "Segoe UI", sans-serif;
+}
+
+/* BRAND */
+.sidebar-brand {
+  font-size: 20px;
+  font-weight: 700;
+  color: #ffffff;
+
+  margin-bottom: 30px;
+
+  letter-spacing: 0.5px;
+}
+
+/* NAV */
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* ITEM */
+.nav-item {
+  padding: 12px 14px;
+  border-radius: 10px;
+
+  color: #cbd5e1;
+  font-size: 14px;
+
+  cursor: pointer;
+  transition: 0.25s ease;
+
+  user-select: none;
+}
+
+/* HOVER */
+.nav-item:hover {
+  background: rgba(37, 99, 235, 0.12);
+  color: #ffffff;
+}
+
+/* ACTIVE */
+.nav-item.active {
+  background: rgba(37, 99, 235, 0.18);
+  color: #ffffff;
+
+  border-left: 2px solid #3b82f6;
+}
