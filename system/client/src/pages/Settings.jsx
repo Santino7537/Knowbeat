@@ -5,56 +5,96 @@ import "./CSS/Settings.css";
 
 const Settings = () => {
 
-  // Token JWT guardado al iniciar sesión
+  /* ======================================================
+     TOKEN Y USUARIO GUARDADO
+  ====================================================== */
+
   const token = localStorage.getItem("token");
 
-  // Usuario actual logueado
-  const user = JSON.parse(
+  const storedUser = JSON.parse(
     localStorage.getItem("user")
   );
 
-  // ID del usuario
-  const userId = user?.id;
+  const userId = storedUser?.id;
 
-  // Tab activa
+  /* ======================================================
+     TAB ACTIVA
+  ====================================================== */
+
   const [activeTab, setActiveTab] =
     useState("privacidad");
 
-  // Configuración inicial
-  // Usa la del usuario si existe
-  const [settings, setSettings] = useState(
-    user?.configuration || {
+  /* ======================================================
+     CONFIGURACIÓN
+  ====================================================== */
 
-      privacidad: {
-        cuenta_privada: false,
-        visibilidad_progreso: "todos",
-        mensajeria_restringida: false,
-        mostrar_actividad: true
-      },
+  const defaultSettings = {
 
-      preferencia: {
-        notacion: "americana",
-        ejercicios_microfono: true,
-        ejercicios_escucha: true,
+    privacidad: {
+      cuenta_privada: false,
+      visibilidad_progreso: "todos",
+      mensajeria_restringida: false,
+      mostrar_actividad: true
+    },
 
-        notificaciones: {
-          recordatorio_racha: true,
-          emails: true,
-          menciones: true,
-          likes: true,
-          avisos_comunidad: true
-        }
-      },
+    preferencia: {
 
-      apariencia: {
-        idioma: "es-AR",
-        modo_oscuro: true
+      notacion: "americana",
+
+      ejercicios_microfono: true,
+
+      ejercicios_escucha: true,
+
+      notificaciones: {
+
+        recordatorio_racha: true,
+        emails: true,
+        menciones: true,
+        likes: true,
+        avisos_comunidad: true
+
       }
+    },
+
+    apariencia: {
+      idioma: "es-AR",
+      modo_oscuro: true
+    }
+  };
+
+  const [settings, setSettings] =
+    useState(defaultSettings);
+
+  const [loading, setLoading] =
+    useState(true);
+
+  /* ======================================================
+     CARGAR CONFIGURACIÓN REAL DEL USUARIO
+  ====================================================== */
+
+  useEffect(() => {
+
+    // Si no hay usuario guardado
+    if (!storedUser) {
+      setLoading(false);
+      return;
+    }
+
+    // Si existe configuración guardada
+    if (storedUser.configuration) {
+
+      setSettings(storedUser.configuration);
 
     }
-  );
 
-  // Cambia entre modo claro y oscuro
+    setLoading(false);
+
+  }, []);
+
+  /* ======================================================
+     MODO OSCURO
+  ====================================================== */
+
   useEffect(() => {
 
     if (settings.apariencia.modo_oscuro) {
@@ -73,7 +113,10 @@ const Settings = () => {
 
   }, [settings]);
 
-  // Envía cambios al backend
+  /* ======================================================
+     ACTUALIZAR BACKEND
+  ====================================================== */
+
   const updateConfig = async (body) => {
 
     try {
@@ -94,12 +137,41 @@ const Settings = () => {
 
     } catch (error) {
 
-      console.log(error);
+      console.error(
+        "Error actualizando configuración:",
+        error
+      );
 
     }
   };
 
-  // Cambios simples
+  /* ======================================================
+     ACTUALIZAR LOCAL STORAGE
+  ====================================================== */
+
+  const updateLocalStorageUser = (
+    updatedSettings
+  ) => {
+
+    const updatedUser = {
+
+      ...storedUser,
+
+      configuration: updatedSettings
+
+    };
+
+    localStorage.setItem(
+      "user",
+      JSON.stringify(updatedUser)
+    );
+
+  };
+
+  /* ======================================================
+     TOGGLES SIMPLES
+  ====================================================== */
+
   const handleToggle = async (
     section,
     key,
@@ -111,36 +183,40 @@ const Settings = () => {
       ...settings,
 
       [section]: {
+
         ...settings[section],
 
         [key]: value
+
       }
+
     };
 
     // Actualiza React
     setSettings(updatedSettings);
 
     // Actualiza localStorage
-    const updatedUser = {
-      ...user,
-      configuration: updatedSettings
-    };
-
-    localStorage.setItem(
-      "user",
-      JSON.stringify(updatedUser)
+    updateLocalStorageUser(
+      updatedSettings
     );
 
-    // Envía al backend
+    // Actualiza backend
     await updateConfig({
+
       [section]: {
+
         [key]: value
+
       }
+
     });
 
   };
 
-  // Cambios anidados
+  /* ======================================================
+     TOGGLES ANIDADOS
+  ====================================================== */
+
   const handleNestedToggle = async (
     parent,
     section,
@@ -161,34 +237,55 @@ const Settings = () => {
           ...settings[parent][section],
 
           [key]: value
+
         }
+
       }
+
     };
 
     // Actualiza React
     setSettings(updatedSettings);
 
     // Actualiza localStorage
-    const updatedUser = {
-      ...user,
-      configuration: updatedSettings
-    };
-
-    localStorage.setItem(
-      "user",
-      JSON.stringify(updatedUser)
+    updateLocalStorageUser(
+      updatedSettings
     );
 
-    // Envía al backend
+    // Actualiza backend
     await updateConfig({
+
       [parent]: {
+
         [section]: {
+
           [key]: value
+
         }
+
       }
+
     });
 
   };
+
+  /* ======================================================
+     LOADING
+  ====================================================== */
+
+  if (loading) {
+
+    return (
+      <div className="settings-loading">
+        <div className="loader"></div>
+      </div>
+    );
+
+  }
+
+  /* ======================================================
+     RENDER
+  ====================================================== */
 
   return (
 
@@ -196,17 +293,28 @@ const Settings = () => {
 
       <div className="settings-container">
 
+        {/* =========================================
+            HEADER
+        ========================================= */}
+
         <div className="settings-header">
 
-          <h1>Configuración</h1>
+          <div>
 
-          <p>
-            Administrá tu cuenta y preferencias
-          </p>
+            <h1>Configuración</h1>
+
+            <p>
+              Administrá tu cuenta y preferencias
+            </p>
+
+          </div>
 
         </div>
 
-        {/* Tabs */}
+        {/* =========================================
+            TABS
+        ========================================= */}
+
         <div className="settings-tabs">
 
           <button
@@ -253,13 +361,18 @@ const Settings = () => {
 
         </div>
 
-        {/* PRIVACIDAD */}
+        {/* =========================================
+            PRIVACIDAD
+        ========================================= */}
+
         {
           activeTab === "privacidad" && (
 
             <div className="settings-card">
 
               <h2>Privacidad</h2>
+
+              {/* CUENTA PRIVADA */}
 
               <div className="setting-item">
 
@@ -299,11 +412,15 @@ const Settings = () => {
 
               </div>
 
+              {/* MOSTRAR ACTIVIDAD */}
+
               <div className="setting-item">
 
                 <div>
 
-                  <h3>Mostrar Actividad</h3>
+                  <h3>
+                    Mostrar Actividad
+                  </h3>
 
                   <p>
                     Mostrar actividad reciente
@@ -341,7 +458,10 @@ const Settings = () => {
           )
         }
 
-        {/* NOTIFICACIONES */}
+        {/* =========================================
+            NOTIFICACIONES
+        ========================================= */}
+
         {
           activeTab === "notificaciones" && (
 
@@ -363,7 +483,12 @@ const Settings = () => {
                     <div>
 
                       <h3>
-                        {key.replaceAll("_", " ")}
+                        {
+                          key.replaceAll(
+                            "_",
+                            " "
+                          )
+                        }
                       </h3>
 
                     </div>
@@ -399,7 +524,10 @@ const Settings = () => {
           )
         }
 
-        {/* APARIENCIA */}
+        {/* =========================================
+            APARIENCIA
+        ========================================= */}
+
         {
           activeTab === "apariencia" && (
 
@@ -454,6 +582,7 @@ const Settings = () => {
     </div>
 
   );
+
 };
 
-export default Settings;    
+export default Settings;

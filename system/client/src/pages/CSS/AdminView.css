@@ -511,3 +511,236 @@ body {
     width: 100%;
   }
 }
+
+/* TABS */
+
+.admin-tabs {
+  display: flex;
+  gap: 14px;
+  margin-bottom: 30px;
+}
+
+.tab {
+  border: none;
+  background: rgba(255,255,255,0.05);
+  color: #94a3b8;
+
+  padding: 12px 18px;
+
+  border-radius: 14px;
+
+  cursor: pointer;
+
+  transition: 0.2s;
+}
+
+.tab:hover {
+  background: rgba(59,130,246,0.15);
+  color: white;
+}
+
+.tab.active {
+  background: #2563eb;
+  color: white;
+}
+
+/* FILTER */
+
+.filter-row {
+  margin-bottom: 20px;
+}
+
+/* YOU BADGE */
+
+.you-badge {
+  background: rgba(34,197,94,0.18);
+  color: #4ade80;
+
+  padding: 7px 12px;
+
+  border-radius: 999px;
+
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* REPORTS */
+
+.report-card {
+  background: rgba(30,41,59,0.8);
+
+  border-radius: 18px;
+
+  padding: 22px;
+
+  margin-bottom: 16px;
+
+  border: 1px solid rgba(255,255,255,0.05);
+}
+
+.report-card h3 {
+  margin-bottom: 10px;
+}
+
+.report-card p {
+  color: #cbd5e1;
+  margin-bottom: 10px;
+}
+
+.report-card span {
+  color: #94a3b8;
+  font-size: 14px;
+}
+
+/* ANNOUNCEMENTS */
+
+.announcement-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.announcement-input,
+.announcement-textarea {
+  width: 100%;
+
+  background: rgba(255,255,255,0.05);
+
+  border: 1px solid rgba(255,255,255,0.08);
+
+  color: white;
+
+  border-radius: 16px;
+
+  padding: 16px;
+
+  outline: none;
+}
+
+.announcement-textarea {
+  min-height: 160px;
+  resize: vertical;
+}
+
+.publish-btn {
+  background: linear-gradient(
+    135deg,
+    #3b82f6,
+    #2563eb
+  );
+
+  border: none;
+
+  color: white;
+
+  padding: 14px 20px;
+
+  border-radius: 16px;
+
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition: 0.2s;
+}
+
+.publish-btn:hover {
+  transform: translateY(-2px);
+
+  box-shadow:
+    0 10px 30px rgba(37,99,235,0.35);
+}
+
+/* MODAL */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+
+  background: rgba(0,0,0,0.65);
+
+  backdrop-filter: blur(5px);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  z-index: 999;
+}
+
+.delete-modal {
+  width: 420px;
+
+  background: #111827;
+
+  border: 1px solid rgba(255,255,255,0.08);
+
+  border-radius: 24px;
+
+  padding: 30px;
+
+  animation: modalAppear 0.2s ease;
+}
+
+.delete-modal h2 {
+  margin-bottom: 12px;
+}
+
+.delete-modal p {
+  color: #cbd5e1;
+  line-height: 1.5;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+
+  gap: 12px;
+
+  margin-top: 28px;
+}
+
+.cancel-btn,
+.confirm-delete-btn {
+  border: none;
+
+  padding: 12px 18px;
+
+  border-radius: 14px;
+
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition: 0.2s;
+}
+
+.cancel-btn {
+  background: rgba(255,255,255,0.06);
+  color: white;
+}
+
+.cancel-btn:hover {
+  background: rgba(255,255,255,0.12);
+}
+
+.confirm-delete-btn {
+  background: rgba(239,68,68,0.18);
+  color: #f87171;
+}
+
+.confirm-delete-btn:hover {
+  background: rgba(239,68,68,0.3);
+}
+
+@keyframes modalAppear {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
