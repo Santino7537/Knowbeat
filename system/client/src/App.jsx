@@ -10,10 +10,10 @@ function App() {
     <>
       <Routes>
         {/* Rutas públicas */}
-        <Route path="/register" element={<Login />} />
+        <Route path="/" element={<Login />} />
 
         {/* Rutas protegidas */}
-        <Route path="/" element={<AdminView />} />
+        <Route path="/admin" element={<AdminView />} />
       </Routes>
     </>
   )
