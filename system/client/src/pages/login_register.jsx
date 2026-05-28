@@ -10,7 +10,7 @@ function Login(){
 
     function handleLoginSuccess(token) {
         localStorage.setItem("token", token);
-        navigate("/"); // redirige a la página principal
+        navigate("/settings"); // redirige a la página principal
     }
 
     return(
