@@ -150,7 +150,7 @@ const changeConfig = async (req, res) => {
     }
   }
 
-  const userId = req.params.id;
+  const userId = req.user.user_id;
 
   // req.body devuelve un obj de los cambios que se efectuaron
   const result = iterate(req.body);
