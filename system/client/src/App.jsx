@@ -1,16 +1,28 @@
 import AdminView from './pages/AdminView.jsx'
 import Settings from './pages/Settings.jsx'
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import Login from './pages/login_register.jsx'
-import './App.css'
+import Landing from './pages/Landing.jsx'
 
+import {
+  BrowserRouter,
+  Routes,
+  Route
+} from "react-router-dom";
+
+import Login from './pages/login_register.jsx'
+
+import './App.css'
 
 function App() {
 
   return (
+
     <>
 
       <Routes>
+
+        {/* =========================
+            ADMIN
+        ========================= */}
 
         <Route
           path="/admin"
@@ -19,27 +31,39 @@ function App() {
           }
         />
 
-        {/* ======================================
+        {/* =========================
             SETTINGS
-        ====================================== */}
+        ========================= */}
 
         <Route
           path="/settings"
           element={<Settings />}
         />
 
-        {/* ======================================
-            LOGIN
-        ====================================== */}
+        {/* =========================
+            LOGIN / REGISTER
+        ========================= */}
+
+        <Route
+          path="/Login"
+          element={<Login />}
+        />
+
+        {/* =========================
+            LANDING PAGE
+        ========================= */}
 
         <Route
           path="/"
-          element={<Login />}
+          element={
+            <Landing />
+          }
         />
 
       </Routes>
 
     </>
+
   )
 }
 
