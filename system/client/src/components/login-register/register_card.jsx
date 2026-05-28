@@ -1,36 +1,48 @@
 import { useState } from 'react'
 import styles from './form_card.module.css';
 import axios from 'axios'
-import ValidationModal from '../general/validation_modal.jsx';
+import { useFieldErrors } from "../general/use_field_error.jsx";
+import { FieldError } from "../general/field_error.jsx";
 
 function Register_card({ switchToLogin }){
     const [password, setPassword] = useState("");
     const [username, setUsername] = useState("");
     const [email, setEmail] = useState("");
-    const [missingFields, setMissingFields] = useState(null);
+    const { errors, setError, setErrors, clearError } = useFieldErrors();
 
-    function validateRegister() {
-        const missing = [];
-        if (!email.trim()) missing.push("Correo electrónico");
-        if (!username.trim()) missing.push("Usuario");
-        if (!password) missing.push("Contraseña");
-        return missing;
+    // Validación del lado del cliente — devuelve true si todo está OK
+    function validateForm() {
+        const newErrors = {};
+        if (!email.trim()) newErrors.email = "El correo electrónico es obligatorio";
+        if (!username.trim()) newErrors.username = "El nombre de usuario es obligatorio";
+        if (!password) newErrors.password = "La contraseña es obligatoria";
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
     }
 
     async function fetchRegister() {
-        const missing = validateRegister();
-        if (missing.length > 0) {
-            setMissingFields(missing);
-            return;
+        if (!validateForm()) return;
+        
+        try {
+            const response = await axios.post("http://localhost:3000/register", {
+                password, username, email,
+            });
+            console.log(response);
         }
-
-        const response = await axios.post("http://localhost:3000/register", {
-            password,
-            username,
-            email
-        })
-
-        console.log(response)
+        catch (err) {
+            // Errores del servidor → mismo sistema, distintos mensajes
+            const status = err.response?.status;
+            if (status === 409) {
+                // El servidor indica que el correo ya existe
+                setError("email", "Este correo ya está registrado");
+            } else if (status === 422) {
+                // El servidor devuelve qué campos son inválidos (ejemplo)
+                const serverErrors = err.response?.data?.errors ?? {};
+                setErrors(serverErrors); // { email: "...", username: "..." }
+            } else {
+                setError("general", "Ocurrió un error. Intentá de nuevo.");
+            }
+        }
     }
 
     function checkPasswordStrength(password) {
@@ -71,8 +83,6 @@ function Register_card({ switchToLogin }){
 
     return (
         <>
-            <ValidationModal missingFields={missingFields} onClose={() => setMissingFields(null)}/>
-
             <div className={styles.card}>
                 <section className={styles.section} id={styles.change_section}>
                     <h2>¿Ya tienes una cuenta?</h2>
@@ -84,15 +94,36 @@ function Register_card({ switchToLogin }){
                 <section className={styles.section}>
                     <h2>Registrate</h2>
                     <form className={styles.form}>
+
                     <label htmlFor="email">Correo electrónico</label>
-                    <input type="email" id="email" className={styles.input} placeholder="ejemplo@mail.com" onChange={(event) => setEmail(event.target.value)} />
+                    <input
+                        type="email" id="email"
+                        className={`${styles.input} ${errors.email ? styles.input_error : ""}`}
+                        placeholder="ejemplo@mail.com"
+                        onChange={(e) => { setEmail(e.target.value); clearError("email"); }}/>
+                    <FieldError message={errors.email}/>
+
                     <label htmlFor="usuario">Usuario</label>
-                    <input type="text" id="usuario" className={styles.input} placeholder="Nombre de usuario" onChange={(event) => setUsername(event.target.value)} />
+                    <input
+                        type="text" id="usuario"
+                        className={`${styles.input} ${errors.username ? styles.input_error : ""}`}
+                        placeholder="Nombre de usuario"
+                        onChange={(e) => { setUsername(e.target.value); clearError("username"); }}/>
+                    <FieldError message={errors.username}/>
+                    
                     <label htmlFor="contraseña">Contraseña</label>
-                    <input type="password" id="contraseña" className={styles.input} onChange={(event) => setPassword(event.target.value)} />
+                    <input
+                        type="password" id="contraseña"
+                        className={`${styles.input} ${errors.password ? styles.input_error : ""}`}
+                        onChange={(e) => { setPassword(e.target.value); clearError("password"); }}/>
+                    <FieldError message={errors.password}/>
+
                     <div className={styles.password_strength} style={{ color: getColor(strength) }}>
                         {getLabel(strength)}
                     </div>
+
+                    {errors.general && <FieldError message={errors.general} />}
+
                     <button type="button" className={styles.button} onClick={() => fetchRegister()}>
                         Registrarse
                     </button>
