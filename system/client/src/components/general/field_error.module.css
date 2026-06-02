@@ -1,0 +1,30 @@
+.input_error {
+  border-color: #ef4444 !important;
+  background: #fff8f8;
+}
+
+.field_error {
+  display: block;
+  margin-top: -6px; /* se pega al input de arriba */
+  margin-bottom: 4px;
+  font-size: 0.78rem;
+  color: #dc2626;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.field_error::before {
+  content: "!";
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #dc2626;
+  color: #fff;
+  font-size: 0.65rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}

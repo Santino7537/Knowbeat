@@ -8,7 +8,7 @@ import {
   Route
 } from "react-router-dom";
 
-import Login from './pages/login_register.jsx'
+import Login_register from './pages/login_register.jsx'
 
 import './App.css'
 
@@ -46,7 +46,7 @@ function App() {
 
         <Route
           path="/Login"
-          element={<Login />}
+          element={<Login_register/>}
         />
 
         {/* =========================

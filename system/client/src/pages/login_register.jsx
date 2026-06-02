@@ -1,10 +1,9 @@
-import Login_card from "../components/login-register/login_card.jsx"
-import Register_card from "../components/login-register/register_card.jsx";
+import FlipCard from "../components/login-register/flip_card";
 import styles from "./css/login_register.module.css";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-function Login(){
+function Login_register(){
     const [showLogin, setShowLogin] = useState(true);
     const navigate = useNavigate();
 
@@ -18,11 +17,7 @@ function Login(){
             <div className={styles.background}>
                 <div className={styles.mainContainer}>
                     <div className={styles.formContainer}>
-                        {showLogin ? (
-                            <Login_card onLoginSuccess={handleLoginSuccess}/>
-                        ) : (
-                            <Register_card />
-                        )}
+                        <FlipCard onLoginSuccess={handleLoginSuccess} />
                     </div>
                 </div>
             </div>
@@ -30,4 +25,4 @@ function Login(){
     )
 }
 
-export default Login
+export default Login_register
