@@ -3,7 +3,7 @@ import axios from "axios";
 
 import Sidebar from "../components/Sidebar";
 
-import "./CSS/Courses.css";
+import styles from "./CSS/Courses.module.css";
 
 const Courses = () => {
   const [courses, setCourses] = useState([]);

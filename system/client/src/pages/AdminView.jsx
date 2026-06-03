@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import "./CSS/AdminView.css";
+import styles from "./CSS/AdminView.module.css";
 
 export default function AdminView() {
   const [users, setUsers] = useState([]);

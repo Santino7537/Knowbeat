@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 
-import "./CSS/Settings.css";
+import styles from "./CSS/Settings.module.css";
 import Sidebar from "../components/Sidebar";
 
 const Settings = () => {
@@ -201,8 +201,8 @@ const Settings = () => {
 
   if (loading) {
     return (
-      <div className="settings-loading">
-        <div className="loader"></div>
+      <div className={styles.settings_loading}>
+        <div className={styles.loader}></div>
       </div>
     );
   }
@@ -220,12 +220,12 @@ const Settings = () => {
       {/* CONTENIDO PRINCIPAL */}
       <div style={{ marginLeft: "260px", width: "100%" }}>
 
-        <div className="settings-page">
+        <div className={styles.settings_page}>
 
-          <div className="settings-container">
+          <div className={styles.settings_container}>
 
             {/* HEADER */}
-            <div className="settings-header">
+            <div className={styles.settings_header}>
               <div>
                 <h1>Configuración</h1>
                 <p>Administrá tu cuenta y preferencias</p>
@@ -233,24 +233,24 @@ const Settings = () => {
             </div>
 
             {/* TABS */}
-            <div className="settings-tabs">
+            <div className={styles.settings_tabs}>
 
               <button
-                className={activeTab === "notificaciones" ? "active" : ""}
+                className={activeTab === styles.notificaciones ? styles.active : ""}
                 onClick={() => setActiveTab("notificaciones")}
               >
                 Notificaciones
               </button>
 
               <button
-                className={activeTab === "privacidad" ? "active" : ""}
+                className={activeTab === styles.privacidad ? styles.active : ""}
                 onClick={() => setActiveTab("privacidad")}
               >
                 Privacidad
               </button>
 
               <button
-                className={activeTab === "apariencia" ? "active" : ""}
+                className={activeTab === styles.apariencia ? styles.active : ""}
                 onClick={() => setActiveTab("apariencia")}
               >
                 Apariencia
@@ -260,16 +260,16 @@ const Settings = () => {
 
             {/* PRIVACIDAD */}
             {activeTab === "privacidad" && (
-              <div className="settings-card">
+              <div className={styles.settings_card}>
                 <h2>Privacidad</h2>
 
-                <div className="setting-item">
+                <div className={styles.setting_item}>
                   <div>
                     <h3>Cuenta Privada</h3>
                     <p>Solo seguidores aprobados podrán ver tu perfil</p>
                   </div>
 
-                  <label className="switch">
+                  <label className={styles.switch}>
                     <input
                       type="checkbox"
                       checked={settings.privacidad.cuenta_privada}
@@ -281,17 +281,17 @@ const Settings = () => {
                         )
                       }
                     />
-                    <span className="slider"></span>
+                    <span className={styles.slider}></span>
                   </label>
                 </div>
 
-                <div className="setting-item">
+                <div className={styles.setting_item}>
                   <div>
                     <h3>Mostrar Actividad</h3>
                     <p>Mostrar actividad reciente</p>
                   </div>
 
-                  <label className="switch">
+                  <label className={styles.switch}>
                     <input
                       type="checkbox"
                       checked={settings.privacidad.mostrar_actividad}
@@ -303,7 +303,7 @@ const Settings = () => {
                         )
                       }
                     />
-                    <span className="slider"></span>
+                    <span className={styles.slider}></span>
                   </label>
                 </div>
 
@@ -312,17 +312,17 @@ const Settings = () => {
 
             {/* NOTIFICACIONES */}
             {activeTab === "notificaciones" && (
-              <div className="settings-card">
+              <div className={styles.settings_card}>
                 <h2>Notificaciones</h2>
 
                 {Object.entries(settings.preferencia.notificaciones).map(
                   ([key, value]) => (
-                    <div className="setting-item" key={key}>
+                    <div className={styles.setting_item} key={key}>
                       <div>
                         <h3>{key.replaceAll("_", " ")}</h3>
                       </div>
 
-                      <label className="switch">
+                      <label className={styles.switch}>
                         <input
                           type="checkbox"
                           checked={value}
@@ -335,7 +335,7 @@ const Settings = () => {
                             )
                           }
                         />
-                        <span className="slider"></span>
+                        <span className={styles.slider}></span>
                       </label>
                     </div>
                   )
@@ -345,16 +345,16 @@ const Settings = () => {
 
             {/* APARIENCIA */}
             {activeTab === "apariencia" && (
-              <div className="settings-card">
+              <div className={styles.settings_card}>
                 <h2>Apariencia</h2>
 
-                <div className="setting-item">
+                <div className={styles.setting_item}>
                   <div>
                     <h3>Modo Oscuro</h3>
                     <p>Cambiá entre tema claro y oscuro</p>
                   </div>
 
-                  <label className="switch">
+                  <label className={styles.switch}>
                     <input
                       type="checkbox"
                       checked={settings.apariencia.modo_oscuro}
@@ -366,7 +366,7 @@ const Settings = () => {
                         )
                       }
                     />
-                    <span className="slider"></span>
+                    <span className={styles.slider}></span>
                   </label>
                 </div>
 

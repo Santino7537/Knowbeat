@@ -8,7 +8,7 @@ import {
   useNavigate
 } from "react-router-dom";
 
-import './CSS/Landing.css';
+import styles from './CSS/Landing.module.css';
 
 const Landing = () => {
 
@@ -71,29 +71,29 @@ const Landing = () => {
 
   return (
 
-    <main className="landing">
+    <main className={styles.landing}>
 
       {/* =========================
           BACKGROUND
       ========================= */}
 
-      <div className="background-elements">
+      <div className={styles.background_elements}>
 
-        <div className="glow glow-1"></div>
-        <div className="glow glow-2"></div>
-        <div className="glow glow-3"></div>
+        <div className={styles.glow, styles.glow_1}></div>
+        <div className={styles.glow, styles.glow_2}></div>
+        <div className={styles.glow, styles.glow_3}></div>
 
         {/* PARTITURA */}
 
-        <div className="music-waves">
+        <div className={styles.music_waves}>
 
           <svg
-            className="waves-svg"
+            className={styles.waves_svg}
             viewBox="0 0 2200 1800"
             preserveAspectRatio="none"
           >
 
-            <g className="staff-group">
+            <g className={styles.staff_group}>
 
               <path d="M-200 260 Q400 120 900 260 T2400 260" />
               <path d="M-200 300 Q400 160 900 300 T2400 300" />
@@ -103,9 +103,9 @@ const Landing = () => {
 
             </g>
 
-            <g className="floating-notes">
+            <g className={styles.floating_notes}>
 
-              <g className="music-note note-1">
+              <g className={styles.music_note ,styles.note_1}>
                 <ellipse cx="320" cy="280" rx="10" ry="8" />
                 <line x1="329" y1="280" x2="329" y2="200" />
               </g>
