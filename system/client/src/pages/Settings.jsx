@@ -122,7 +122,7 @@ const Settings = () => {
     try {
 
       await axios.patch(
-        `http://localhost:3000//user/update/config/${userId}`,
+        `http://localhost:3000/user/update/config/${userId}`,
         body,
         {
           headers: {
