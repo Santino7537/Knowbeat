@@ -42,7 +42,7 @@ export default function AdminView() {
 
     try {
       const res = await axios.get(
-        "http://localhost:3000/users",
+        "http://localhost:3000/user/get/users",
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -105,7 +105,7 @@ export default function AdminView() {
 
     try {
       await axios.patch(
-        `http://localhost:3000/delUsers/${id}`,
+        `http://localhost:3000/user/delete/user/${id}`,
         {},
         {
           headers: {
@@ -132,7 +132,7 @@ export default function AdminView() {
 
     try {
       await axios.patch(
-        `http://localhost:3000/changeRole/${id}`,
+        `http://localhost:3000/user/update/role/${id}`,
         {
           rol: Number(role),
         },

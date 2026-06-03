@@ -9,7 +9,7 @@ const { getCourses, getUserProgress, registerCourse, } = require('./controllers/
 
 const { PostResponseLog } = require('./middlewares/binnacleHelper');
 
-const isAdmin = require('./middlewares/isAdmin');
+const isAuth = require('./middlewares/isAuth');
 const checkToken = require('./middlewares/checkToken');
 
 const server = express();
@@ -43,20 +43,20 @@ server.get('/', (req, res) => {
 });
 
 // Users
-server.get('/users', checkToken, getUsers);
-server.post('/login', login);
 server.post('/register', register);
-server.patch('/changeConfig', checkToken, changeConfig)
+server.post('/login', login);
+server.get('/user/get/users', checkToken, isAuth, getUsers);
+server.patch('/user/update/config', checkToken, isAuth, changeConfig)
 
 //Admins
-server.patch('/changeRole/:id', checkToken, isAdmin, changeRole)
-server.patch('/delUsers/:id', checkToken, isAdmin, deleteUser);
+server.patch('/user/update/role/:id', checkToken, isAuth, changeRole)
+server.patch('/user/delete/user/:id', checkToken, isAuth, deleteUser);
 
 //Courses
-server.get('/courses', checkToken, getCourses);
-server.get('/progress', checkToken, getUserProgress);
-server.post('/registerCourse/:id', checkToken, registerCourse);
-server.patch('/user/update/profile', checkToken, changeProfile);
+server.get('/course/get/courses', checkToken, isAuth, getCourses);
+server.get('/user/get/progress', checkToken, isAuth, getUserProgress);
+server.post('/user/register/course/:id', checkToken, isAuth, registerCourse);
+server.patch('/user/update/profile', checkToken, isAuth, changeProfile);
 
 server.listen(PORT, async () => {
   console.log('La API está corriendo en el puerto ', PORT);
