@@ -16,7 +16,6 @@ const Settings = () => {
     localStorage.getItem("user")
   );
 
-  const userId = storedUser?.id;
 
   /* ======================================================
      TAB ACTIVA
@@ -92,14 +91,15 @@ const Settings = () => {
     }
   }, [settings]);
 
-  /* ======================================================
-     ACTUALIZAR BACKEND
-  ====================================================== */
 
   const updateConfig = async (body) => {
+
     try {
-      await axios.patch(
-        `http://localhost:3000/user/update/config/${userId}`,
+
+      console.log("Enviando:", body);
+
+      const response = await axios.patch(
+        "http://localhost:3000/user/update/config/",
         body,
         {
           headers: {
@@ -107,9 +107,24 @@ const Settings = () => {
           }
         }
       );
+
+      console.log(
+        "Configuración actualizada:",
+        response.data
+      );
+
     } catch (error) {
-      console.error("Error actualizando configuración:", error);
+
+      console.error(
+        "Error actualizando configuración:"
+      );
+
+      console.error(
+        error.response?.data || error
+      );
+
     }
+
   };
 
   /* ======================================================
