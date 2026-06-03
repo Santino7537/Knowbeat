@@ -5,6 +5,7 @@ const cors = require('cors');
 
 const { login, register, getUsers, changeConfig } = require('./controllers/userController');
 const { changeRole, deleteUser} = require('./controllers/adminController');
+const { getCourses, getUserProgress, registerCourse, } = require('./controllers/coursesController');
 
 const isAdmin = require('./middlewares/isAdmin');
 const checkToken = require('./middlewares/checkToken');
@@ -47,6 +48,11 @@ server.patch('/changeConfig', checkToken, changeConfig)
 //Admins
 server.patch('/changeRole/:id', checkToken, isAdmin, changeRole )
 server.patch('/delUsers/:id', checkToken, isAdmin, deleteUser);
+
+//Courses
+server.get('/courses', checkToken, getCourses);
+server.get('/progress', checkToken, getUserProgress);
+server.post('/registerCourse/:id', checkToken, registerCourse);
 
 server.listen(PORT, async () => {
     console.log('La API está corriendo en el puerto ', PORT);
