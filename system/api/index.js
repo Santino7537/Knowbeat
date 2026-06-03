@@ -7,6 +7,8 @@ const { login, register, getUsers, changeConfig } = require('./controllers/userC
 const { changeRole, deleteUser} = require('./controllers/adminController');
 const { getCourses, getUserProgress, registerCourse, } = require('./controllers/coursesController');
 
+const { PostResponseLog } = require('./middlewares/binnacleHelper');
+
 const isAdmin = require('./middlewares/isAdmin');
 const checkToken = require('./middlewares/checkToken');
 
@@ -20,10 +22,11 @@ const allowedOrigins = [
 
 server.use(express.json({ limit: '100kb' })); // Limita el tamaño del body a 100kb
 server.use(express.urlencoded({ limit: '100kb', extended: true })); // Limita el tamaño del body a 100kb para datos codificados en URL
+server.use(PostResponseLog); // Middleware para registrar en la bitácora después de cada respuesta
 
 server.use(cors({ // No permite solicitudes de otros orígenes que no estén en la lista de allowedOrigins
   origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) { // Se puede agregar "!origin ||" para testeos 
+    if (allowedOrigins.includes(origin)) { // Se puede agregar "!origin ||" para testeos 
       callback(null, true);
     } else {
       callback(new Error('No permitido por CORS'));
