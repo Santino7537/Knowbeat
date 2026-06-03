@@ -1,7 +1,7 @@
 const { ROLE_PERMISSIONS } = require('../constants');
 const db = require('../config/db');
 
-const IsAuth = async (req, res, next) => {
+const isAuth = async (req, res, next) => {
     const roleId = req.user.role_id;
     const role = Object.keys(ROLE_PERMISSIONS)[roleId - 1];
 

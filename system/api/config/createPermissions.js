@@ -1,5 +1,5 @@
-const db = require('db');
-const { ROLE_PERMISSIONS, PERMISSIONS } = require('../constants');
+const db = require('./db');
+const { ROLES_PERMISSIONS, PERMISSIONS } = require('../constants');
 
 const createPermissions = async () => {
     for (const permission of PERMISSIONS) {
@@ -13,9 +13,9 @@ const createPermissions = async () => {
     }
 
     let roleId = 0;
-    for (const role in ROLE_PERMISSIONS) {
+    for (const role in ROLES_PERMISSIONS) {
         roleId++;
-        for (const permission of ROLE_PERMISSIONS[role]) {
+        for (const permission of ROLES_PERMISSIONS[role]) {
             const permissionId = PERMISSIONS.indexOf(permission) + 1
             const [existingPermissionRole] = await db.query('SELECT * FROM RolePermission WHERE role_id = ? AND permission_id = ?;',
                 [roleId, permissionId]);
@@ -31,4 +31,4 @@ const createPermissions = async () => {
     }
 }
 
-module.exports = { createPermissions };
+module.exports = createPermissions;

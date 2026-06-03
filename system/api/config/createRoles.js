@@ -1,4 +1,4 @@
-const db = require('db');
+const db = require('./db');
 const { ROLES_PERMISSIONS } = require('../constants');
 
 const createRoles = async () => {
@@ -13,4 +13,4 @@ const createRoles = async () => {
     }
 }
 
-module.exports = { createRoles };
+module.exports = createRoles;

@@ -258,7 +258,7 @@ const changeConfig = async (req, res) => {
   }
 };
 
-const ChangeProfile = async (req, res) => {
+const changeProfile = async (req, res) => {
   const { username, email, password, biography } = req.body;
   req.actions_data = {};
 

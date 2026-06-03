@@ -1,8 +1,8 @@
-const { ADMINISTRATOR_ROLE, ROLE_PERMISSION, PENALTY_DATE } = require('../constants');
+const { ADMINISTRATOR_ROLE, ROLES_PERMISSIONS, PENALTY_DATE } = require('../constants');
 
 const { ComputeDVHFromObject } = require('../utils/dvhHelpers');
 const bcrypt = require('bcrypt')
-const db = require('db');
+const db = require('./db');
 
 const createAdmin = async () => {
     const start = process.hrtime.bigint();
@@ -100,4 +100,4 @@ const createAdmin = async () => {
     } catch (err) { console.error("Error creando admin:", err); }
 }
 
-module.exports = { createAdmin };
+module.exports = createAdmin;
