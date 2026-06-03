@@ -92,8 +92,22 @@ const createAdmin = async () => {
 
         binnacle_data.dvh = ComputeDVHFromObject(binnacle_data);
 
-        await db.query('INSERT INTO Binnacle (actions, endpoint_route, ip_source, user_id, session_token, request_data, response_data, timestamp, dvh) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);',
-            Object.values(binnacle_data));
+        const values = Object.values(binnacle_data).map(value => {
+            if (value instanceof Date) {
+                return value;
+            }
+            
+            if (value !== null && typeof value === 'object') {
+            return JSON.stringify(value);
+            }
+
+            return value;
+        });
+
+        await db.query(
+            "INSERT INTO Binnacle (actions, endpoint_route, ip_source, user_id, session_token, request_data, response_data, timestamp, dvh) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);",
+            values,
+        );
 
         return admin;
 
