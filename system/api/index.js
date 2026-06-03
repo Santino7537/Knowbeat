@@ -3,7 +3,7 @@ require('dotenv').config(); // Carga las variables de entorno desde el archivo .
 const express = require('express');
 const cors = require('cors');
 
-const { login, register, getUsers, changeConfig } = require('./controllers/userController');
+const { login, register, getUsers, changeConfig, changeProfile } = require('./controllers/userController');
 const { changeRole, deleteUser } = require('./controllers/adminController');
 const { getCourses, getUserProgress, registerCourse, } = require('./controllers/coursesController');
 
@@ -33,7 +33,7 @@ server.use(cors({ // No permite solicitudes de otros orígenes que no estén en 
     }
   },
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'x-user-id'],
+  allowedHeaders: ['Content-Type', 'Authorization', "x-forwarded-for"],
   credentials: true
 }));
 
@@ -56,6 +56,7 @@ server.patch('/delUsers/:id', checkToken, isAdmin, deleteUser);
 server.get('/courses', checkToken, getCourses);
 server.get('/progress', checkToken, getUserProgress);
 server.post('/registerCourse/:id', checkToken, registerCourse);
+server.patch('/user/update/profile', checkToken, changeProfile);
 
 server.listen(PORT, async () => {
   console.log('La API está corriendo en el puerto ', PORT);

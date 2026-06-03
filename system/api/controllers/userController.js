@@ -258,9 +258,94 @@ const changeConfig = async (req, res) => {
   }
 };
 
+const ChangeProfile = async (req, res) => {
+  const { username, email, password, biography } = req.body;
+  req.actions_data = {};
+
+  const updateFields = [];
+  const [userPayload] = await db.query('SELECT * FROM User WHERE id = ?;', [req.user.user_id]);
+  if (username) {
+    try {
+      const [existingUsername] = await db.query('SELECT id FROM User WHERE username = ?;', [username]);
+      if (existingUsername.length !== 0) return res.status(400).json({ message: 'El nombre de usuario ya está registrado' });
+    } catch (error) {
+      return res.status(500).json({ error: 'Error al comprobar el nombre de usuario' });
+    }
+    req.actions_data["update-username"] = {
+      entity: "User",
+      record_id: req.user.user_id,
+      action: "update",
+      "old_dvh": userPayload.dvh,
+      "new_dvh": null
+    };
+    userPayload.username = username;
+    updateFields.push("username");
+  }
+
+  if (email) {
+    try {
+      const [existingEmail] = await db.query('SELECT id FROM User WHERE email = ?;', [email]);
+      if (existingEmail.length !== 0) return res.status(400).json({ message: 'El email ya está registrado' });
+    } catch (error) {
+      return res.status(500).json({ error: 'Error al comprobar el email' });
+    }
+    req.actions_data["update-email"] = {
+      entity: "User",
+      record_id: req.user.user_id,
+      action: "update",
+      "old_dvh": userPayload.dvh,
+      "new_dvh": null
+    };
+    userPayload.email = email;
+    updateFields.push("email");
+  }
+
+  if (password) {
+    const HashedPassword = await bcrypt.hash(password, 10);
+    req.actions_data["update-password"] = {
+      entity: "User",
+      record_id: req.user.user_id,
+      action: "update",
+      "old_dvh": userPayload.dvh,
+      "new_dvh": null
+    };
+    userPayload.password = HashedPassword;
+    updateFields.push("password");
+  }
+
+  if (biography) {
+    req.actions_data["update-biography"] = {
+      entity: "User",
+      record_id: req.user.user_id,
+      action: "update",
+      "old_dvh": userPayload.dvh,
+      "new_dvh": null
+    };
+    userPayload.biography = biography;
+    updateFields.push("biography");
+  }
+
+  if (Object.keys(req.actions_data).length === 0) {
+    return res.status(400).json({ message: 'No se enviaron campos para actualizar' });
+  }
+
+  delete userPayload.dvh; // Asegura que no se calcule el DVH con el valor antiguo
+  const dvh = ComputeDVHFromObject(userPayload);
+
+  userPayload.dvh = dvh;
+  Object.values(req.actions_data).forEach(action => { action.new_dvh = dvh; });
+
+  const setClause = updateFields.map(field => `${field} = ?`).join(', ');
+
+  await db.query(`UPDATE User SET ${setClause} WHERE id = ?;`,
+    [updateFields.map(field => userPayload[field]), req.user.user_id]);
+  res.status(200).json({ message: 'Usuario actualizado correctamente', userPayload });
+};
+
 module.exports = {
   login,
   register,
   getUsers,
   changeConfig,
+  changeProfile
 };
