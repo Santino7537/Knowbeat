@@ -218,7 +218,7 @@ const Settings = () => {
       <Sidebar />
 
       {/* CONTENIDO PRINCIPAL */}
-      <div style={{ marginLeft: "240px", width: "100%" }}>
+      <div style={{ marginLeft: "260px", width: "100%" }}>
 
         <div className="settings-page">
 

@@ -15,9 +15,17 @@ const Sidebar = () => {
 
   return (
     <div className="sidebar">
-      <div className="sidebar-brand">KnowBeat</div>
+      {/* BRAND */}
+      <div className="sidebar-brand">
+        <span>KnowBeat</span>
+      </div>
 
+      {/* DIVIDER */}
+      <div className="sidebar-divider"></div>
+
+      {/* NAV PRINCIPAL */}
       <div className="sidebar-nav">
+        <div className="nav-label">Menú Principal</div>
         {items.map((item) => (
           <div
             key={item.path}
@@ -26,9 +34,24 @@ const Sidebar = () => {
             }`}
             onClick={() => navigate(item.path)}
           >
-            {item.name}
+            <span className="nav-text">{item.name}</span>
           </div>
         ))}
+      </div>
+
+      {/* DIVIDER */}
+      <div className="sidebar-divider"></div>
+
+      {/* NAV INFERIOR */}
+      <div className="sidebar-bottom">
+        <div
+          className={`nav-item ${
+            location.pathname === "/settings" ? "active" : ""
+          }`}
+          onClick={() => navigate("/settings")}
+        >
+          <span className="nav-text">Configuración</span>
+        </div>
       </div>
     </div>
   );
