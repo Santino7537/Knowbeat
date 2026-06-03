@@ -1,6 +1,7 @@
 const { ComputeDVHFromObject } = require("../utils/dvhHelpers");
+const db = require("../config/db");
 
-const PostResponseLog = (req, res, next) => {
+const   PostResponseLog = (req, res, next) => {
   if (req.method === "OPTIONS") return next(); // Ignoramos preflights
 
   const start = process.hrtime.bigint(); // Tiempo para saber duración de respuesta
@@ -28,7 +29,7 @@ const PostResponseLog = (req, res, next) => {
 
     try {
       const binnacle_data = {
-        actions: actions,
+        actions: actions || { message: "No actions recorded" },
         endpoint_route: req.path,
         ip_source: ip || null,
         user_id: user_id || null,
