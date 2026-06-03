@@ -8,7 +8,7 @@ const deleteUser = async (req, res) => {
     const userId = req.params.id;
   
     try {
-      const [result] = await db.query('UPDATE user SET `eliminated` = 1 WHERE (`id` = ?);', [userId]);
+      const [result] = await db.query('UPDATE User SET `eliminated` = 1 WHERE (`id` = ?);', [userId]);
       
       if (result.affectedRows === 0) {
         return res.status(404).json({ error: 'Usuario no encontrado' });
@@ -38,7 +38,7 @@ const changeRole = async (req, res) => {
         }
 
         const [result] = await db.query(
-        'SELECT role_id FROM user WHERE id = ?',
+        'SELECT role_id FROM User WHERE id = ?',
         [userId]
         );
 
@@ -57,7 +57,7 @@ const changeRole = async (req, res) => {
         }
 
         await db.query(
-        'UPDATE user SET role_id = ? WHERE id = ?',
+        'UPDATE User SET role_id = ? WHERE id = ?',
         [rol, userId]
         );
 

@@ -17,7 +17,7 @@ const CheckToken = (req, res, next) => {
         if (err) return res.status(401).json({ message: 'Token inválido o expirado' });
 
         // Buscar usuario por primary key
-        let [user] = await db.query('SELECT id, role_id FROM user WHERE id = ?', [decoded.user_id]);
+        let [user] = await db.query('SELECT id, role_id FROM User WHERE id = ?', [decoded.user_id]);
         if (user.length === 0) return res.status(404).json({ message: 'Usuario no encontrado' });
         user = user[0];
 

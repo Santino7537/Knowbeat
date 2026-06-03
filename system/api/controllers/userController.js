@@ -1,3 +1,4 @@
+const { USER_ROLE, ROLES_PERMISSIONS, PENALTY_DATE } = require('../constants');
 const db = require('../config/db');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
@@ -18,7 +19,7 @@ const login = async (req, res) => {
 
   // Comprueba si el usuario existe y obtiene su información
   try {
-    [user] = await db.query('SELECT * FROM user WHERE username = ?;', [username]);
+    [user] = await db.query('SELECT * FROM User WHERE username = ?;', [username]);
     if (user.length === 0) return res.status(400).json({ message: 'Usuario o contraseña incorrecta' });
     user = user[0];
   } catch (error) {
@@ -40,7 +41,8 @@ const register = async (req, res) => {
   if (!username || !password || !email) {
     return res.status(400).json({ message: 'Nombre de usuario, contraseña o email faltante' });
   }
-    
+
+  // Preparar campos para la creación del usuario
   // Detectamos el idioma desde el header antes del INSERT
   const langHeader = req.headers['accept-language'] || 'es';
   const detectedLang = langHeader.startsWith('en') ? 'en-US' : 'es-AR';
@@ -69,37 +71,35 @@ const register = async (req, res) => {
       idioma: detectedLang,
       modo_oscuro: true
     }
-   });
+  });
 
   // if (password) req.body.password = "[REDACTED]"; esto es si se guarda el body
 
-  // Comprueba si el nombre de usuario o email ya existen
+  // Comprueba si el nombre de usuario e email ya existen
   try {
-    const [existingUsername] = await db.query('SELECT id FROM user WHERE username = ?;', [username]);
+    const [existingUsername] = await db.query('SELECT id FROM User WHERE username = ?;', [username]);
     if (existingUsername.length !== 0) return res.status(400).json({ message: 'El nombre de usuario ya está registrado' });
   } catch (error) {
     return res.status(500).json({ error: 'Error al comprobar nombre de usuario' });
   }
 
   try {
-    [existingMail] = await db.query('SELECT id FROM user WHERE email = ?;', [email]);
+    const [existingMail] = await db.query('SELECT id FROM User WHERE email = ?;', [email]);
     if (existingMail.length !== 0) return res.status(400).json({ message: 'El email ya está registrado' });
   } catch (error) {
     return res.status(500).json({ error: 'Error al comprobar email' });
   }
 
-  // Prepara campos para la creación del usuario
   const hashedPassword = await bcrypt.hash(password, 10);
-  const penaltyDate = new Date("2000-01-01");
 
   let userPayload = {
-    role_id: 1,
+    role_id: Object.keys(ROLES_PERMISSIONS).indexOf(USER_ROLE) + 1,
     username,
     email,
     password: hashedPassword,
     picture: "prueba.png",
     configuration: config_json,
-    penalty_date: penaltyDate,
+    penalty_date: PENALTY_DATE,
     eliminated: 0
   };
 
@@ -107,7 +107,7 @@ const register = async (req, res) => {
 
   // Crea el usuario en la base de datos
   try {
-    user = await db.query('INSERT INTO user (role_id, username, email, password, picture, configuration, penalty_date, eliminated, dvh) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);',
+    user = await db.query('INSERT INTO User (role_id, username, email, password, picture, configuration, penalty_date, eliminated, dvh) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);',
       Object.values(userPayload));
   } catch (error) {
     console.log(error);
@@ -120,7 +120,7 @@ const register = async (req, res) => {
 const getUsers = async (req, res) => {
 
   try {
-    const [rows] = await db.query('SELECT * FROM user WHERE eliminated = 0');
+    const [rows] = await db.query('SELECT * FROM User WHERE eliminated = 0');
     res.json(rows);
 
   } catch (error) {
@@ -142,7 +142,7 @@ const changeConfig = async (req, res) => {
 
       // Si encuentra otro objeto, sigue recorriendo
       if (
-        typeof(value) == 'object' &&
+        typeof (value) == 'object' &&
         value !== null &&
         !Array.isArray(value)
       ) {
@@ -217,7 +217,7 @@ const changeConfig = async (req, res) => {
   }
 
   // Verifica tipo de dato
-  if (typeof(configValue) !== allowedConfigs[configType]) {
+  if (typeof (configValue) !== allowedConfigs[configType]) {
 
     return res.status(400).json({
       error: 'Tipo de dato inválido'
@@ -231,7 +231,7 @@ const changeConfig = async (req, res) => {
     const sqlPath = `$.${configType}`;
 
     const [resultDB] = await db.query(
-      'UPDATE user SET configuration = JSON_SET(configuration, ?, ?) WHERE id = ?',
+      'UPDATE User SET configuration = JSON_SET(configuration, ?, ?) WHERE id = ?',
       [sqlPath, configValue, userId]
     );
 

@@ -14,8 +14,8 @@ const getCourses = async (req, res) => {
           WHEN p.user_id IS NOT NULL THEN 1
           ELSE 0
         END AS isEnrolled
-        FROM course c
-        LEFT JOIN progress p
+        FROM Course c
+        LEFT JOIN Progress p
         ON c.id = p.course_id
         AND p.user_id = ?
     `, [userId]);
@@ -55,8 +55,8 @@ const getUserProgress = async (req, res) => {
         p.current_lesson,
         c.name,
         c.total_lessons
-        FROM progress p
-        JOIN course c
+        FROM Progress p
+        JOIN Course c
         ON p.course_id = c.id
         WHERE p.user_id = ?`, 
         [userId]);
@@ -79,7 +79,7 @@ const registerCourse = async(req,res) => {
   
   try {
         const [rows] = await db.query(`
-          INSERT INTO progress (user_id, course_id, current_lesson) 
+          INSERT INTO Progress (user_id, course_id, current_lesson) 
           VALUES (?,?,?)
           `, 
         [userId, courseId, 0]);
@@ -96,7 +96,5 @@ const registerCourse = async(req,res) => {
 module.exports = {
     getCourses,
     getUserProgress,
-    registerCourse,
-
-
+    registerCourse
 };
