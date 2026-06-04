@@ -3,7 +3,7 @@ require('dotenv').config(); // Carga las variables de entorno desde el archivo .
 const express = require('express');
 const cors = require('cors');
 
-const { login, register, getUsers, changeConfig, changeProfile } = require('./controllers/userController');
+const { login, register, getUsers, getConfig, changeConfig, changeProfile } = require('./controllers/userController');
 const { changeRole, deleteUser } = require('./controllers/adminController');
 const { getCourses, getUserProgress, registerCourse, } = require('./controllers/coursesController');
 
@@ -38,7 +38,6 @@ server.use(cors({ // No permite solicitudes de otros orígenes que no estén en 
 
 // 'PostResponseLog' es un middleware para registrar en la bitácora después de cada respuesta
 
-
 server.get('/', (req, res) => {
   res.status(200).send('Bienvenido a la API de Knowbeat!');
 });
@@ -47,6 +46,7 @@ server.get('/', (req, res) => {
 server.post('/register', PostResponseLog, register);
 server.post('/login', PostResponseLog, login);
 server.get('/user/get/users', checkToken, isAuth, getUsers);
+server.get('/user/get/config', checkToken, isAuth, getConfig);
 server.patch('/user/update/config', PostResponseLog, checkToken, isAuth, changeConfig)
 
 //Admins

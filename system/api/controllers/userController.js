@@ -9,8 +9,6 @@ const SECRET = process.env.SECRET;
 const login = async (req, res) => {
   const { username, password } = req.body;
 
-  // if (password) req.body.password = "[REDACTED]"; esto es si se guarda el body
-
   if (!username || !password) {
     return res.status(400).json({ message: 'Nombre de usuario o contraseña faltante' });
   }
@@ -29,6 +27,8 @@ const login = async (req, res) => {
   // Comprueba si la contraseña es correcta
   const compare = await bcrypt.compare(password, user.password);
   if (!compare) return res.status(400).json({ message: 'Usuario o contraseña incorrecta' });
+
+  req.body.password = "[REDACTED]"; // Para no guardar la contraseña en la bitácora
 
   const token = jwt.sign({ user_id: user.id }, SECRET, { expiresIn: '8h' });
   res.json({ message: 'Logueo exitoso!', token });
@@ -73,8 +73,6 @@ const register = async (req, res) => {
     }
   });
 
-  // if (password) req.body.password = "[REDACTED]"; esto es si se guarda el body
-
   // Comprueba si el nombre de usuario e email ya existen
   try {
     const [existingUsername] = await db.query('SELECT id FROM User WHERE username = ?;', [username]);
@@ -114,6 +112,8 @@ const register = async (req, res) => {
     return res.status(500).json({ error: 'Error al crear usuario' });
   }
 
+  req.body.password = "[REDACTED]"; // Para no guardar la contraseña en la bitácora
+
   res.json({ message: 'Registro exitoso', user });
 };
 
@@ -122,6 +122,19 @@ const getUsers = async (req, res) => {
   try {
     const [rows] = await db.query('SELECT * FROM User WHERE eliminated = 0');
     res.json(rows);
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error al obtener usuarios' });
+  }
+
+};
+
+const getConfig = async (req, res) => {
+
+  try {
+    const [user] = await db.query('SELECT configuration FROM User WHERE id = ?', [req.user.user_id]);
+    res.json(user[0].configuration);
 
   } catch (error) {
     console.error(error);
@@ -339,6 +352,9 @@ const changeProfile = async (req, res) => {
 
   await db.query(`UPDATE User SET ${setClause} WHERE id = ?;`,
     [updateFields.map(field => userPayload[field]), req.user.user_id]);
+
+  if (password) req.body.password = "[REDACTED]"; // Para no guardar la contraseña en la bitácora
+    
   res.status(200).json({ message: 'Usuario actualizado correctamente', userPayload });
 };
 
@@ -346,6 +362,7 @@ module.exports = {
   login,
   register,
   getUsers,
+  getConfig,
   changeConfig,
   changeProfile
 };
