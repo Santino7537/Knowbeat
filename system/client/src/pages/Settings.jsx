@@ -28,36 +28,36 @@ const Settings = () => {
      CONFIGURACIÓN
   ====================================================== */
 
-  const defaultSettings = {
-    privacidad: {
-      cuenta_privada: false,
-      visibilidad_progreso: "todos",
-      mensajeria_restringida: false,
-      mostrar_actividad: true
-    },
+  // const defaultSettings = {
+  //   privacidad: {
+  //     cuenta_privada: false,
+  //     visibilidad_progreso: "todos",
+  //     mensajeria_restringida: false,
+  //     mostrar_actividad: true
+  //   },
 
-    preferencia: {
-      notacion: "americana",
-      ejercicios_microfono: true,
-      ejercicios_escucha: true,
+  //   preferencia: {
+  //     notacion: "americana",
+  //     ejercicios_microfono: true,
+  //     ejercicios_escucha: true,
 
-      notificaciones: {
-        recordatorio_racha: true,
-        emails: true,
-        menciones: true,
-        likes: true,
-        avisos_comunidad: true
-      }
-    },
+  //     notificaciones: {
+  //       recordatorio_racha: true,
+  //       emails: true,
+  //       menciones: true,
+  //       likes: true,
+  //       avisos_comunidad: true
+  //     }
+  //   },
 
-    apariencia: {
-      idioma: "es-AR",
-      modo_oscuro: true
-    }
-  };
+  //   apariencia: {
+  //     idioma: "es-AR",
+  //     modo_oscuro: true
+  //   }
+  // };
 
   const [settings, setSettings] =
-    useState(defaultSettings);
+    useState(storedUser);
 
   const [loading, setLoading] =
     useState(true);
