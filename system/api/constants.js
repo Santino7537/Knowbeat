@@ -10,6 +10,30 @@ const ROLES_PERMISSIONS = {
 };
 const PERMISSIONS = [...new Set(Object.values(ROLES_PERMISSIONS).flat())].sort()
 
+const CONFIG_JSON = JSON.stringify({
+    privacy: {
+      private_account: false,
+      progress_visibility: "everyone",
+      restricted_messaging: false,
+      show_activity: true
+    },
+    preferences: {
+      notation: "american",
+      microphone_exercises: true,
+      listening_exercises: true,
+      notifications: {
+        streak_reminders: true,
+        emails: true,
+        mentions: true,
+        likes: true,
+        community_announcements: true
+      }
+    },
+    appearance: {
+      language: "es-AR",
+      dark_mode: true
+    }
+  });
 
 const PENALTY_DATE = new Date("2000-01-01");
 
@@ -44,5 +68,6 @@ module.exports = {
     PENALTY_DATE,
     MAX_FILE_SIZE,
     VALID_FILES_FORMATS,
-    FILES_CONSTANTS
+    FILES_CONSTANTS,
+    CONFIG_JSON
 };

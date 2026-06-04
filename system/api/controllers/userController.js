@@ -1,4 +1,4 @@
-const { USER_ROLE, ROLES_PERMISSIONS, PENALTY_DATE } = require('../constants');
+const { USER_ROLE, ROLES_PERMISSIONS, PENALTY_DATE, CONFIG_JSON } = require('../constants');
 const { computeDVHFromObject } = require('../utils/dvhHelpers');
 const { convertImageToWebP, resizeImage } = require('../utils/fileChecker');
 const { getPublicFileUrl, uploadFile, deleteFile } = require('./bucketController');
@@ -49,34 +49,16 @@ const register = async (req, res) => {
 
   // Preparar campos para la creación del usuario
   // Detectamos el idioma desde el header antes del INSERT
+
   const langHeader = req.headers['accept-language'] || 'es';
   const detectedLang = langHeader.startsWith('en') ? 'en-US' : 'es-AR';
 
+  // Crea un clon de la constante config para registrarla con el idioma detectado
+  const config = structuredClone(CONFIG_JSON);
+  config.appearance.language = detectedLang;
+  const config_json = JSON.stringify(config);
+
   // Se crea el JSON que contiene la configuración del usuario:
-  const config_json = JSON.stringify({
-    privacidad: {
-      cuenta_privada: false,
-      visibilidad_progreso: "todos",
-      mensajeria_restringida: false,
-      mostrar_actividad: true
-    },
-    preferencia: {
-      notacion: "americana",
-      ejercicios_microfono: true,
-      ejercicios_escucha: true,
-      notificaciones: {
-        recordatorio_racha: true,
-        emails: true,
-        menciones: true,
-        likes: true,
-        avisos_comunidad: true
-      }
-    },
-    apariencia: {
-      idioma: detectedLang,
-      modo_oscuro: true
-    }
-  });
 
   // Comprueba si el nombre de usuario e email ya existen
   try {
@@ -110,7 +92,7 @@ const register = async (req, res) => {
 
   // Crea el usuario en la base de datos
   try {
-    user = await db.query('INSERT INTO User (role_id, username, email, password, picture, configuration, penalty_date, eliminated, dvh) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);',
+    const [user] = await db.query('INSERT INTO User (role_id, username, email, password, picture, configuration, penalty_date, eliminated, dvh) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);',
       Object.values(userPayload));
   } catch (error) {
     console.log(error);
@@ -161,7 +143,7 @@ const getConfig = async (req, res) => {
 
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: 'Error al obtener usuarios' });
+    res.status(500).json({ error: 'Error al obtener la configuración del usuario' });
   }
 
 };
@@ -212,34 +194,31 @@ const changeConfig = async (req, res) => {
   const configType = result.type;
   const configValue = result.content;
 
-  /* =========================
-     SEGURIDAD
-     ========================= */
-
+  /* SEGURIDAD */
   // Configuraciones permitidas
   const allowedConfigs = {
 
-    // PRIVACIDAD
-    'privacidad.cuenta_privada': 'boolean',
-    'privacidad.visibilidad_progreso': 'string',
-    'privacidad.mensajeria_restringida': 'boolean',
-    'privacidad.mostrar_actividad': 'boolean',
+    // PRIVACY
+    'privacy.private_account': 'boolean',
+    'privacy.progress_visibility': 'string',
+    'privacy.restricted_messaging': 'boolean',
+    'privacy.show_activity': 'boolean',
 
-    // PREFERENCIAS
-    'preferencia.notacion': 'string',
-    'preferencia.ejercicios_microfono': 'boolean',
-    'preferencia.ejercicios_escucha': 'boolean',
+    // PREFERENCES
+    'preferences.notation': 'string',
+    'preferences.microphone_exercises': 'boolean',
+    'preferences.listening_exercises': 'boolean',
 
-    // NOTIFICACIONES
-    'preferencia.notificaciones.recordatorio_racha': 'boolean',
-    'preferencia.notificaciones.emails': 'boolean',
-    'preferencia.notificaciones.menciones': 'boolean',
-    'preferencia.notificaciones.likes': 'boolean',
-    'preferencia.notificaciones.avisos_comunidad': 'boolean',
+    // NOTIFICATIONS
+    'preferences.notifications.streak_reminders': 'boolean',
+    'preferences.notifications.emails': 'boolean',
+    'preferences.notifications.mentions': 'boolean',
+    'preferences.notifications.likes': 'boolean',
+    'preferences.notifications.community_announcements': 'boolean',
 
-    // APARIENCIA
-    'apariencia.idioma': 'string',
-    'apariencia.modo_oscuro': 'boolean'
+    // APPEARANCE
+    'appearance.language': 'string',
+    'appearance.dark_mode': 'boolean'
 
   };
 
@@ -260,7 +239,6 @@ const changeConfig = async (req, res) => {
     });
 
   }
-
 
   try {
 
