@@ -1,0 +1,6 @@
+# Secrets
+.env
+
+# MinIO data
+data/minio/*
+!data/minio/.gitkeep
