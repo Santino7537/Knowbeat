@@ -7,8 +7,8 @@ const { login, register, getUsers, getConfig, changeConfig, changeProfile } = re
 const { changeRole, deleteUser } = require('./controllers/adminController');
 const { getCourses, getUserProgress, registerCourse, } = require('./controllers/coursesController');
 
-const { PostResponseLog } = require('./middlewares/binnacleHelper');
-
+const { postResponseLog } = require('./middlewares/binnacleHelper');
+const { checkFilesUpload } = require('./middlewares/checkFiles');
 const isAuth = require('./middlewares/isAuth');
 const checkToken = require('./middlewares/checkToken');
 
@@ -36,28 +36,26 @@ server.use(cors({ // No permite solicitudes de otros orígenes que no estén en 
   credentials: true
 }));
 
-// 'PostResponseLog' es un middleware para registrar en la bitácora después de cada respuesta
+// 'postResponseLog' es un middleware para registrar en la bitácora después de cada respuesta
 
-server.get('/', (req, res) => {
-  res.status(200).send('Bienvenido a la API de Knowbeat!');
-});
+server.get('/', (req, res) => { res.status(200).send('Bienvenido a la API de Knowbeat!'); });
 
 // Users
-server.post('/register', PostResponseLog, register);
-server.post('/login', PostResponseLog, login);
+server.post('/register', postResponseLog, register);
+server.post('/login', postResponseLog, login);
 server.get('/user/get/users', checkToken, isAuth, getUsers);
 server.get('/user/get/config', checkToken, isAuth, getConfig);
-server.patch('/user/update/config', PostResponseLog, checkToken, isAuth, changeConfig)
+server.patch('/user/update/config', postResponseLog, checkToken, isAuth, changeConfig);
 
 //Admins
-server.patch('/user/update/role/:id', PostResponseLog, checkToken, isAuth, changeRole)
-server.patch('/user/delete/user/:id', PostResponseLog, checkToken, isAuth, deleteUser);
+server.patch('/user/update/role/:id', postResponseLog, checkToken, isAuth, changeRole);
+server.patch('/user/delete/user/:id', postResponseLog, checkToken, isAuth, deleteUser);
 
 //Courses
 server.get('/course/get/courses', checkToken, isAuth, getCourses);
 server.get('/user/get/progress', checkToken, isAuth, getUserProgress);
-server.post('/user/register/course/:id', PostResponseLog, checkToken, isAuth, registerCourse);
-server.patch('/user/update/profile', PostResponseLog, checkToken, isAuth, changeProfile);
+server.post('/user/register/course/:id', postResponseLog, checkToken, isAuth, registerCourse);
+server.patch('/user/update/profile', postResponseLog, checkToken, isAuth, changeProfile);
 
 server.listen(PORT, async () => {
   console.log('La API está corriendo en el puerto ', PORT);

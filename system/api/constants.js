@@ -14,6 +14,8 @@ const PERMISSIONS = [...new Set(Object.values(ROLES_PERMISSIONS).flat())].sort()
 const PENALTY_DATE = new Date("2000-01-01");
 
 
+const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20 MB
+
 const VALID_FILES_FORMATS = {
     'images': ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
 }
@@ -35,10 +37,12 @@ const FILES_CONSTANTS = {
 
 module.exports = {
     ADMINISTRATOR_ROLE,
+    MODERATOR_ROLE,
     USER_ROLE,
     ROLES_PERMISSIONS,
     PERMISSIONS,
     PENALTY_DATE,
+    MAX_FILE_SIZE,
     VALID_FILES_FORMATS,
     FILES_CONSTANTS
 };

@@ -1,7 +1,7 @@
 const { ComputeDVHFromObject } = require("../utils/dvhHelpers");
 const db = require("../config/db");
 
-const   PostResponseLog = (req, res, next) => {
+const postResponseLog = (req, res, next) => {
   if (req.method === "OPTIONS") return next(); // Ignoramos preflights
 
   const start = process.hrtime.bigint(); // Tiempo para saber duración de respuesta
@@ -73,4 +73,4 @@ const   PostResponseLog = (req, res, next) => {
   next();
 };
 
-module.exports = { PostResponseLog };
+module.exports = { postResponseLog };
