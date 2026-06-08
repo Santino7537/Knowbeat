@@ -46,6 +46,7 @@ server.post('/login', postResponseLog, login);
 server.get('/user/get/users', checkToken, isAuth, getUsers);
 server.get('/user/get/config', checkToken, isAuth, getConfig);
 server.patch('/user/update/config', postResponseLog, checkToken, isAuth, changeConfig);
+server.patch('/user/update/profile', postResponseLog, checkToken, isAuth, checkFilesUpload('profile_picture', 1), changeProfile);
 
 //Admins
 server.patch('/user/update/role/:id', postResponseLog, checkToken, isAuth, changeRole);
@@ -55,7 +56,6 @@ server.patch('/user/delete/user/:id', postResponseLog, checkToken, isAuth, delet
 server.get('/course/get/courses', checkToken, isAuth, getCourses);
 server.get('/user/get/progress', checkToken, isAuth, getUserProgress);
 server.post('/user/register/course/:id', postResponseLog, checkToken, isAuth, registerCourse);
-server.patch('/user/update/profile', postResponseLog, checkToken, isAuth, changeProfile);
 
 server.listen(PORT, async () => {
   console.log('La API está corriendo en el puerto ', PORT);

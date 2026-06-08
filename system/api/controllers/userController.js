@@ -1,8 +1,11 @@
 const { USER_ROLE, ROLES_PERMISSIONS, PENALTY_DATE } = require('../constants');
+const { ComputeDVHFromObject } = require('../utils/dvhHelpers');
+const { convertImageToWebP, resizeImage } = require('..utils/fileChecker');
+const { UploadFile } = require('./bucketController');
+const { fileTypeFromBuffer } = require('file-type');
 const db = require('../config/db');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const { ComputeDVHFromObject } = require('../utils/dvhHelpers');
 
 const SECRET = process.env.SECRET;
 
@@ -273,6 +276,7 @@ const changeConfig = async (req, res) => {
 
 const changeProfile = async (req, res) => {
   const { username, email, password, biography } = req.body;
+  const file = req.files?.[0];
   req.actions_data = {};
 
   const updateFields = [];
@@ -337,6 +341,23 @@ const changeProfile = async (req, res) => {
     userPayload.biography = biography;
     updateFields.push("biography");
   }
+
+  try {
+    if (file) {
+      const detectedType = await fileTypeFromBuffer(file.buffer);
+      const filePath = await UploadFile(resizeImage(convertImageToWebP(file), 512, 512), detectedType.mime, detectedType.ext, "profile");
+
+      req.actions_data["update-picture"] = {
+        entity: "User",
+        record_id: req.user.user_id,
+        action: "update",
+        "old_dvh": userPayload.dvh,
+        "new_dvh": null
+      };
+      userPayload.picture = filePath;
+      updateFields.push("picture");
+    }
+  } catch (err) { return res.status(400).json({ message: err.message }); }
 
   if (Object.keys(req.actions_data).length === 0) {
     return res.status(400).json({ message: 'No se enviaron campos para actualizar' });
