@@ -4,7 +4,7 @@ const db = require('../config/db');
 const SECRET = process.env.SECRET;
 
 // Middleware para verificar token y cargar usuario en req.user
-const CheckToken = (req, res, next) => {
+const checkToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
 
     if (!authHeader) {
@@ -32,4 +32,4 @@ const CheckToken = (req, res, next) => {
     });
 };
 
-module.exports = CheckToken;
+module.exports = checkToken;

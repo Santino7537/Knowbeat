@@ -3,7 +3,7 @@ const { fileTypeFromBuffer } = require('file-type');
 const { FILES_CONSTANTS, VALID_FILES_FORMATS } = require('../constants');
 const { MAX_IMAGE_SIZE, MAX_IMAGE_PIXELS, MIN_IMAGE_DIMENSIONS, MAX_IMAGE_DIMENSIONS } = FILES_CONSTANTS;
 
-const ConvertImageToWebP = async (fileBuffer) => {
+const convertImageToWebP = async (fileBuffer) => {
     if (fileBuffer.length > MAX_IMAGE_SIZE) {
         throw new Error("La imagen supera el tamaño máximo permitido de 5 MB.");
     }
@@ -45,7 +45,7 @@ const ConvertImageToWebP = async (fileBuffer) => {
     return await image.webp({ quality: 75 }).toBuffer();
 };
 
-async function ResizeImage(webpBuffer, width, height) {
+async function resizeImage(webpBuffer, width, height) {
     return await sharp(webpBuffer)
         .resize(width, height, {
             fit: "cover",
@@ -55,6 +55,6 @@ async function ResizeImage(webpBuffer, width, height) {
 }
 
 module.exports = {
-    ConvertImageToWebP,
-    ResizeImage
+    convertImageToWebP,
+    resizeImage
 }

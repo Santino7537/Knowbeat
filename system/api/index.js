@@ -9,6 +9,7 @@ const { getCourses, getUserProgress, registerCourse, } = require('./controllers/
 
 const { postResponseLog } = require('./middlewares/binnacleHelper');
 const { checkFilesUpload } = require('./middlewares/checkFiles');
+const { checkRequestDataSize } = require('./middlewares/checkReq');
 const isAuth = require('./middlewares/isAuth');
 const checkToken = require('./middlewares/checkToken');
 
@@ -20,6 +21,9 @@ const allowedOrigins = [
   'http://localhost:3000'
 ]; // Origenes permitidos para CORS
 
+server.set('trust proxy', true); // Confía en el proxy para obtener la IP real del cliente
+
+server.use(checkRequestDataSize()); // Verifica el tamaño de los datos del request
 server.use(express.json({ limit: '100kb' })); // Limita el tamaño del body a 100kb
 server.use(express.urlencoded({ limit: '100kb', extended: true })); // Limita el tamaño del body a 100kb para datos codificados en URL
 
@@ -32,7 +36,7 @@ server.use(cors({ // No permite solicitudes de otros orígenes que no estén en 
     }
   },
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', "x-forwarded-for"],
+  allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
 }));
 

@@ -1,7 +1,7 @@
 const { USER_ROLE, ROLES_PERMISSIONS, PENALTY_DATE } = require('../constants');
-const { ComputeDVHFromObject } = require('../utils/dvhHelpers');
+const { computeDVHFromObject } = require('../utils/dvhHelpers');
 const { convertImageToWebP, resizeImage } = require('..utils/fileChecker');
-const { UploadFile } = require('./bucketController');
+const { uploadFile } = require('./bucketController');
 const { fileTypeFromBuffer } = require('file-type');
 const db = require('../config/db');
 const bcrypt = require('bcrypt');
@@ -11,6 +11,8 @@ const SECRET = process.env.SECRET;
 
 const login = async (req, res) => {
   const { username, password } = req.body;
+
+  if (password) req.body.password = "[REDACTED]"; // Para no guardar la contraseña en la bitácora
 
   if (!username || !password) {
     return res.status(400).json({ message: 'Nombre de usuario o contraseña faltante' });
@@ -31,8 +33,6 @@ const login = async (req, res) => {
   const compare = await bcrypt.compare(password, user.password);
   if (!compare) return res.status(400).json({ message: 'Usuario o contraseña incorrecta' });
 
-  req.body.password = "[REDACTED]"; // Para no guardar la contraseña en la bitácora
-
   const token = jwt.sign({ user_id: user.id }, SECRET, { expiresIn: '8h' });
   res.json({ message: 'Logueo exitoso!', token });
 };
@@ -40,6 +40,8 @@ const login = async (req, res) => {
 const register = async (req, res) => {
 
   const { email, username, password } = req.body;
+
+  if (password) req.body.password = "[REDACTED]"; // Para no guardar la contraseña en la bitácora
 
   if (!username || !password || !email) {
     return res.status(400).json({ message: 'Nombre de usuario, contraseña o email faltante' });
@@ -104,7 +106,7 @@ const register = async (req, res) => {
     eliminated: 0
   };
 
-  userPayload.dvh = ComputeDVHFromObject(userPayload);
+  userPayload.dvh = computeDVHFromObject(userPayload);
 
   // Crea el usuario en la base de datos
   try {
@@ -114,8 +116,6 @@ const register = async (req, res) => {
     console.log(error);
     return res.status(500).json({ error: 'Error al crear usuario' });
   }
-
-  req.body.password = "[REDACTED]"; // Para no guardar la contraseña en la bitácora
 
   res.json({ message: 'Registro exitoso', user });
 };
@@ -279,6 +279,8 @@ const changeProfile = async (req, res) => {
   const file = req.files?.[0];
   req.actions_data = {};
 
+  if (password) req.body.password = "[REDACTED]"; // Para no guardar la contraseña en la bitácora
+
   const updateFields = [];
   const [userPayload] = await db.query('SELECT * FROM User WHERE id = ?;', [req.user.user_id]);
   if (username) {
@@ -345,7 +347,7 @@ const changeProfile = async (req, res) => {
   try {
     if (file) {
       const detectedType = await fileTypeFromBuffer(file.buffer);
-      const filePath = await UploadFile(resizeImage(convertImageToWebP(file), 512, 512), detectedType.mime, detectedType.ext, "profile");
+      const filePath = await uploadFile(resizeImage(convertImageToWebP(file), 512, 512), detectedType.mime, detectedType.ext, "profile");
 
       req.actions_data["update-picture"] = {
         entity: "User",
@@ -364,7 +366,7 @@ const changeProfile = async (req, res) => {
   }
 
   delete userPayload.dvh; // Asegura que no se calcule el DVH con el valor antiguo
-  const dvh = ComputeDVHFromObject(userPayload);
+  const dvh = computeDVHFromObject(userPayload);
 
   userPayload.dvh = dvh;
   Object.values(req.actions_data).forEach(action => { action.new_dvh = dvh; });
@@ -373,8 +375,6 @@ const changeProfile = async (req, res) => {
 
   await db.query(`UPDATE User SET ${setClause} WHERE id = ?;`,
     [updateFields.map(field => userPayload[field]), req.user.user_id]);
-
-  if (password) req.body.password = "[REDACTED]"; // Para no guardar la contraseña en la bitácora
     
   res.status(200).json({ message: 'Usuario actualizado correctamente', userPayload });
 };

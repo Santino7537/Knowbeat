@@ -1,6 +1,6 @@
 const { ADMINISTRATOR_ROLE, ROLES_PERMISSIONS, PENALTY_DATE } = require('../constants');
 
-const { ComputeDVHFromObject } = require('../utils/dvhHelpers');
+const { computeDVHFromObject } = require('../utils/dvhHelpers');
 const bcrypt = require('bcrypt')
 const db = require('./db');
 
@@ -58,7 +58,7 @@ const createAdmin = async () => {
             eliminated: 0
         }
 
-        userPayload.dvh = ComputeDVHFromObject(userPayload);
+        userPayload.dvh = computeDVHFromObject(userPayload);
 
         const admin = await db.query('INSERT INTO User (role_id, username, email, password, picture, configuration, penalty_date, eliminated, dvh) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);',
             Object.values(userPayload));
@@ -90,7 +90,7 @@ const createAdmin = async () => {
             timestamp: new Date()
         };
 
-        binnacle_data.dvh = ComputeDVHFromObject(binnacle_data);
+        binnacle_data.dvh = computeDVHFromObject(binnacle_data);
 
         const values = Object.values(binnacle_data).map(value => {
             if (value instanceof Date) {

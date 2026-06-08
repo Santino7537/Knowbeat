@@ -1,4 +1,4 @@
-const { ComputeDVHFromObject } = require("../utils/dvhHelpers");
+const { computeDVHFromObject } = require("../utils/dvhHelpers");
 const db = require("../config/db");
 
 const postResponseLog = (req, res, next) => {
@@ -47,7 +47,7 @@ const postResponseLog = (req, res, next) => {
       query && (binnacle_data.request_data.query = query);
       body && (binnacle_data.request_data.body = body);
 
-      binnacle_data.dvh = ComputeDVHFromObject(binnacle_data);
+      binnacle_data.dvh = computeDVHFromObject(binnacle_data);
 
       const values = Object.values(binnacle_data).map(value => {
         if (value instanceof Date) {
