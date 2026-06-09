@@ -1,7 +1,7 @@
 const { USER_ROLE, ROLES_PERMISSIONS, PENALTY_DATE } = require('../constants');
 const { computeDVHFromObject } = require('../utils/dvhHelpers');
 const { convertImageToWebP, resizeImage } = require('../utils/fileChecker');
-const { getPublicFileUrl, uploadFile } = require('./bucketController');
+const { getPublicFileUrl, uploadFile, deleteFile } = require('./bucketController');
 const { fileTypeFromBuffer } = require('file-type');
 const db = require('../config/db');
 const bcrypt = require('bcrypt');
@@ -368,7 +368,8 @@ const changeProfile = async (req, res) => {
   try {
     if (file) {
       const detectedType = await fileTypeFromBuffer(file.buffer);
-      const filePath = await uploadFile("profiles", await resizeImage(await convertImageToWebP(file.buffer), 512, 512), detectedType.mime, detectedType.ext);
+      const filePath = await uploadFile("profiles", await resizeImage(await convertImageToWebP(file.buffer), 512, 512), "image/webp", "webp");
+      userPayload.picture !== "default_profile.webp" && await deleteFile("profiles", userPayload.picture)
 
       req.actions_data["update-picture"] = {
         entity: "User",
