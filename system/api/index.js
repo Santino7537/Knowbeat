@@ -3,7 +3,7 @@ require('dotenv').config(); // Carga las variables de entorno desde el archivo .
 const express = require('express');
 const cors = require('cors');
 
-const { login, register, getUsers, getConfig, changeConfig, changeProfile } = require('./controllers/userController');
+const { login, register, getUser, getUsers, getConfig, changeConfig, changeProfile } = require('./controllers/userController');
 const { changeRole, deleteUser } = require('./controllers/adminController');
 const { getCourses, getUserProgress, registerCourse, } = require('./controllers/coursesController');
 
@@ -47,6 +47,7 @@ server.get('/', (req, res) => { res.status(200).send('Bienvenido a la API de Kno
 // Users
 server.post('/register', postResponseLog, register);
 server.post('/login', postResponseLog, login);
+server.get('/user/get/user/:id', checkToken, isAuth, getUser);
 server.get('/user/get/users', checkToken, isAuth, getUsers);
 server.get('/user/get/config', checkToken, isAuth, getConfig);
 server.patch('/user/update/config', postResponseLog, checkToken, isAuth, changeConfig);

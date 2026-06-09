@@ -120,6 +120,25 @@ const register = async (req, res) => {
   res.json({ message: 'Registro exitoso', user });
 };
 
+const getUser = async (req, res) => {
+  const userId = req.params.id
+
+  try {
+    let [user] = await db.query('SELECT * FROM User WHERE eliminated = 0 && id = ?', [userId]);
+    if (user.length === 1) {
+      user = user[0]
+      user.picture = getPublicFileUrl("profiles", user.picture);
+      return res.json(user);
+    }
+    return res.json({ message: `No existe el usuario con id ${userId}` })
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error al obtener usuarios' });
+  }
+
+};
+
 const getUsers = async (req, res) => {
 
   try {
@@ -383,6 +402,7 @@ const changeProfile = async (req, res) => {
 module.exports = {
   login,
   register,
+  getUser,
   getUsers,
   getConfig,
   changeConfig,
