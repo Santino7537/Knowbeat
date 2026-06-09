@@ -302,7 +302,8 @@ const changeProfile = async (req, res) => {
   if (password) req.body.password = "[REDACTED]"; // Para no guardar la contraseña en la bitácora
 
   const updateFields = [];
-  const [userPayload] = await db.query('SELECT * FROM User WHERE id = ?;', [req.user.user_id]);
+  let [userPayload] = await db.query('SELECT * FROM User WHERE id = ?;', [req.user.user_id]);
+  userPayload = userPayload[0]
   if (username) {
     try {
       const [existingUsername] = await db.query('SELECT id FROM User WHERE username = ?;', [username]);
@@ -367,7 +368,7 @@ const changeProfile = async (req, res) => {
   try {
     if (file) {
       const detectedType = await fileTypeFromBuffer(file.buffer);
-      const filePath = await uploadFile("profiles", resizeImage(convertImageToWebP(file), 512, 512), detectedType.mime, detectedType.ext);
+      const filePath = await uploadFile("profiles", await resizeImage(await convertImageToWebP(file.buffer), 512, 512), detectedType.mime, detectedType.ext);
 
       req.actions_data["update-picture"] = {
         entity: "User",
