@@ -1,7 +1,7 @@
 const { USER_ROLE, ROLES_PERMISSIONS, PENALTY_DATE } = require('../constants');
 const { computeDVHFromObject } = require('../utils/dvhHelpers');
-const { convertImageToWebP, resizeImage } = require('..utils/fileChecker');
-const { uploadFile } = require('./bucketController');
+const { convertImageToWebP, resizeImage } = require('../utils/fileChecker');
+const { getPublicFileUrl, uploadFile } = require('./bucketController');
 const { fileTypeFromBuffer } = require('file-type');
 const db = require('../config/db');
 const bcrypt = require('bcrypt');
@@ -124,6 +124,7 @@ const getUsers = async (req, res) => {
 
   try {
     const [rows] = await db.query('SELECT * FROM User WHERE eliminated = 0');
+    rows.forEach(obj => { obj.picture = getPublicFileUrl("profiles", obj.picture); });
     res.json(rows);
 
   } catch (error) {

@@ -52,7 +52,7 @@ const createAdmin = async () => {
             username: process.env.ADMIN_USERNAME,
             email: process.env.ADMIN_EMAIL,
             password: hashedPassword,
-            picture: "prueba.png",
+            picture: `default_profile.webp`,
             configuration: config_json,
             penalty_date: PENALTY_DATE,
             eliminated: 0
