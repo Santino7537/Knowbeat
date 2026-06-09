@@ -3,9 +3,9 @@ const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
 const s3 = require('../config/minio');
 const { v4: uuidv4 } = require('uuid');
 
-const getFileUrl = async (filePath, expirationTime = 300) => {
+const getPrivateFileUrl = async (bucket, filePath, expirationTime = 300) => {
     const command = new GetObjectCommand({
-        Bucket: process.env.MINIO_BUCKET,
+        Bucket: bucket,
         Key: filePath
     });
 
@@ -13,13 +13,17 @@ const getFileUrl = async (filePath, expirationTime = 300) => {
     return await getSignedUrl(s3, command, { expiresIn: expirationTime });
 };
 
-const uploadFile = async(file, mimeType, extension, folder) => {
+function GetPublicFileUrl(bucket, filePath) {
+  return `${process.env.MINIO_PUBLIC_URL}/${bucket}/${key}`;
+}
+
+const uploadFile = async(bucket, file, mimeType, extension) => {
     // Generamos un nombre único
-    const uniqueName = `${folder}/${uuidv4()}.${extension}`;
+    const uniqueName = `${uuidv4()}.${extension}`;
 
     // Subimos archivo a bucket
     const command = new PutObjectCommand({
-        Bucket: process.env.MINIO_BUCKET,
+        Bucket: bucket,
         Key: uniqueName,
         Body: file,
         ContentType: mimeType,
@@ -30,9 +34,9 @@ const uploadFile = async(file, mimeType, extension, folder) => {
     return uniqueName
 };
 
-const deleteFile = async(filePath) => {
+const deleteFile = async(bucket, filePath) => {
     const command = new DeleteObjectCommand({
-        Bucket: process.env.MINIO_BUCKET,
+        Bucket: bucket,
         Key: filePath
     });
 
@@ -40,7 +44,8 @@ const deleteFile = async(filePath) => {
 };
 
 module.exports = {
-    getFileUrl,
+    getPrivateFileUrl,
+    GetPublicFileUrl,
     uploadFile,
     deleteFile
 };

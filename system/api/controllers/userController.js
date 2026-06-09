@@ -347,7 +347,7 @@ const changeProfile = async (req, res) => {
   try {
     if (file) {
       const detectedType = await fileTypeFromBuffer(file.buffer);
-      const filePath = await uploadFile(resizeImage(convertImageToWebP(file), 512, 512), detectedType.mime, detectedType.ext, "profile");
+      const filePath = await uploadFile("profiles", resizeImage(convertImageToWebP(file), 512, 512), detectedType.mime, detectedType.ext);
 
       req.actions_data["update-picture"] = {
         entity: "User",
