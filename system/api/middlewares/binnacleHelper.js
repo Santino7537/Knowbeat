@@ -20,16 +20,23 @@ const postResponseLog = (req, res, next) => {
 
     const sessionToken = req.user?.sessionToken;
     const user_id = req.user?.user_id;
-    const actions = req.actions_data;
+    let actions = req.actions_data;
+    actions = actions && typeof actions === "object" ? actions : { message: "No actions recorded" }
     const ip =
       req.ip ||
       req.headers["x-forwarded-for"]?.split(",")[0] ||
       req.connection.remoteAddress;
     const { headers, params, query, body } = req;
+    const files = req.files?.map(file => ({
+      fieldname: file.fieldname,
+      originalname: file.originalname,
+      mimetype: file.mimetype,
+      size: file.size
+    }));
 
     try {
       const binnacle_data = {
-        actions: actions || { message: "No actions recorded" },
+        actions: Object.keys(actions).length === 0 ? { message: "Error" } : actions,
         endpoint_route: req.path,
         ip_source: ip || null,
         user_id: user_id || null,
@@ -46,6 +53,7 @@ const postResponseLog = (req, res, next) => {
       params && (binnacle_data.request_data.params = params);
       query && (binnacle_data.request_data.query = query);
       body && (binnacle_data.request_data.body = body);
+      files && (binnacle_data.request_data.files = files);
 
       binnacle_data.dvh = computeDVHFromObject(binnacle_data);
 
