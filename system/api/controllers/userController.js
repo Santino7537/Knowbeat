@@ -391,11 +391,12 @@ const changeProfile = async (req, res) => {
 
   userPayload.dvh = dvh;
   Object.values(req.actions_data).forEach(action => { action.new_dvh = dvh; });
+  updateFields.push("dvh");
 
   const setClause = updateFields.map(field => `${field} = ?`).join(', ');
 
   await db.query(`UPDATE User SET ${setClause} WHERE id = ?;`,
-    [updateFields.map(field => userPayload[field]), req.user.user_id]);
+    [...updateFields.map(field => userPayload[field]), req.user.user_id]);
     
   res.status(200).json({ message: 'Usuario actualizado correctamente', userPayload });
 };
