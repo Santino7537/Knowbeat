@@ -16,6 +16,12 @@ const checkFilesUpload = (fieldName, maxCount = 1) => {
             return res.status(400).json({ error: "Archivo demasiado grande" });
 
           case "LIMIT_UNEXPECTED_FILE":
+            if (err.field !== fieldName) {
+              return res.status(400).json({
+                error: `Campo de archivo inválido. Se esperaba '${fieldName}'`
+              });
+            }
+
             return res.status(400).json({ error: `Máximo de ${maxCount} archivo/s` });
 
           default:
