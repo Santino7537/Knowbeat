@@ -100,7 +100,7 @@ const register = async (req, res) => {
     username,
     email,
     password: hashedPassword,
-    picture: "prueba.png",
+    picture: `${process.env.MINIO_PUBLIC_URL}/profiles/default_profile.webp`,
     configuration: config_json,
     penalty_date: PENALTY_DATE,
     eliminated: 0

@@ -26,6 +26,9 @@ services:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
 
+    volumes:
+      - ./client/public:/assets
+
     depends_on:
       - minio
 
@@ -50,5 +53,6 @@ services:
 
         mc anonymous set private local/chat-files
         mc anonymous set private local/user-files
+        mc cp /assets/default_profile.webp local/profiles/
 
     restart: "no"
