@@ -6,8 +6,10 @@ Los archivos y directorios importantes son:
 El directorio 'api' contiene la totalidad del Backend.
 ### Directorio 'client'
 El directorio 'client' contiene la totalidad del Frontend.
-### Directorio 'data'
-El directorio 'data' contiene la totalidad de los archivos del bucket.
+### Directorio 'mongo/init'
+El directorio 'mongo/init' contiene la totalidad de la configuración de la base de datos Mongo.
+### Directorio 'mysql/init'
+El directorio 'mysql/init' contiene la totalidad de la configuración de la base de datos MySQL.
 ### Archivo 'docker-compose.yml'
 El archivo 'docker-compose.yml' contiene la configuración de todos los contenedores que se utilizan para el proyecto.
 Para que Docker instale las imagenes necesarias, se debe ejecutar el comando `docker compose pull`.
