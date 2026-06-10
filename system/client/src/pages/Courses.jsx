@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 
 import Sidebar from "../components/Sidebar";
-
 import styles from "./CSS/Courses.module.css";
 
 const Courses = () => {
@@ -21,9 +20,9 @@ const Courses = () => {
 
   useEffect(() => {
     if (user?.configuration?.apariencia?.modo_oscuro === false) {
-      document.body.classList.add("light-mode");
+      document.body.classList.add("light_mode");
     } else {
-      document.body.classList.remove("light-mode");
+      document.body.classList.remove("light_mode");
     }
   }, [user]);
 
@@ -60,9 +59,7 @@ const Courses = () => {
   useEffect(() => {
     const init = async () => {
       setLoading(true);
-
       await fetchCourses();
-
       setLoading(false);
     };
 
@@ -90,32 +87,28 @@ const Courses = () => {
 
   if (loading) {
     return (
-      <div className="courses-loading">
+      <div className={styles.courses_loading}>
         <div className="loader"></div>
       </div>
     );
   }
 
   return (
-    <div className="courses-layout">
+    <div className={styles.courses_layout}>
       <Sidebar />
-
-      <main className="courses-main">
+      <main className={styles.courses_main}>
 
         {/* HEADER */}
 
-        <div className="courses-header">
-
+        <div className={styles.courses_header}>
           <div>
             <h1>Mis Cursos</h1>
-
             <p>
               Continuá aprendiendo donde
               lo dejaste.
             </p>
           </div>
-
-          <div className="user-info">
+          <div className={styles.user_info}>
             <span>{user?.username}</span>
           </div>
 
@@ -125,26 +118,21 @@ const Courses = () => {
 
         {
           courses.length === 0 && (
-            <div className="empty-state">
-
+            <div className={styles.empty_state}>
               <h2>
                 Todavía no estás anotado
                 a ningún curso
               </h2>
-
               <p>
                 Cuando te inscribas a un
                 curso aparecerá aquí.
               </p>
-
             </div>
           )
         }
 
         {/* GRID */}
-
-        <div className="courses-grid">
-
+        <div className={styles.courses_grid}>
           {
             courses.map((course) => {
 
@@ -168,61 +156,50 @@ const Courses = () => {
 
                 <div
                   key={course.course_id}
-                  className="course-card"
+                  className={styles.course_card}
                 >
 
-                  <div className="course-top">
+                  <div className={styles.course_top}>
 
                     <h2>
                       {course.name}
                     </h2>
 
-                    <span className="course-percent">
+                    <span className={styles.course_percent}>
                       {percent}%
                     </span>
 
                   </div>
 
-                  <span className="course-status">
+                  <span className={styles.course_status}>
                     En progreso
                   </span>
 
-                  <div className="progress-info">
-
+                  <div className={styles.progress_info}>
                     <span>
                       {currentLesson} /{" "}
                       {totalLessons} lecciones
                     </span>
-
                     <span>
                       {remaining} restantes
                     </span>
-
                   </div>
-
-                  <div className="progress-bar">
-
+                  <div className={styles.progress_bar}>
                     <div
-                      className="progress-fill"
+                      className={styles.progress_fill}
                       style={{
                         width: `${percent}%`
-                      }}
-                    />
-
+                      }}/>
                   </div>
 
-                  <button className="continue-btn">
+                  <button className={styles.continue_btn}>
                     Continuar
                   </button>
-
                 </div>
-
               );
             })
           }
-
         </div>
-
       </main>
     </div>
   );
