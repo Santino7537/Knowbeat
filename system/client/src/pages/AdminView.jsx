@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import "./CSS/AdminView.css";
+import styles from "./CSS/AdminView.module.css";
 
 export default function AdminView() {
   const [users, setUsers] = useState([]);
@@ -9,24 +9,14 @@ export default function AdminView() {
   const [activeTab, setActiveTab] = useState("users");
   const [roleFilter, setRoleFilter] = useState("all");
 
-  // MODAL ELIMINAR
-  const [showDeleteModal, setShowDeleteModal] =
-    useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
 
-  const [selectedUser, setSelectedUser] =
-    useState(null);
-
-  // REPORTES (PREPARADO PARA BACKEND)
   const [reports, setReports] = useState([]);
 
-  // ANUNCIOS
-  const [announcementTitle, setAnnouncementTitle] =
-    useState("");
+  const [announcementTitle, setAnnouncementTitle] = useState("");
+  const [announcementMessage, setAnnouncementMessage] = useState("");
 
-  const [announcementMessage, setAnnouncementMessage] =
-    useState("");
-
-  // USUARIO ACTUAL
   const currentUser = JSON.parse(
     localStorage.getItem("user") || "{}"
   );
@@ -36,7 +26,6 @@ export default function AdminView() {
     fetchReports();
   }, []);
 
-  // USERS
   const fetchUsers = async () => {
     const token = localStorage.getItem("token");
 
@@ -45,24 +34,19 @@ export default function AdminView() {
         "http://localhost:3000/user/get/users",
         {
           headers: {
-            Authorization: `Bearer ${token}`,
-          },
+            Authorization: `Bearer ${token}`
+          }
         }
       );
 
       setUsers(res.data);
     } catch (err) {
-      console.error(
-        "Error cargando usuarios:",
-        err
-      );
+      console.error("Error cargando usuarios:", err);
     } finally {
       setLoading(false);
     }
   };
 
-  // REPORTES
-  // PREPARADO PARA BACKEND
   const fetchReports = async () => {
     try {
       /*
@@ -72,32 +56,23 @@ export default function AdminView() {
         "http://localhost:3000/reports",
         {
           headers: {
-            Authorization: `Bearer ${token}`,
-          },
+            Authorization: `Bearer ${token}`
+          }
         }
       );
 
       setReports(res.data);
       */
 
-      // MOCK TEMPORAL
-      setReports([
-      ]);
+      setReports([]);
     } catch (err) {
-      console.error(
-        "Error cargando reportes:",
-        err
-      );
+      console.error("Error cargando reportes:", err);
     }
   };
 
-  // ELIMINAR USUARIO
   const deleteUser = async (id, role) => {
     if (role === 2) {
-      alert(
-        "No podés eliminar otro administrador"
-      );
-
+      alert("No podés eliminar otro administrador");
       return;
     }
 
@@ -109,86 +84,67 @@ export default function AdminView() {
         {},
         {
           headers: {
-            Authorization: `Bearer ${token}`,
-          },
+            Authorization: `Bearer ${token}`
+          }
         }
       );
 
       fetchUsers();
     } catch (err) {
-      console.error(
-        "Error eliminando usuario:",
-        err
-      );
+      console.error("Error eliminando usuario:", err);
     }
   };
 
-  // CAMBIAR ROL
-  const handleRoleChange = async (
-    id,
-    role
-  ) => {
+  const handleRoleChange = async (id, role) => {
     const token = localStorage.getItem("token");
 
     try {
       await axios.patch(
         `http://localhost:3000/user/update/role/${id}`,
         {
-          rol: Number(role),
+          rol: Number(role)
         },
         {
           headers: {
-            Authorization: `Bearer ${token}`,
-          },
+            Authorization: `Bearer ${token}`
+          }
         }
       );
 
       fetchUsers();
     } catch (err) {
-      console.error(
-        "Error cambiando rol:",
-        err
-      );
+      console.error("Error cambiando rol:", err);
     }
   };
 
-  // CREAR ANUNCIO
-  // PREPARADO PARA BACKEND
-  const handleCreateAnnouncement =
-    async () => {
-      try {
-        /*
-        const token = localStorage.getItem("token");
+  const handleCreateAnnouncement = async () => {
+    try {
+      /*
+      const token = localStorage.getItem("token");
 
-        await axios.post(
-          "http://localhost:3000/announcements",
-          {
-            title: announcementTitle,
-            message: announcementMessage,
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
+      await axios.post(
+        "http://localhost:3000/announcements",
+        {
+          title: announcementTitle,
+          message: announcementMessage
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
           }
-        );
-        */
+        }
+      );
+      */
 
-        alert(
-          "Sistema preparado para conexión backend"
-        );
+      alert("Sistema preparado para conexión backend");
 
-        setAnnouncementTitle("");
-        setAnnouncementMessage("");
-      } catch (err) {
-        console.error(
-          "Error creando anuncio:",
-          err
-        );
-      }
-    };
+      setAnnouncementTitle("");
+      setAnnouncementMessage("");
+    } catch (err) {
+      console.error("Error creando anuncio:", err);
+    }
+  };
 
-  // FILTRO
   const filteredUsers = users.filter((u) => {
     if (roleFilter === "all") return true;
 
@@ -197,41 +153,36 @@ export default function AdminView() {
 
   if (loading) {
     return (
-      <div className="admin-loading">
-        <div className="loader"></div>
+      <div className={styles.admin_loading}>
+        <div className={styles.loader}></div>
       </div>
     );
   }
 
   return (
-    <div className="admin-page">
-      {/* HEADER */}
-      <div className="admin-top">
+    <div className={styles.admin_page}>
+      <div className={styles.admin_top}>
         <div>
           <h1>Panel de Administración</h1>
 
           <p>
-            Gestiona usuarios, permisos y
-            moderación de KnowBeat
+            Gestiona usuarios, permisos y moderación de KnowBeat
           </p>
         </div>
 
-        <div className="admin-badge">
+        <div className={styles.admin_badge}>
           ADMIN
         </div>
       </div>
 
-      {/* TABS */}
-      <div className="admin-tabs">
+      <div className={styles.admin_tabs}>
         <button
           className={
             activeTab === "users"
-              ? "tab active"
-              : "tab"
+              ? `${styles.tab} ${styles.active}`
+              : styles.tab
           }
-          onClick={() =>
-            setActiveTab("users")
-          }
+          onClick={() => setActiveTab("users")}
         >
           Usuarios
         </button>
@@ -239,12 +190,10 @@ export default function AdminView() {
         <button
           className={
             activeTab === "reports"
-              ? "tab active"
-              : "tab"
+              ? `${styles.tab} ${styles.active}`
+              : styles.tab
           }
-          onClick={() =>
-            setActiveTab("reports")
-          }
+          onClick={() => setActiveTab("reports")}
         >
           Reportes
         </button>
@@ -252,28 +201,23 @@ export default function AdminView() {
         <button
           className={
             activeTab === "announcements"
-              ? "tab active"
-              : "tab"
+              ? `${styles.tab} ${styles.active}`
+              : styles.tab
           }
-          onClick={() =>
-            setActiveTab("announcements")
-          }
+          onClick={() => setActiveTab("announcements")}
         >
           Anuncios
         </button>
       </div>
 
-      {/* STATS */}
-      <div className="stats-grid">
-        <div className="stat-card">
+      <div className={styles.stats_grid}>
+        <div className={styles.stat_card}>
           <span>Total usuarios</span>
-
           <h2>{users.length}</h2>
         </div>
 
-        <div className="stat-card">
+        <div className={styles.stat_card}>
           <span>Administradores</span>
-
           <h2>
             {
               users.filter(
@@ -283,9 +227,8 @@ export default function AdminView() {
           </h2>
         </div>
 
-        <div className="stat-card">
+        <div className={styles.stat_card}>
           <span>Moderadores</span>
-
           <h2>
             {
               users.filter(
@@ -295,29 +238,24 @@ export default function AdminView() {
           </h2>
         </div>
 
-        <div className="stat-card">
+        <div className={styles.stat_card}>
           <span>Reportes</span>
-
           <h2>{reports.length}</h2>
         </div>
       </div>
-
-      {/* USERS */}
       {activeTab === "users" && (
-        <div className="users-container">
-          <div className="section-title">
+        <div className={styles.users_container}>
+          <div className={styles.section_title}>
             <h2>Gestión de Usuarios</h2>
 
             <p>
-              Administrá permisos, roles y
-              usuarios del sistema
+              Administrá permisos, roles y usuarios del sistema
             </p>
           </div>
 
-          {/* FILTRO */}
-          <div className="filter-row">
+          <div className={styles.filter_row}>
             <select
-              className="role-select"
+              className={styles.role_select}
               value={roleFilter}
               onChange={(e) =>
                 setRoleFilter(e.target.value)
@@ -343,28 +281,27 @@ export default function AdminView() {
 
           {filteredUsers.map((u) => (
             <div
-              className="user-card"
+              className={styles.user_card}
               key={u.id}
             >
-              {/* LEFT */}
-              <div className="user-left">
-                <div className="avatar">
+              <div className={styles.user_left}>
+                <div className={styles.avatar}>
                   {u.username?.[0]?.toUpperCase()}
                 </div>
 
-                <div className="user-data">
+                <div className={styles.user_data}>
                   <h3>{u.username}</h3>
 
                   <p>{u.email}</p>
 
-                  <div className="role-row">
+                  <div className={styles.role_row}>
                     <span
                       className={
                         u.role_id === 2
-                          ? "role admin"
+                          ? `${styles.role} ${styles.admin}`
                           : u.role_id === 3
-                          ? "role mod"
-                          : "role user"
+                          ? `${styles.role} ${styles.mod}`
+                          : `${styles.role} ${styles.user}`
                       }
                     >
                       {u.role_id === 2
@@ -374,9 +311,8 @@ export default function AdminView() {
                         : "Usuario"}
                     </span>
 
-                    {currentUser?.id ===
-                      u.id && (
-                      <span className="you-badge">
+                    {currentUser?.id === u.id && (
+                      <span className={styles.you_badge}>
                         Vos
                       </span>
                     )}
@@ -384,12 +320,10 @@ export default function AdminView() {
                 </div>
               </div>
 
-              {/* RIGHT */}
-              <div className="user-actions">
-                {/* CAMBIAR ROL */}
+              <div className={styles.user_actions}>
                 {u.role_id !== 2 && (
                   <select
-                    className="role-select"
+                    className={styles.role_select}
                     value={u.role_id}
                     onChange={(e) =>
                       handleRoleChange(
@@ -412,19 +346,16 @@ export default function AdminView() {
                   </select>
                 )}
 
-                {/* ELIMINAR */}
                 <button
                   className={
                     u.role_id === 2
-                      ? "delete-btn disabled"
-                      : "delete-btn"
+                      ? `${styles.delete_btn} ${styles.disabled}`
+                      : styles.delete_btn
                   }
                   disabled={u.role_id === 2}
                   onClick={() => {
                     setSelectedUser(u);
-                    setShowDeleteModal(
-                      true
-                    );
+                    setShowDeleteModal(true);
                   }}
                 >
                   Eliminar
@@ -435,40 +366,35 @@ export default function AdminView() {
         </div>
       )}
 
-      {/* REPORTES */}
       {activeTab === "reports" && (
-        <div className="users-container">
-          <div className="section-title">
+        <div className={styles.users_container}>
+          <div className={styles.section_title}>
             <h2>Reportes</h2>
 
             <p>
-              Sistema preparado para conexión
-              backend
+              Sistema preparado para conexión backend
             </p>
           </div>
 
           {reports.map((report) => (
             <div
-              className="report-card"
+              className={styles.report_card}
               key={report.id}
             >
-              <div className="report-header">
+              <div className={styles.report_header}>
                 <h3>
                   {report.reportedUser}
                 </h3>
 
-                <span className="report-count">
-                  {report.totalReports}
-                  {" "}
-                  reportes
+                <span className={styles.report_count}>
+                  {report.totalReports} reportes
                 </span>
               </div>
 
               <p>{report.reason}</p>
 
-              <span className="report-author">
-                Reportado por:
-                {" "}
+              <span className={styles.report_author}>
+                Reportado por:{" "}
                 {report.createdBy}
               </span>
             </div>
@@ -476,20 +402,17 @@ export default function AdminView() {
         </div>
       )}
 
-      {/* ANUNCIOS */}
-      {activeTab ===
-        "announcements" && (
-        <div className="users-container">
-          <div className="section-title">
+      {activeTab === "announcements" && (
+        <div className={styles.users_container}>
+          <div className={styles.section_title}>
             <h2>Anuncios</h2>
 
             <p>
-              Publicaciones para toda la
-              comunidad
+              Publicaciones para toda la comunidad
             </p>
           </div>
 
-          <div className="announcement-form">
+          <div className={styles.announcement_form}>
             <input
               type="text"
               placeholder="Título"
@@ -499,24 +422,24 @@ export default function AdminView() {
                   e.target.value
                 )
               }
-              className="announcement-input"
+              className={styles.announcement_input}
             />
 
             <textarea
               placeholder="Mensaje..."
-              value={
-                announcementMessage
-              }
+              value={announcementMessage}
               onChange={(e) =>
                 setAnnouncementMessage(
                   e.target.value
                 )
               }
-              className="announcement-textarea"
+              className={
+                styles.announcement_textarea
+              }
             />
 
             <button
-              className="publish-btn"
+              className={styles.publish_btn}
               onClick={
                 handleCreateAnnouncement
               }
@@ -526,33 +449,25 @@ export default function AdminView() {
           </div>
         </div>
       )}
-
-      {/* MODAL */}
       {showDeleteModal && (
-        <div className="modal-overlay">
-          <div className="delete-modal">
+        <div className={styles.modal_overlay}>
+          <div className={styles.delete_modal}>
             <h2>Eliminar usuario</h2>
 
             <p>
-              ¿Estás seguro que deseas
-              eliminar a
+              ¿Estás seguro que deseas eliminar a
               <strong>
                 {" "}
-                {
-                  selectedUser?.username
-                }
+                {selectedUser?.username}
               </strong>
               ?
             </p>
 
-            <div className="modal-actions">
+            <div className={styles.modal_actions}>
               <button
-                className="cancel-btn"
+                className={styles.cancel_btn}
                 onClick={() => {
-                  setShowDeleteModal(
-                    false
-                  );
-
+                  setShowDeleteModal(false);
                   setSelectedUser(null);
                 }}
               >
@@ -560,17 +475,16 @@ export default function AdminView() {
               </button>
 
               <button
-                className="confirm-delete-btn"
+                className={
+                  styles.confirm_delete_btn
+                }
                 onClick={async () => {
                   await deleteUser(
                     selectedUser.id,
                     selectedUser.role_id
                   );
 
-                  setShowDeleteModal(
-                    false
-                  );
-
+                  setShowDeleteModal(false);
                   setSelectedUser(null);
                 }}
               >
@@ -583,3 +497,4 @@ export default function AdminView() {
     </div>
   );
 }
+
