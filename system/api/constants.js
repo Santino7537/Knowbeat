@@ -33,7 +33,33 @@ const CONFIG_JSON = JSON.stringify({
       language: "es-AR",
       dark_mode: true
     }
-  });
+});
+
+const ALLOWED_CONFIGS = {
+
+    // PRIVACY
+    'privacy.private_account': 'boolean',
+    'privacy.progress_visibility': 'string',
+    'privacy.restricted_messaging': 'boolean',
+    'privacy.show_activity': 'boolean',
+
+    // PREFERENCES
+    'preferences.notation': 'string',
+    'preferences.microphone_exercises': 'boolean',
+    'preferences.listening_exercises': 'boolean',
+
+    // NOTIFICATIONS
+    'preferences.notifications.streak_reminders': 'boolean',
+    'preferences.notifications.emails': 'boolean',
+    'preferences.notifications.mentions': 'boolean',
+    'preferences.notifications.likes': 'boolean',
+    'preferences.notifications.community_announcements': 'boolean',
+
+    // APPEARANCE
+    'appearance.language': 'string',
+    'appearance.dark_mode': 'boolean'
+
+};
 
 const PENALTY_DATE = new Date("2000-01-01");
 
@@ -69,5 +95,6 @@ module.exports = {
     MAX_FILE_SIZE,
     VALID_FILES_FORMATS,
     FILES_CONSTANTS,
-    CONFIG_JSON
+    CONFIG_JSON,
+    ALLOWED_CONFIGS
 };
