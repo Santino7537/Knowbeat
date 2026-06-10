@@ -1,6 +1,10 @@
 # Secrets
 .env
 
-# MinIO data
-data/minio/*
-!data/minio/.gitkeep
+# MongoDB init
+mongo/init/*
+!mongo/init/.gitkeep
+
+# MySQL init
+mysql/init/*
+!mysql/init/.gitkeep

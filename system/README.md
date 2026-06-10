@@ -13,3 +13,4 @@ El archivo 'docker-compose.yml' contiene la configuración de todos los contened
 Para que Docker instale las imagenes necesarias, se debe ejecutar el comando `docker compose pull`.
 Para que Docker cree e inicie todos los contenedores, se debe ejecutar el comando `docker compose up -d`.
 Para que Docker elimine los contenedores, se debe ejecutar el comando `docker compose down`.
+Para que Docker elimine los contenedores y volúmenes, se debe ejecutar el comando `docker compose down -v`.

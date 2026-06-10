@@ -12,7 +12,7 @@ services:
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
 
     volumes:
-      - ./data/minio:/data
+      - minio_data:/data
 
     command: server /data --console-address ":9001"
 
@@ -56,3 +56,28 @@ services:
         mc cp /assets/default_profile.webp local/profiles/
 
     restart: "no"
+
+  mongo:
+    image: mongo:8.0.23
+    container_name: mongo
+
+    ports:
+      - "27018:27017"
+
+    environment:
+      MONGO_INITDB_DATABASE: ${MONGO_DATABASE_NAME}
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
+      MONGO_BACKEND_USER: ${MONGO_BACKEND_USER}
+      MONGO_BACKEND_PASSWORD: ${MONGO_BACKEND_PASSWORD}
+
+    volumes:
+      - mongo_data:/data/db
+      - ./mongo/init:/docker-entrypoint-initdb.d
+
+    restart: unless-stopped
+
+volumes:
+  mongo_data:
+
+  minio_data:

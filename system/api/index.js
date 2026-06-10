@@ -1,5 +1,4 @@
-require('dotenv').config(); // Carga las variables de entorno desde el archivo .env
-
+require('dotenv').config({ path: "../.env" }); // Carga las variables de entorno desde el archivo .env
 const express = require('express');
 const cors = require('cors');
 
