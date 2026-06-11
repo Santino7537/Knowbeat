@@ -5,15 +5,49 @@ const jwt = require('jsonwebtoken');
 
 const SECRET = process.env.SECRET;
 
+//'user-update-role', 'user-delete-user'
+
 const deleteUser = async (req, res) => {
     const userId = req.params.id;
   
+    req.actions_data = {};
+
+    let [userPayload] = await db.query(
+        'SELECT * FROM User WHERE id = ?',
+        [userId]
+    );
+
+    if (userPayload.length === 0) {
+        return res.status(404).json({
+          error: 'Usuario no encontrado'
+        });
+    }
+
+    // Guardar dvh viejo y actualizar dvh
+    userPayload = userPayload[0];
+    const oldDvh = userPayload.dvh;
+    userPayload.eliminated = 1;
+    delete userPayload.dvh;
+    const newDvh = ComputeDVHFromObject(userPayload);
+    userPayload.dvh = newDvh;
+
+    req.actions_data["user-delete-user"] = {
+        entity: "User",
+        record_id: userId,
+        action: "update",
+        old_dvh: oldDvh,
+        new_dvh: newDvh
+    };
+
     try {
-      const [result] = await db.query('UPDATE User SET eliminated = 1 WHERE id = ?;', [userId]);
+        const [result] = await db.query(
+            'UPDATE User SET eliminated = ?, dvh = ? WHERE id = ?;',
+            [1, newDvh, userId]
+        );
       
-      if (result.affectedRows === 0) { return res.status(404).json({ error: 'Usuario no encontrado' }); }
-      
-      res.json({ message: 'Usuario eliminado exitosamente' });
+        if (result.affectedRows === 0) { return res.status(404).json({ error: 'Usuario no encontrado' }); }
+
+        res.json({ message: 'Usuario eliminado exitosamente' });
     } 
     
     catch (error) { res.status(500).json({ error: 'Error al eliminar usuario' }); }
@@ -23,27 +57,72 @@ const changeRole = async (req, res) => {
     const { rol } = req.body;
     const userId = req.params.id;
 
+    req.actions_data = {};
+
     try {
+
         // validar rol permitido
-        if (!Number.isInteger(rol) || !(0 < rol <= Object.keys(ROLES_PERMISSIONS).length)) {
+        if (!Number.isInteger(rol) || !(0 < rol && rol <= Object.keys(ROLES_PERMISSIONS).length)) {
             return res.status(400).json({ error: 'Rol inválido' });
         }
 
-        const [user] = await db.query('SELECT role_id FROM User WHERE id = ?', [userId]);
+        let [userPayload] = await db.query(
+            'SELECT * FROM User WHERE id = ?',
+            [userId]
+        );
 
         // validar usuario existente
-        if (user.length === 0) { return res.status(404).json({ error: 'Usuario no encontrado' }); }
-
-        // impedir modificar admins
-        if (user[0].role_id === Object.keys(ROLES_PERMISSIONS).indexOf(ADMINISTRATOR_ROLE) + 1) {
-            return res.status(403).json({ error: 'No se le puede cambiar el rol a un administrador' });
+        if (userPayload.length === 0) {
+            return res.status(404).json({ error: 'Usuario no encontrado' });
         }
 
-        await db.query('UPDATE User SET role_id = ? WHERE id = ?', [rol, userId]);
-        return res.json({ message: 'Se cambió el rol del usuario correctamente' });
-    } catch (error) { return res.status(500).json({ error: 'Error al cambiar el rol al usuario' }); }
-};
+        userPayload = userPayload[0];
 
+        // impedir modificar admins
+        if (
+            userPayload.role_id ===
+            Object.keys(ROLES_PERMISSIONS).indexOf(ADMINISTRATOR_ROLE) + 1
+        ) {
+            return res.status(403).json({
+                error: 'No se le puede cambiar el rol a un administrador'
+            });
+        }
+
+        const oldDvh = userPayload.dvh;
+
+        // Modificar payload como quedará en BD
+        userPayload.role_id = rol;
+
+        // Recalcular DVH
+        delete userPayload.dvh;
+
+        const newDvh = ComputeDVHFromObject(userPayload);
+
+        userPayload.dvh = newDvh;
+
+        req.actions_data["user-update-role"] = {
+            entity: "User",
+            record_id: userId,
+            action: "update",
+            old_dvh: oldDvh,
+            new_dvh: newDvh
+        };
+
+        await db.query(
+            'UPDATE User SET role_id = ?, dvh = ? WHERE id = ?',
+            [rol, newDvh, userId]
+        );
+
+        return res.json({
+            message: 'Se cambió el rol del usuario correctamente'
+        });
+
+    } catch (error) {
+        return res.status(500).json({
+            error: 'Error al cambiar el rol al usuario'
+        });
+    }
+};
 module.exports = {
     deleteUser,
     changeRole

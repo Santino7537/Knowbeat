@@ -63,7 +63,6 @@ const ALLOWED_CONFIGS = {
 
 const PENALTY_DATE = new Date("2000-01-01");
 
-
 const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20 MB
 
 const VALID_FILES_FORMATS = {
