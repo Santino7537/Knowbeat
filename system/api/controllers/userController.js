@@ -179,6 +179,8 @@ const changeConfig = async (req, res) => {
 
   const userId = req.user.user_id;
 
+  if (password) req.body.password = "[REDACTED]";
+
   const result = iterate(req.body);
 
   if (!result) {

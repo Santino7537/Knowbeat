@@ -78,6 +78,7 @@ const registerCourse = async(req,res) => {
   const courseId = req.params.id;
 
   req.actions.data = {};
+  if (password) req.body.password = "[REDACTED]";
   
   try {
         const [rows] = await db.query(`

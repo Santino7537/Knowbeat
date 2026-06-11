@@ -5,6 +5,7 @@ const cors = require('cors');
 const { login, register, getUser, getUsers, getConfig, changeConfig, changeProfile } = require('./controllers/userController');
 const { changeRole, deleteUser } = require('./controllers/adminController');
 const { getCourses, getUserProgress, registerCourse, } = require('./controllers/coursesController');
+const { getUserStats, changeGoal } = require('./controllers/streakController');
 
 const { postResponseLog } = require('./middlewares/binnacleHelper');
 const { checkFilesUpload } = require('./middlewares/checkFiles');
@@ -60,6 +61,10 @@ server.patch('/user/delete/user/:id', postResponseLog, checkToken, isAuth, delet
 server.get('/course/get/courses', checkToken, isAuth, getCourses);
 server.get('/user/get/progress', checkToken, isAuth, getUserProgress);
 server.post('/user/register/course/:id', postResponseLog, checkToken, isAuth, registerCourse);
+
+//Streak & Score
+server.get('/user/get/stats',checkToken, isAuth, getUserStats)
+server.patch('/user/update/goal',checkToken, isAuth, changeGoal)
 
 server.listen(PORT, async () => {
   console.log('La API está corriendo en el puerto ', PORT);
