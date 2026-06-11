@@ -1,4 +1,4 @@
-const { USER_ROLE, ROLES_PERMISSIONS, PENALTY_DATE } = require('../constants');
+const { USER_ROLE, ROLES_PERMISSIONS, PENALTY_DATE, CONFIG_JSON, ALLOWED_CONFIGS } = require('../constants');
 const { computeDVHFromObject } = require('../utils/dvhHelpers');
 const { convertImageToWebP, resizeImage } = require('../utils/fileChecker');
 const { getPublicFileUrl, uploadFile, deleteFile } = require('./bucketController');
@@ -49,34 +49,16 @@ const register = async (req, res) => {
 
   // Preparar campos para la creación del usuario
   // Detectamos el idioma desde el header antes del INSERT
+
   const langHeader = req.headers['accept-language'] || 'es';
   const detectedLang = langHeader.startsWith('en') ? 'en-US' : 'es-AR';
 
+  // Crea un clon de la constante config para registrarla con el idioma detectado
+  const config = structuredClone(CONFIG_JSON);
+  config.appearance.language = detectedLang;
+  const config_json = JSON.stringify(config);
+
   // Se crea el JSON que contiene la configuración del usuario:
-  const config_json = JSON.stringify({
-    privacidad: {
-      cuenta_privada: false,
-      visibilidad_progreso: "todos",
-      mensajeria_restringida: false,
-      mostrar_actividad: true
-    },
-    preferencia: {
-      notacion: "americana",
-      ejercicios_microfono: true,
-      ejercicios_escucha: true,
-      notificaciones: {
-        recordatorio_racha: true,
-        emails: true,
-        menciones: true,
-        likes: true,
-        avisos_comunidad: true
-      }
-    },
-    apariencia: {
-      idioma: detectedLang,
-      modo_oscuro: true
-    }
-  });
 
   // Comprueba si el nombre de usuario e email ya existen
   try {
@@ -110,7 +92,7 @@ const register = async (req, res) => {
 
   // Crea el usuario en la base de datos
   try {
-    user = await db.query('INSERT INTO User (role_id, username, email, password, picture, configuration, penalty_date, eliminated, dvh) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);',
+    const [user] = await db.query('INSERT INTO User (role_id, username, email, password, picture, configuration, penalty_date, eliminated, dvh) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);',
       Object.values(userPayload));
   } catch (error) {
     console.log(error);
@@ -161,7 +143,7 @@ const getConfig = async (req, res) => {
 
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: 'Error al obtener usuarios' });
+    res.status(500).json({ error: 'Error al obtener la configuración del usuario' });
   }
 
 };
@@ -170,15 +152,12 @@ const changeConfig = async (req, res) => {
 
   function iterate(obj, path = "") {
 
-    // Detecta como se llama el campo, y el contenido que tiene
     for (const [reg, value] of Object.entries(obj)) {
 
-      // Va formando el campo "preferencias.notificaciones.etc"
       const newPath = path ? `${path}.${reg}` : reg;
 
-      // Si encuentra otro objeto, sigue recorriendo
       if (
-        typeof (value) == 'object' &&
+        typeof value === 'object' &&
         value !== null &&
         !Array.isArray(value)
       ) {
@@ -188,7 +167,6 @@ const changeConfig = async (req, res) => {
       } else {
 
         return {
-          // Devuelve el path completo y el valor final
           type: newPath,
           content: value
         };
@@ -197,12 +175,12 @@ const changeConfig = async (req, res) => {
     }
   }
 
+  req.actions_data = {};
+
   const userId = req.user.user_id;
 
-  // req.body devuelve un obj de los cambios que se efectuaron
   const result = iterate(req.body);
 
-  // Si no encontró nada válido
   if (!result) {
     return res.status(400).json({
       error: 'Configuración inválida'
@@ -212,74 +190,86 @@ const changeConfig = async (req, res) => {
   const configType = result.type;
   const configValue = result.content;
 
-  /* =========================
-     SEGURIDAD
-     ========================= */
-
-  // Configuraciones permitidas
-  const allowedConfigs = {
-
-    // PRIVACIDAD
-    'privacidad.cuenta_privada': 'boolean',
-    'privacidad.visibilidad_progreso': 'string',
-    'privacidad.mensajeria_restringida': 'boolean',
-    'privacidad.mostrar_actividad': 'boolean',
-
-    // PREFERENCIAS
-    'preferencia.notacion': 'string',
-    'preferencia.ejercicios_microfono': 'boolean',
-    'preferencia.ejercicios_escucha': 'boolean',
-
-    // NOTIFICACIONES
-    'preferencia.notificaciones.recordatorio_racha': 'boolean',
-    'preferencia.notificaciones.emails': 'boolean',
-    'preferencia.notificaciones.menciones': 'boolean',
-    'preferencia.notificaciones.likes': 'boolean',
-    'preferencia.notificaciones.avisos_comunidad': 'boolean',
-
-    // APARIENCIA
-    'apariencia.idioma': 'string',
-    'apariencia.modo_oscuro': 'boolean'
-
-  };
-
-  // Verifica que la config exista
-  if (!(configType in allowedConfigs)) {
-
+  if (!(configType in ALLOWED_CONFIGS)) {
     return res.status(400).json({
       error: 'Configuración no permitida'
     });
-
   }
 
-  // Verifica tipo de dato
-  if (typeof (configValue) !== allowedConfigs[configType]) {
-
+  if (typeof configValue !== ALLOWED_CONFIGS[configType]) {
     return res.status(400).json({
       error: 'Tipo de dato inválido'
     });
-
   }
-
 
   try {
 
-    const sqlPath = `$.${configType}`;
-
-    const [resultDB] = await db.query(
-      'UPDATE User SET configuration = JSON_SET(configuration, ?, ?) WHERE id = ?',
-      [sqlPath, configValue, userId]
+    // Obtener usuario actual
+    let [userPayload] = await db.query(
+      'SELECT * FROM User WHERE id = ?',
+      [userId]
     );
 
-    if (resultDB.affectedRows === 0) {
-
+    if (userPayload.length === 0) {
       return res.status(404).json({
         error: 'Usuario no encontrado'
       });
-
     }
 
-    res.json({
+    userPayload = userPayload[0];
+
+    const oldDvh = userPayload.dvh;
+
+    // Parsear configuración actual
+    let configuration = userPayload.configuration;
+
+    if (typeof configuration === 'string') {
+      configuration = JSON.parse(configuration);
+    }
+
+    // Navegar hasta la propiedad a modificar
+    const keys = configType.split('.');
+
+    let current = configuration;
+
+    for (let i = 0; i < keys.length - 1; i++) {
+      current = current[keys[i]];
+    }
+
+    current[keys[keys.length - 1]] = configValue;
+
+    // Actualizar configuración en el payload
+    userPayload.configuration = configuration;
+
+    // Recalcular DVH
+    delete userPayload.dvh;
+
+    const newDvh = ComputeDVHFromObject(userPayload);
+
+    userPayload.dvh = newDvh;
+
+    // Preparar acción para la bitácora
+    req.actions_data["update-config"] = {
+      entity: "User",
+      record_id: userId,
+      action: "update",
+      old_dvh: oldDvh,
+      new_dvh: newDvh
+    };
+
+    // Actualizar BD
+    await db.query(
+      `UPDATE User
+       SET configuration = ?, dvh = ?
+       WHERE id = ?`,
+      [
+        JSON.stringify(configuration),
+        newDvh,
+        userId
+      ]
+    );
+
+    res.status(200).json({
       message: 'Se cambió la configuración exitosamente'
     });
 

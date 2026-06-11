@@ -10,9 +10,58 @@ const ROLES_PERMISSIONS = {
 };
 const PERMISSIONS = [...new Set(Object.values(ROLES_PERMISSIONS).flat())].sort()
 
+const CONFIG_JSON = JSON.stringify({
+    privacy: {
+      private_account: false,
+      progress_visibility: "everyone",
+      restricted_messaging: false,
+      show_activity: true
+    },
+    preferences: {
+      notation: "american",
+      microphone_exercises: true,
+      listening_exercises: true,
+      notifications: {
+        streak_reminders: true,
+        emails: true,
+        mentions: true,
+        likes: true,
+        community_announcements: true
+      }
+    },
+    appearance: {
+      language: "es-AR",
+      dark_mode: true
+    }
+});
+
+const ALLOWED_CONFIGS = {
+
+    // PRIVACY
+    'privacy.private_account': 'boolean',
+    'privacy.progress_visibility': 'string',
+    'privacy.restricted_messaging': 'boolean',
+    'privacy.show_activity': 'boolean',
+
+    // PREFERENCES
+    'preferences.notation': 'string',
+    'preferences.microphone_exercises': 'boolean',
+    'preferences.listening_exercises': 'boolean',
+
+    // NOTIFICATIONS
+    'preferences.notifications.streak_reminders': 'boolean',
+    'preferences.notifications.emails': 'boolean',
+    'preferences.notifications.mentions': 'boolean',
+    'preferences.notifications.likes': 'boolean',
+    'preferences.notifications.community_announcements': 'boolean',
+
+    // APPEARANCE
+    'appearance.language': 'string',
+    'appearance.dark_mode': 'boolean'
+
+};
 
 const PENALTY_DATE = new Date("2000-01-01");
-
 
 const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20 MB
 
@@ -44,5 +93,7 @@ module.exports = {
     PENALTY_DATE,
     MAX_FILE_SIZE,
     VALID_FILES_FORMATS,
-    FILES_CONSTANTS
+    FILES_CONSTANTS,
+    CONFIG_JSON,
+    ALLOWED_CONFIGS
 };
