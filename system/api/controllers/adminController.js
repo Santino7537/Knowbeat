@@ -5,8 +5,6 @@ const jwt = require('jsonwebtoken');
 
 const SECRET = process.env.SECRET;
 
-//'user-update-role', 'user-delete-user'
-
 const deleteUser = async (req, res) => {
     const userId = req.params.id;
   
@@ -123,6 +121,7 @@ const changeRole = async (req, res) => {
         });
     }
 };
+
 module.exports = {
     deleteUser,
     changeRole
