@@ -2,6 +2,7 @@ import AdminView from './pages/AdminView.jsx'
 import Settings from './pages/Settings.jsx'
 import Landing from './pages/Landing.jsx'
 import Courses from './pages/Courses.jsx';
+import UserProfile from './pages/UserProfile.jsx';
 
 import {
   BrowserRouter,
@@ -16,9 +17,7 @@ import './App.css'
 function App() {
 
   return (
-
     <>
-
       <Routes>
 
         {/* =========================
@@ -68,10 +67,14 @@ function App() {
           }
         />
 
+        <Route
+          path="/user"
+          element={
+            <UserProfile />
+          }
+        />
       </Routes>
-
     </>
-
   )
 }
 
