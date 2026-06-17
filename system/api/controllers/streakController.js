@@ -39,8 +39,7 @@ const changeGoal = async (req, res) => {
     const { score_goal } = req.body;
   
     req.actions_data = {};
-    if (password) req.body.password = "[REDACTED]";
-
+    if (req.body.password) req.body.password = "[REDACTED]";
   
     try {
   
@@ -114,7 +113,7 @@ const changeGoal = async (req, res) => {
       });
   
     }
-  };
+};
 
 module.exports = {
     getUserStats, changeGoal,

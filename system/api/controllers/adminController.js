@@ -9,7 +9,7 @@ const deleteUser = async (req, res) => {
     const userId = req.params.id;
   
     req.actions_data = {};
-    if (password) req.body.password = "[REDACTED]";
+    if (req.body.password) req.body.password = "[REDACTED]";
 
     let [userPayload] = await db.query(
         'SELECT * FROM User WHERE id = ?',
@@ -57,7 +57,7 @@ const changeRole = async (req, res) => {
     const userId = req.params.id;
 
     req.actions_data = {};
-    if (password) req.body.password = "[REDACTED]";
+    if (req.body.password) req.body.password = "[REDACTED]";
 
     try {
 
