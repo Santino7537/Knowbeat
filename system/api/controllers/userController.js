@@ -110,9 +110,28 @@ const getUser = async (req, res) => {
     if (user.length === 1) {
       user = user[0]
       user.picture = getPublicFileUrl("profiles", user.picture);
-      return res.json(user);
+      return res.status(200).json(user);
     }
-    return res.json({ message: `No existe el usuario con id ${userId}` })
+    return res.status(400).json({ message: `No existe el usuario con id ${userId}` })
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error al obtener usuarios' });
+  }
+
+};
+
+const getUserByToken = async (req, res) => {
+  const userId = req.user.user_id
+
+  try {
+    let [user] = await db.query('SELECT picture, username, biography FROM User WHERE eliminated = 0 && id = ?', [userId]);
+    if (user.length === 1) {
+      user = user[0]
+      user.picture = getPublicFileUrl("profiles", user.picture);
+      return res.status(200).json(user);
+    }
+    return res.status(400).json({ message: `No existe el usuario con id ${userId}` })
 
   } catch (error) {
     console.error(error);
@@ -396,6 +415,7 @@ module.exports = {
   login,
   register,
   getUser,
+  getUserByToken,
   getUsers,
   getConfig,
   changeConfig,

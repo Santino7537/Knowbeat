@@ -2,7 +2,7 @@ require('dotenv').config({ path: "../.env" }); // Carga las variables de entorno
 const express = require('express');
 const cors = require('cors');
 
-const { login, register, getUser, getUsers, getConfig, changeConfig, changeProfile } = require('./controllers/userController');
+const { login, register, getUser, getUserByToken, getUsers, getConfig, changeConfig, changeProfile } = require('./controllers/userController');
 const { changeRole, deleteUser } = require('./controllers/adminController');
 const { getCourses, getUserProgress, registerCourse, } = require('./controllers/coursesController');
 
@@ -60,6 +60,9 @@ server.patch('/user/delete/user/:id', postResponseLog, checkToken, isAuth, delet
 server.get('/course/get/courses', checkToken, isAuth, getCourses);
 server.get('/user/get/progress', checkToken, isAuth, getUserProgress);
 server.post('/user/register/course/:id', postResponseLog, checkToken, isAuth, registerCourse);
+
+//Token
+server.get('/token/get/user', checkToken, getUserByToken)
 
 server.listen(PORT, async () => {
   console.log('La API está corriendo en el puerto ', PORT);
