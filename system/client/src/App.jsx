@@ -3,18 +3,28 @@ import Settings from './pages/Settings.jsx'
 import Landing from './pages/Landing.jsx'
 import Courses from './pages/Courses.jsx';
 import UserProfile from './pages/UserProfile.jsx';
-
+import { useEffect } from 'react';
 import {
   BrowserRouter,
   Routes,
   Route
 } from "react-router-dom";
-
 import Login_register from './pages/login_register.jsx'
-
 import './App.css'
+import axios from 'axios';
 
 function App() {
+  async function getUserByToken() {
+    try{
+      const response = await axios.get("http://localhost:3000/token/get/user", {
+        headers : {
+          authorization : localStorage.getItem("token")
+        }
+      })
+    } catch (err) {
+      console.error(error.response?.data || error);
+    }
+  }
 
   return (
     <>
