@@ -1,345 +1,380 @@
 /* ─── Design tokens ───────────────────────────────────────────────────────── */
 :root {
-    --color-surface: #ffffff;
-    --color-border: #e4e4e0;
-    --color-text-primary: #1a1a18;
-    --color-text-secondary: #6b6b66;
-  
-    --radius-sm: 0.375rem;
-    --radius-md: 0.75rem;
-    --radius-lg: 1rem;
-    --radius-full: 9999px;
-  
-    --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.07), 0 1px 2px rgba(0, 0, 0, 0.04);
-  
-    --sidebar-width: 15rem;
-    --content-max-width: 52rem;
-  
-    --space-1: 0.25rem;
-    --space-2: 0.5rem;
-    --space-3: 0.75rem;
-    --space-4: 1rem;
-    --space-5: 1.25rem;
-    --space-6: 1.5rem;
-    --space-8: 2rem;
-    --space-10: 2.5rem;
+  --bg:      #050B18;
+  --text:    #F4F8FF;
+  --soft:    #9AA9BE;
+
+  --accent:  #6BB8FF;
+  --accent2: #4A90E2;
+
+  /* Sidebar real: 260px + 1.5rem de aire */
+  --sidebar-width:    calc(260px + 1.5rem);
+  --content-max-width: 52rem;
+
+  --radius-sm:   0.375rem;
+  --radius-md:   0.75rem;
+  --radius-lg:   1rem;
+  --radius-full: 9999px;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+}
+
+/* ─── Keyframe ────────────────────────────────────────────────────────────── */
+@keyframes cardEnter {
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
-  
-  /* ─── Layout ──────────────────────────────────────────────────────────────── */
-  .layout {
-    display: flex;
-    min-height: 100vh;
-    background-color: var(--color-bg);
-    font-family: "Inter", system-ui, sans-serif;
-    color: var(--color-text-primary);
-  }
-  
-  .sidebar {
-    width: var(--sidebar-width);
-    flex-shrink: 0;
-    background-color: var(--color-surface);
-    border-right: 1px solid var(--color-border);
-    /* El componente Sidebar real se monta aquí */
-  }
-  
+}
+
+/* ─── Layout ──────────────────────────────────────────────────────────────── */
+.layout {
+  display: flex;
+  min-height: 100vh;
+  background-color: var(--bg);
+  font-family: "Inter", system-ui, sans-serif;
+  color: var(--text);
+}
+
+.main {
+  /* Empuja el contenido a la derecha de la sidebar real */
+  margin-left: var(--sidebar-width);
+  flex: 1;
+  min-width: 0;
+  padding: var(--space-8) var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+/* ─── Glass card mixin (reutilizado en header y content area) ─────────────── */
+.profileHeader,
+.contentArea {
+  background: rgba(10, 18, 35, 0.58);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
+  border-radius: var(--radius-lg);
+  max-width: var(--content-max-width);
+
+  /* Animación de entrada */
+  opacity: 0;
+  transform: translateY(60px);
+  animation: cardEnter 1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* Pequeño desfase para que el segundo panel entre después */
+.contentArea {
+  animation-delay: 0.12s;
+}
+
+/* ─── Profile header ──────────────────────────────────────────────────────── */
+.profileHeader {
+  padding: var(--space-6);
+}
+
+.profileMain {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-5);
+}
+
+/* Avatar */
+.avatarWrapper {
+  flex-shrink: 0;
+}
+
+.avatar,
+.avatarFallback {
+  width: clamp(3.5rem, 8vw, 5rem);
+  aspect-ratio: 1;
+  border-radius: var(--radius-full);
+  object-fit: cover;
+}
+
+.avatarFallback {
+  background: linear-gradient(
+    135deg,
+    rgba(107, 184, 255, 0.18),
+    rgba(74, 144, 226, 0.12)
+  );
+  border: 1px solid rgba(107, 184, 255, 0.3);
+  color: var(--accent);
+  font-size: 1.5rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Info */
+.profileInfo {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.username {
+  font-size: clamp(1.1rem, 2vw, 1.35rem);
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  margin: 0;
+  line-height: 1.2;
+  color: var(--text);
+}
+
+.description {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--soft);
+  line-height: 1.5;
+}
+
+/* Stats — ancho uniforme con grid */
+.statsGroup {
+  display: grid;
+  grid-template-columns: 1fr;  /* una columna, ambos chips se estiran igual */
+  gap: var(--space-2);
+  align-items: start;
+  /* Ancho fijo para que "seguidos" y "seguidores" nunca difieran */
+  width: 7rem;
+  flex-shrink: 0;
+}
+
+.statChip {
+  width: 100%;                  /* ocupa todo el ancho del grid */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: linear-gradient(
+    135deg,
+    rgba(107, 184, 255, 0.18),
+    rgba(74, 144, 226, 0.12)
+  );
+  border: 1px solid rgba(107, 184, 255, 0.2);
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3);
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease;
+  box-sizing: border-box;
+}
+
+.statChip:hover {
+  border-color: var(--accent);
+  background: linear-gradient(
+    135deg,
+    rgba(107, 184, 255, 0.28),
+    rgba(74, 144, 226, 0.2)
+  );
+}
+
+.statValue {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--accent);
+  line-height: 1.1;
+}
+
+.statLabel {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--soft);
+}
+
+/* ─── Content area ────────────────────────────────────────────────────────── */
+.contentArea {
+  overflow: hidden;
+}
+
+/* ─── Tab bar ─────────────────────────────────────────────────────────────── */
+.tabBar {
+  display: flex;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 0 var(--space-4);
+}
+
+.tabButton {
+  position: relative;
+  padding: var(--space-3) var(--space-5);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--soft);
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color 0.15s ease;
+  /* Indicador sutil: línea en el borde inferior */
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+
+.tabButton:hover {
+  color: var(--text);
+}
+
+.tabButtonActive {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+  font-weight: 600;
+}
+
+/* ─── Tab panel ───────────────────────────────────────────────────────────── */
+.tabPanel {
+  padding: var(--space-5);
+}
+
+.cardList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+/* ─── Post card ───────────────────────────────────────────────────────────── */
+.postCard {
+  display: flex;
+  gap: var(--space-4);
+  align-items: flex-start;
+  padding: var(--space-4);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: var(--radius-md);
+  background: rgba(10, 18, 35, 0.4);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.postCard:hover {
+  border-color: rgba(107, 184, 255, 0.25);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.postAvatar {
+  flex-shrink: 0;
+  width: 2.25rem;
+  aspect-ratio: 1;
+  border-radius: var(--radius-full);
+  background: linear-gradient(
+    135deg,
+    rgba(107, 184, 255, 0.18),
+    rgba(74, 144, 226, 0.12)
+  );
+  border: 1px solid rgba(107, 184, 255, 0.2);
+  color: var(--accent);
+  font-weight: 600;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.postBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.postAuthor {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.postContent {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--soft);
+  line-height: 1.55;
+}
+
+/* ─── Folder card ─────────────────────────────────────────────────────────── */
+.folderCard {
+  display: flex;
+  gap: var(--space-4);
+  align-items: center;
+  padding: var(--space-4);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: var(--radius-md);
+  background: rgba(10, 18, 35, 0.4);
+  cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.folderCard:hover {
+  border-color: rgba(107, 184, 255, 0.25);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.folderIcon {
+  flex-shrink: 0;
+  width: 2.25rem;
+  aspect-ratio: 1;
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.folderIcon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.folderBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.folderName {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.folderMeta {
+  font-size: 0.75rem;
+  color: var(--soft);
+}
+
+/* ─── Responsive ──────────────────────────────────────────────────────────── */
+@media (max-width: 48rem) {
   .main {
-    flex: 1;
-    min-width: 0;
-    padding: var(--space-8) var(--space-6);
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-6);
+    margin-left: 0;
+    padding: var(--space-4);
   }
-  
-  /* ─── Profile header card ─────────────────────────────────────────────────── */
-  .profileHeader {
-    background-color: var(--color-surface);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-lg);
-    padding: var(--space-6);
-    box-shadow: var(--shadow-card);
-    max-width: var(--content-max-width);
-  }
-  
+
   .profileMain {
-    display: flex;
-    align-items: flex-start;
-    gap: var(--space-5);
+    flex-wrap: wrap;
   }
-  
-  /* Avatar */
-  .avatarWrapper {
-    flex-shrink: 0;
-  }
-  
-  .avatar,
-  .avatarFallback {
-    width: clamp(3.5rem, 8vw, 5rem);
-    aspect-ratio: 1;
-    border-radius: var(--radius-full);
-    object-fit: cover;
-  }
-  
-  .avatarFallback {
-    background-color: var(--color-accent-subtle);
-    color: var(--color-accent);
-    font-size: 1.5rem;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 2px solid var(--color-border);
-  }
-  
-  /* Info */
-  .profileInfo {
-    flex: 1;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-2);
-  }
-  
-  .username {
-    font-size: clamp(1.1rem, 2vw, 1.35rem);
-    font-weight: 650;
-    letter-spacing: -0.01em;
-    margin: 0;
-    line-height: 1.2;
-  }
-  
-  .description {
-    margin: 0;
-    font-size: 0.875rem;
-    color: var(--color-text-secondary);
-    line-height: 1.5;
-  }
-  
-  /* Stats */
+
   .statsGroup {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-2);
-    align-items: flex-end;
-  }
-  
-  .statChip {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    background: var(--color-accent-subtle);
-    border: 1px solid transparent;
-    border-radius: var(--radius-md);
-    padding: var(--space-2) var(--space-4);
-    cursor: pointer;
-    transition: border-color 0.15s ease, background-color 0.15s ease;
-    min-width: 5.5rem;
-    text-align: center;
-  }
-  
-  .statChip:hover {
-    border-color: var(--color-accent);
-    background-color: #d8eadd;
-  }
-  
-  .statValue {
-    font-size: 1rem;
-    font-weight: 650;
-    color: var(--color-accent);
-    line-height: 1.1;
-  }
-  
-  .statLabel {
-    font-size: 0.7rem;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--color-text-secondary);
-  }
-  
-  /* ─── Content area (tabs + panel) ─────────────────────────────────────────── */
-  .contentArea {
-    background-color: var(--color-surface);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-card);
-    max-width: var(--content-max-width);
-    overflow: hidden;
-  }
-  
-  /* ─── Tab bar ─────────────────────────────────────────────────────────────── */
-  .tabBar {
-    display: flex;
-    gap: 0;
-    border-bottom: 1px solid var(--color-border);
-    padding: 0 var(--space-4);
-  }
-  
-  .tabButton {
-    position: relative;
-    padding: var(--space-3) var(--space-5);
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: var(--color-text-secondary);
-    background: none;
-    border: none;
-    cursor: pointer;
-    transition: color 0.15s ease;
-    /* Indicador sutil: una línea en el borde inferior */
-    border-bottom: 2px solid transparent;
-    margin-bottom: -1px;   /* solapa el borde del tabBar */
-  }
-  
-  .tabButton:hover {
-    color: var(--color-text-primary);
-  }
-  
-  .tabButtonActive {
-    color: var(--color-accent);
-    border-bottom-color: var(--color-accent);
-    font-weight: 600;
-  }
-  
-  /* ─── Tab panel ───────────────────────────────────────────────────────────── */
-  .tabPanel {
-    padding: var(--space-5);
-  }
-  
-  .cardList {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-3);
-  }
-  
-  /* ─── Post card ───────────────────────────────────────────────────────────── */
-  .postCard {
-    display: flex;
-    gap: var(--space-4);
-    align-items: flex-start;
-    padding: var(--space-4);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
-    transition: box-shadow 0.15s ease;
-  }
-  
-  .postCard:hover {
-    box-shadow: var(--shadow-card);
-  }
-  
-  .postAvatar {
-    flex-shrink: 0;
-    width: 2.25rem;
-    aspect-ratio: 1;
-    border-radius: var(--radius-full);
-    background-color: var(--color-accent-subtle);
-    color: var(--color-accent);
-    font-weight: 600;
-    font-size: 0.875rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid var(--color-border);
-  }
-  
-  .postBody {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-1);
-    min-width: 0;
-  }
-  
-  .postAuthor {
-    font-size: 0.8125rem;
-    font-weight: 600;
-    color: var(--color-text-primary);
-  }
-  
-  .postContent {
-    margin: 0;
-    font-size: 0.875rem;
-    color: var(--color-text-secondary);
-    line-height: 1.55;
-  }
-  
-  /* ─── Folder card ─────────────────────────────────────────────────────────── */
-  .folderCard {
-    display: flex;
-    gap: var(--space-4);
-    align-items: center;
-    padding: var(--space-4);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
-    cursor: pointer;
-    transition: box-shadow 0.15s ease, border-color 0.15s ease;
-  }
-  
-  .folderCard:hover {
-    border-color: var(--color-accent);
-    box-shadow: var(--shadow-card);
-  }
-  
-  .folderIcon {
-    flex-shrink: 0;
-    width: 2.25rem;
-    aspect-ratio: 1;
-    color: var(--color-accent);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  
-  .folderIcon svg {
+    grid-template-columns: 1fr 1fr;
     width: 100%;
-    height: 100%;
   }
-  
-  .folderBody {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-1);
+}
+
+/* ─── Reduced motion ──────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .profileHeader,
+  .contentArea {
+    animation: none;
+    opacity: 1;
+    transform: none;
   }
-  
-  .folderName {
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: var(--color-text-primary);
+
+  .tabButton,
+  .statChip,
+  .postCard,
+  .folderCard {
+    transition: none;
   }
-  
-  .folderMeta {
-    font-size: 0.75rem;
-    color: var(--color-text-secondary);
-  }
-  
-  /* ─── Responsive ──────────────────────────────────────────────────────────── */
-  @media (max-width: 48rem) {
-    .sidebar {
-      display: none;   /* Sidebar maneja su propio mobile — este placeholder lo oculta */
-    }
-  
-    .main {
-      padding: var(--space-4);
-    }
-  
-    .profileMain {
-      flex-wrap: wrap;
-    }
-  
-    .statsGroup {
-      flex-direction: row;
-      align-items: center;
-      width: 100%;
-    }
-  
-    .statChip {
-      flex: 1;
-    }
-  }
-  
-  /* ─── Reduced motion ──────────────────────────────────────────────────────── */
-  @media (prefers-reduced-motion: reduce) {
-    .tabButton,
-    .statChip,
-    .postCard,
-    .folderCard {
-      transition: none;
-    }
-  }
+}
