@@ -20,23 +20,6 @@ const getCourses = async (req, res) => {
         AND p.user_id = ?
     `, [userId]);
 
-    res.json(rows);
-
-      /* Devuelve algo como esto:
-      [
-        {
-          "id": 1,
-          "name": "React",
-          "isEnrolled": 1
-        },
-        {
-          "id": 2,
-          "name": "Python",
-          "isEnrolled": 0
-        }
-      ]
-      */
-
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Error al obtener cursos' });
@@ -78,6 +61,7 @@ const registerCourse = async(req,res) => {
   const courseId = req.params.id;
 
   req.actions.data = {};
+  if (req.body.password) req.body.password = "[REDACTED]";
   
   try {
         const [rows] = await db.query(`
