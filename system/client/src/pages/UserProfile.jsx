@@ -1,15 +1,19 @@
-import { useState } from "react";
-import Sidebar from "../components/Sidebar";
+import { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import axios from "axios";
+import { useAuth } from "../context/AuthContext.jsx";
 import styles from "./CSS/UserProfile.module.css";
 
-// ── Sub-components ──────────────────────────────────────────────────────────
+// ── Sub-components ────────────────────────────────────────────────────────────
 
-function ProfileHeader({ user }) {
+function ProfileHeader({ user, isOwner, onEditClick }) {
   const initial = user.username?.[0]?.toUpperCase() ?? "U";
 
   return (
     <section className={styles.profileHeader} aria-label="Información del perfil">
       <div className={styles.profileMain}>
+
+        {/* Avatar */}
         <div className={styles.avatarWrapper}>
           {user.picture ? (
             <img
@@ -24,13 +28,40 @@ function ProfileHeader({ user }) {
           )}
         </div>
 
+        {/* Nombre + botón editar (solo si es el dueño del perfil) */}
         <div className={styles.profileInfo}>
-          <h1 className={styles.username}>{user.username}</h1>
+          <div className={styles.usernameRow}>
+            <h1 className={styles.username}>{user.username}</h1>
+            {isOwner && (
+              <button
+                className={styles.editButton}
+                onClick={onEditClick}
+                aria-label="Editar perfil"
+                title="Editar perfil"
+                type="button"
+              >
+                {/* Ícono lápiz SVG inline — sin dependencia externa */}
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                </svg>
+              </button>
+            )}
+          </div>
           {user.biography && (
             <p className={styles.description}>{user.biography}</p>
           )}
         </div>
 
+        {/* Stats */}
         <div className={styles.statsGroup}>
           <button className={styles.statChip} type="button">
             <span className={styles.statValue}>{formatCount(user.following ?? 0)}</span>
@@ -41,6 +72,7 @@ function ProfileHeader({ user }) {
             <span className={styles.statLabel}>seguidores</span>
           </button>
         </div>
+
       </div>
     </section>
   );
@@ -100,56 +132,99 @@ function FolderCard({ folder }) {
   );
 }
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
+// ── Helpers ───────────────────────────────────────────────────────────────────
 
 function formatCount(n) {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
-  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}k`;
+  if (n >= 1_000)     return `${(n / 1_000).toFixed(1)}k`;
   return String(n);
 }
-
-// ── Mock data (estructura alineada a la API) ──────────────────────────────────
-// Campos relevantes de la tabla User que se muestran en esta página:
-//   id, username, picture, biography, following, followers
-// Los demás campos (role_id, email, password, streak, score, etc.) se ignoran.
-
-const MOCK_USER = {
-  id: 1,
-  username: "María González",
-  picture: "",                        // URL pública devuelta por getPublicFileUrl()
-  biography: "Desarrolladora full-stack · amante del open source · escribo sobre tecnología y diseño.",
-  following: 312,
-  followers: 4800,
-};
-
-const MOCK_POSTS = [
-  { id: 1, authorName: "María González", authorInitial: "M", content: "¿Alguien más usa Zustand para estado global en React? Hace semanas que no toco Redux y no lo extraño." },
-  { id: 2, authorName: "María González", authorInitial: "M", content: "Recordatorio: las buenas API son las que no necesitan documentación para las cosas simples." },
-  { id: 3, authorName: "María González", authorInitial: "M", content: "Acabo de publicar mi nueva librería de componentes. ¡Feedback bienvenido!" },
-];
-
-const MOCK_FOLDERS = [
-  { id: 1, name: "Recursos de diseño", itemCount: 14 },
-  { id: 2, name: "Snippets de React", itemCount: 7 },
-  { id: 3, name: "Artículos guardados", itemCount: 22 },
-];
 
 const TABS = [
   { id: "folders", label: "Carpetas" },
   { id: "posts",   label: "Publicaciones" },
 ];
 
-// ── Main component ────────────────────────────────────────────────────────────
+// ── Datos mock temporales (reemplazar por fetches reales) ─────────────────────
+const MOCK_POSTS = [
+  { id: 1, authorName: "María González", authorInitial: "M", content: "¿Alguien más usa Zustand para estado global en React? Hace semanas que no toco Redux y no lo extraño." },
+  { id: 2, authorName: "María González", authorInitial: "M", content: "Recordatorio: las buenas API son las que no necesitan documentación para las cosas simples." },
+];
+const MOCK_FOLDERS = [
+  { id: 1, name: "Recursos de diseño",  itemCount: 14 },
+  { id: 2, name: "Snippets de React",   itemCount: 7  },
+];
+
+// ── Main component ─────────────────────────────────────────────────────────────
 
 export default function UserProfile() {
-  const [activeTab, setActiveTab] = useState("posts");
+  const { userId }              = useParams();          // /user/:userId
+  const navigate                = useNavigate();
+  const { loggedUser }          = useAuth();            // usuario de la sesión activa
+
+  const [profileUser, setProfileUser] = useState(null); // usuario que se está viendo
+  const [loading, setLoading]         = useState(true);
+  const [activeTab, setActiveTab]     = useState("posts");
+
+  // Determina si quien navega es el dueño del perfil
+  // Comparamos username porque es lo que devuelve getUserByToken
+  // Si querés más robustez, el endpoint /user/:id podría devolver el id
+  // y compararías loggedUser.id === profileUser.id
+  const isOwner =
+    loggedUser &&
+    profileUser &&
+    loggedUser.username === profileUser.username;
+
+  // Fetch del perfil a mostrar
+  useEffect(() => {
+    const fetchProfile = async () => {
+      setLoading(true);
+      try {
+        const { data } = await axios.get(`http://localhost:3000/user/${userId}`);
+        setProfileUser(data);
+      } catch (err) {
+        console.error("Error al cargar perfil:", err.response?.data ?? err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProfile();
+  }, [userId]);
+
+  const handleEditClick = () => {
+    // Navegás a la página de edición — ajustá la ruta según tu router
+    navigate("/settings");
+  };
+
+  if (loading) {
+    return (
+      <div className={styles.layout}>
+        <main className={styles.main}>
+          <p className={styles.loadingText}>Cargando perfil…</p>
+        </main>
+      </div>
+    );
+  }
+
+  if (!profileUser) {
+    return (
+      <div className={styles.layout}>
+        <main className={styles.main}>
+          <p className={styles.loadingText}>Usuario no encontrado.</p>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.layout}>
-      <Sidebar/>
-
       <main className={styles.main}>
-        <ProfileHeader user={MOCK_USER} />
+
+        <ProfileHeader
+          user={profileUser}
+          isOwner={isOwner}
+          onEditClick={handleEditClick}
+        />
 
         <div className={styles.contentArea}>
           <TabBar tabs={TABS} activeTab={activeTab} onTabChange={setActiveTab} />
@@ -162,17 +237,12 @@ export default function UserProfile() {
           >
             {activeTab === "posts" && (
               <div className={styles.cardList}>
-                {MOCK_POSTS.map((post) => (
-                  <PostCard key={post.id} post={post} />
-                ))}
+                {MOCK_POSTS.map((post) => <PostCard key={post.id} post={post} />)}
               </div>
             )}
-
             {activeTab === "folders" && (
               <div className={styles.cardList}>
-                {MOCK_FOLDERS.map((folder) => (
-                  <FolderCard key={folder.id} folder={folder} />
-                ))}
+                {MOCK_FOLDERS.map((f) => <FolderCard key={f.id} folder={f} />)}
               </div>
             )}
           </div>

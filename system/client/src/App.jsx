@@ -1,91 +1,42 @@
 import AdminView from './pages/AdminView.jsx'
 import Settings from './pages/Settings.jsx'
 import Landing from './pages/Landing.jsx'
-import Courses from './pages/Courses.jsx';
-import UserProfile from './pages/UserProfile.jsx';
-import { useEffect } from 'react';
-import {
-  BrowserRouter,
-  Routes,
-  Route
-} from "react-router-dom";
+import Courses from './pages/Courses.jsx'
+import UserProfile from './pages/UserProfile.jsx'
 import Login_register from './pages/login_register.jsx'
+import { AuthProvider } from './context/AuthContext.jsx'
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import './App.css'
-import axios from 'axios';
 
 function App() {
-  async function getUserByToken() {
-    try{
-      const response = await axios.get("http://localhost:3000/token/get/user", {
-        headers : {
-          authorization : localStorage.getItem("token")
-        }
-      })
-    } catch (err) {
-      console.error(error.response?.data || error);
-    }
-  }
-
   return (
-    <>
+    // AuthProvider envuelve todo el árbol: el fetch del token
+    // ocurre una sola vez aquí y el resultado queda disponible
+    // en cualquier componente via useAuth().
+    <AuthProvider>
       <Routes>
 
-        {/* =========================
-            ADMIN
-        ========================= */}
+        {/* ADMIN */}
+        <Route path="/admin"  element={<AdminView />} />
 
-        <Route
-          path="/admin"
-          element={
-            <AdminView />
-          }
-        />
+        {/* SETTINGS */}
+        <Route path="/settings" element={<Settings />} />
 
-        {/* =========================
-            SETTINGS
-        ========================= */}
+        {/* LOGIN / REGISTER */}
+        <Route path="/Login" element={<Login_register />} />
 
-        <Route
-          path="/settings"
-          element={<Settings />}
-        />
+        {/* LANDING */}
+        <Route path="/" element={<Landing />} />
 
-        {/* =========================
-            LOGIN / REGISTER
-        ========================= */}
+        {/* COURSES */}
+        <Route path="/courses" element={<Courses />} />
 
-        <Route
-          path="/Login"
-          element={<Login_register/>}
-        />
+        {/* PERFIL — :userId permite ver el perfil de cualquier usuario */}
+        <Route path="/user/:username" element={<UserProfile />} />
 
-        {/* =========================
-            LANDING PAGE
-        ========================= */}
-
-        <Route
-          path="/"
-          element={
-            <Landing />
-          }
-        />
-
-        <Route
-          path="/courses"
-          element={
-            <Courses />
-          }
-        />
-
-        <Route
-          path="/user"
-          element={
-            <UserProfile />
-          }
-        />
       </Routes>
-    </>
-  )
+    </AuthProvider>
+  );
 }
 
-export default App
+export default App;
