@@ -158,13 +158,13 @@ const MOCK_FOLDERS = [
 // ── Main component ─────────────────────────────────────────────────────────────
 
 export default function UserProfile() {
-  const { userId }              = useParams();          // /user/:userId
-  const navigate                = useNavigate();
-  const { loggedUser }          = useAuth();            // usuario de la sesión activa
+  const {username} = useParams();          // /user/:username
+  const navigate = useNavigate();
+  const { loggedUser } = useAuth();            // usuario de la sesión activa
 
   const [profileUser, setProfileUser] = useState(null); // usuario que se está viendo
-  const [loading, setLoading]         = useState(true);
-  const [activeTab, setActiveTab]     = useState("posts");
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("posts");
 
   // Determina si quien navega es el dueño del perfil
   // Comparamos username porque es lo que devuelve getUserByToken
@@ -180,7 +180,7 @@ export default function UserProfile() {
     const fetchProfile = async () => {
       setLoading(true);
       try {
-        const { data } = await axios.get(`http://localhost:3000/user/${userId}`);
+        const { data } = await axios.get(`http://localhost:3000/user/${username}`);
         setProfileUser(data);
       } catch (err) {
         console.error("Error al cargar perfil:", err.response?.data ?? err.message);
@@ -189,7 +189,7 @@ export default function UserProfile() {
       }
     };
     fetchProfile();
-  }, [userId]);
+  }, [username]);
 
   const handleEditClick = () => {
     // Navegás a la página de edición — ajustá la ruta según tu router
