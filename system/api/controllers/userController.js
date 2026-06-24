@@ -83,6 +83,8 @@ const register = async (req, res) => {
     email,
     password: hashedPassword,
     picture: `${process.env.MINIO_PUBLIC_URL}/profiles/default_profile.webp`,
+    streak: 0,
+    score: 0,
     configuration: config_json,
     penalty_date: PENALTY_DATE,
     eliminated: 0
@@ -92,7 +94,7 @@ const register = async (req, res) => {
 
   // Crea el usuario en la base de datos
   try {
-    const [user] = await db.query('INSERT INTO User (role_id, username, email, password, picture, configuration, penalty_date, eliminated, dvh) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);',
+    const [user] = await db.query('INSERT INTO User (role_id, username, email, password, picture, streak, score, configuration, penalty_date, eliminated, dvh) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);',
       Object.values(userPayload));
   } catch (error) {
     console.log(error);

@@ -6,6 +6,9 @@ const { login, register, getUser, getUserByToken, getUsers, getConfig, changeCon
 const { changeRole, deleteUser } = require('./controllers/adminController');
 const { getCourses, getUserProgress, registerCourse, } = require('./controllers/coursesController');
 const { getUserStats, changeGoal } = require('./controllers/streakController');
+const { createFolder } = require('./controllers/folderController');
+
+const { connectMongo } = require('./config/mongodb');
 
 const { postResponseLog } = require('./middlewares/binnacleHelper');
 const { checkFilesUpload } = require('./middlewares/checkFiles');
@@ -52,6 +55,7 @@ server.get('/user/get/users', checkToken, isAuth, getUsers);
 server.get('/user/get/config', checkToken, isAuth, getConfig);
 server.patch('/user/update/config', postResponseLog, checkToken, isAuth, changeConfig);
 server.patch('/user/update/profile', postResponseLog, checkToken, isAuth, checkFilesUpload('profile_picture', 1), changeProfile);
+server.post('/user/create/folder/:folder_name', postResponseLog, checkToken, isAuth, createFolder);
 
 //Admins
 server.patch('/user/update/role/:id', postResponseLog, checkToken, isAuth, changeRole);
@@ -62,17 +66,19 @@ server.get('/course/get/courses', checkToken, isAuth, getCourses);
 server.get('/user/get/progress', checkToken, isAuth, getUserProgress);
 server.post('/user/register/course/:id', postResponseLog, checkToken, isAuth, registerCourse);
 
+//Streak & Score
+server.get('/user/get/stats', checkToken, isAuth, getUserStats)
+server.patch('/user/update/goal', postResponseLog, checkToken, isAuth, changeGoal)
 
 //Token
 server.get('/token/get/user', checkToken, getUserByToken)
 
-//Streak & Score
-server.get('/user/get/stats',checkToken, isAuth, getUserStats)
-server.patch('/user/update/goal',checkToken, isAuth, changeGoal)
-
-
 server.listen(PORT, async () => {
   console.log('La API está corriendo en el puerto ', PORT);
+  try {
+    await connectMongo();
+  } catch (err) { console.error("Failed to start MongoDB:", err); }
+
   await require('./config/createRoles')();
   await require('./config/createPermissions')();
   await require('./config/createAdmin')();

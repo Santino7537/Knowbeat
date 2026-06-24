@@ -26,6 +26,8 @@ const createAdmin = async () => {
             email: process.env.ADMIN_EMAIL,
             password: hashedPassword,
             picture: `default_profile.webp`,
+            streak: 0,
+            score: 0,
             configuration: CONFIG_JSON,
             penalty_date: PENALTY_DATE,
             eliminated: 0
@@ -33,7 +35,7 @@ const createAdmin = async () => {
 
         userPayload.dvh = computeDVHFromObject(userPayload);
 
-        const admin = await db.query('INSERT INTO User (role_id, username, email, password, picture, configuration, penalty_date, eliminated, dvh) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);',
+        const admin = await db.query('INSERT INTO User (role_id, username, email, password, picture, streak, score, configuration, penalty_date, eliminated, dvh) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);',
             Object.values(userPayload));
         console.log("Admin creado correctamente.");
 

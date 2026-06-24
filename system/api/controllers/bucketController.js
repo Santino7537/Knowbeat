@@ -34,6 +34,16 @@ const uploadFile = async(bucket, file, mimeType, extension) => {
     return uniqueName
 };
 
+const createEmptyFolder = async(bucket, route) => {
+    // Creamos carpeta vacía en el bucket
+    const command = new PutObjectCommand({
+        Bucket: bucket,
+        Key: route
+    });
+
+    await s3.send(command);
+};
+
 const deleteFile = async(bucket, filePath) => {
     const command = new DeleteObjectCommand({
         Bucket: bucket,
@@ -47,5 +57,6 @@ module.exports = {
     getPrivateFileUrl,
     getPublicFileUrl,
     uploadFile,
+    createEmptyFolder,
     deleteFile
 };
