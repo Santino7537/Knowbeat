@@ -10,6 +10,10 @@ El directorio 'client' contiene la totalidad del Frontend.
 El directorio 'mongo/init' contiene la totalidad de la configuración de la base de datos Mongo.
 ### Directorio 'mysql/init'
 El directorio 'mysql/init' contiene la totalidad de la configuración de la base de datos MySQL.
+### Directorio 'temp'
+El directorio 'temp' contiene la totalidad de los volúmenes que tienen archivos temporales.
+#### Directorio 'temp/ffmpeg'
+El directorio 'temp/ffmpeg' contiene archivos temporales, los cuales pueden ser revisados por 'ffmpeg'.
 ### Archivo 'docker-compose.yml'
 El archivo 'docker-compose.yml' contiene la configuración de todos los contenedores que se utilizan para el proyecto.
 Para que Docker instale las imagenes necesarias, se debe ejecutar el comando `docker compose pull`.

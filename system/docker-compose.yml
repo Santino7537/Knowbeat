@@ -95,6 +95,15 @@ services:
       - ./mysql/init:/docker-entrypoint-initdb.d
 
     restart: unless-stopped
+  
+  ffmpeg:
+    image: jrottenberg/ffmpeg:6.1-alpine
+    container_name: ffmpeg
+
+    volumes:
+      - ./temp/ffmpeg:/data
+
+    restart: unless-stopped
 
 volumes:
   mongo_data:

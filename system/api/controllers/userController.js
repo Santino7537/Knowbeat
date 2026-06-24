@@ -378,7 +378,6 @@ const changeProfile = async (req, res) => {
 
   try {
     if (file) {
-      const detectedType = await fileTypeFromBuffer(file.buffer);
       const filePath = await uploadFile("profiles", await resizeImage(await convertImageToWebP(file.buffer), 512, 512), "image/webp", "webp");
       userPayload.picture !== "default_profile.webp" && await deleteFile("profiles", userPayload.picture)
 

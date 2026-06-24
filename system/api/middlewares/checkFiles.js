@@ -1,8 +1,15 @@
 const multer = require('multer');
+const { v4: uuidv4 } = require('uuid');
 const { MAX_FILE_SIZE } = require('../constants');
 
-const upload = multer({ storage: multer.memoryStorage(),
-  limits: { fileSize: MAX_FILE_SIZE, files: 5 }
+const storage = multer.diskStorage({ destination: "../../temp/ffmpeg" });
+
+const upload = multer({
+  storage,
+  limits: {
+    fileSize: MAX_FILE_SIZE,
+    files: 5
+  }
 });
 
 const checkFilesUpload = (fieldName, maxCount = 1) => {

@@ -63,10 +63,13 @@ const ALLOWED_CONFIGS = {
 
 const PENALTY_DATE = new Date("2000-01-01");
 
-const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20 MB
+const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50 MB
 
 const VALID_FILES_FORMATS = {
-    'images': ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
+    'images': ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'],
+    'texts': ['application/pdf', 'text/plain'],
+    'audios': ['audio/mpeg', 'audio/wav', 'audio/x-wav'],
+    'videos': ['video/mp4']
 }
 
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5 MB
