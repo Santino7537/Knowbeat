@@ -24,11 +24,11 @@ const createFolder = async (req, res) => {
       "new_dvh": null
     };
 
-    createEmptyFolder("user-files", `${userId}/${folderId}/`);
+    await createEmptyFolder("user-files", `${userId}/${folderId}/`);
 
-    res.status(201).json({ folderId });
+    return res.status(201).json({ folderId });
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    return res.status(400).json({ error: err.message });
   }
 };
 
@@ -75,9 +75,9 @@ const updateFolder = async (req, res) => {
       "new_dvh": null
     };
 
-    res.status(200).json({ message: "se actualizó la carpeta." });
+    return res.status(200).json({ message: "se actualizó la carpeta." });
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    return res.status(400).json({ error: err.message });
   }
 };
 
@@ -94,7 +94,7 @@ const deleteFolder = async (req, res) => {
     });
 
     if (!folder) {
-      res.status(400).json({ message: `No existe la carpeta ${folderName}.` });
+      return res.status(400).json({ message: `No existe la carpeta ${folderName}.` });
     }
 
     const folderId = folder._id;
@@ -108,7 +108,7 @@ const deleteFolder = async (req, res) => {
     const fileIds = fileRelationships.map(rel => rel.file_id);
 
     if (fileRelationIds.length !== 0) {    
-      fileRelationIds.map(id => {
+      fileRelationIds.map(async (id) => {
         await db.collection("FileRelation").deleteOne({ _id: id });
 
         req.actions_data[`delete-file-relation-${id}`] = {
@@ -120,7 +120,7 @@ const deleteFolder = async (req, res) => {
         };
       });
 
-      fileIds.map(id => {
+      fileIds.map(async (id) => {
         await db.collection("File").deleteOne({ _id: id });
 
         req.actions_data[`delete-file-${id}`] = {
@@ -140,7 +140,7 @@ const deleteFolder = async (req, res) => {
     const folderPermissionsIds = folderPermissions.map(per => per._id);
 
     if (folderPermissionsIds.length !== 0) {    
-      folderPermissionsIds.map(id => {
+      folderPermissionsIds.map(async (id) => {
         await db.collection("FolderPermission").deleteOne({ _id: id });
 
         req.actions_data[`delete-folder-permission-${id}`] = {
@@ -162,9 +162,10 @@ const deleteFolder = async (req, res) => {
       "new_dvh": null
     };
 
-    deleteFolderAndFiles("user-files", `${userId}/${folderId}/`);
+    await deleteFolderAndFiles("user-files", `${userId}/${folderId}/`);
+    return res.status(200).json({ message: "Se eliminó la carpeta entera." })
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    return res.status(400).json({ error: err.message });
   }
 };
 
@@ -181,7 +182,7 @@ const getFolderFiles = async (req, res) => {
     });
 
     if (!folder) {
-      res.status(400).json({ message: `No existe la carpeta ${folderName}.` });
+      return res.status(400).json({ message: `No existe la carpeta ${folderName}.` });
     }
 
     const folderId = folder._id;
@@ -194,16 +195,16 @@ const getFolderFiles = async (req, res) => {
     const fileIds = fileRelationships.map(rel => rel.file_id);
 
     if (fileIds.length !== 0) {
-      const fileURLs = fileIds.map(id => {
+      const fileURLs = fileIds.map(async (id) => {
         const file = await db.collection("File").findOne({ _id: id });
-        return getPrivateFileUrl("File", `${userId}/${folderId}/${id}`)
+        return await getPrivateFileUrl("File", `${userId}/${folderId}/${id}`)
       });
       return res.status(200).json({ fileURLs })
     }
 
     return res.status(400).json({ message: "No existe ningun archivo en la carpeta."})
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    return res.status(400).json({ error: err.message });
   }
 };
 
