@@ -2,6 +2,7 @@ import AdminView from './pages/AdminView.jsx'
 import Settings from './pages/Settings.jsx'
 import Landing from './pages/Landing.jsx'
 import Courses from './pages/Courses.jsx';
+import Exercises from './pages/Exercises.jsx';
 
 import {
   BrowserRouter,
@@ -67,7 +68,14 @@ function App() {
             <Courses />
           }
         />
-
+        
+        <Route
+          path="/exercises"
+          element={
+            <Exercises />
+          }
+        />
+        
       </Routes>
 
     </>
