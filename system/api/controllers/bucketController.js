@@ -53,7 +53,7 @@ const deleteFile = async(bucket, filePath) => {
     await s3.send(command);
 };
 
-const deleteFolder = async (bucket, route) => {
+const deleteFolderAndFiles = async (bucket, route) => {
     const objects = await s3.send(
         new ListObjectsV2Command({
             Bucket: bucket,
@@ -78,5 +78,5 @@ module.exports = {
     uploadFile,
     createEmptyFolder,
     deleteFile,
-    deleteFolder
+    deleteFolderAndFiles
 };

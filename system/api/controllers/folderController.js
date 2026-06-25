@@ -1,4 +1,4 @@
-const { createEmptyFolder, deleteFolder } = require('./bucketController');
+const { createEmptyFolder, deleteFolderAndFiles, getPrivateFileUrl } = require('./bucketController');
 const { getDb } = require('../config/mongodb');
 
 const createFolder = async (req, res) => {
@@ -162,7 +162,46 @@ const deleteFolder = async (req, res) => {
       "new_dvh": null
     };
 
-    deleteFolder("user-files", `${userId}/${folderId}/`);
+    deleteFolderAndFiles("user-files", `${userId}/${folderId}/`);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+};
+
+const getFolderFiles = async (req, res) => {
+  const folderName = req.params.folder_name;
+  const userId = req.user.user_id;
+  req.actions_data = {};
+
+  try {
+    const db = getDb();
+    const folder = await db.collection("Folder").findOne({
+      author_id: userId,
+      name: folderName
+    });
+
+    if (!folder) {
+      res.status(400).json({ message: `No existe la carpeta ${folderName}.` });
+    }
+
+    const folderId = folder._id;
+
+    const fileRelationships = await db.collection("FileRelation").find({
+      collection: "Folder",
+      collection_id: folderId
+    }).toArray();
+
+    const fileIds = fileRelationships.map(rel => rel.file_id);
+
+    if (fileIds.length !== 0) {
+      const fileURLs = fileIds.map(id => {
+        const file = await db.collection("File").findOne({ _id: id });
+        return getPrivateFileUrl("File", `${userId}/${folderId}/${id}`)
+      });
+      return res.status(200).json({ fileURLs })
+    }
+
+    return res.status(400).json({ message: "No existe ningun archivo en la carpeta."})
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
@@ -171,5 +210,6 @@ const deleteFolder = async (req, res) => {
 module.exports = {
   createFolder,
   updateFolder,
-  deleteFolder
+  deleteFolder,
+  getFolderFiles
 };
