@@ -6,7 +6,7 @@ const { login, register, getUser, getUserByToken, getUsers, getConfig, changeCon
 const { changeRole, deleteUser } = require('./controllers/adminController');
 const { getCourses, getUserProgress, registerCourse, } = require('./controllers/coursesController');
 const { getUserStats, changeGoal } = require('./controllers/streakController');
-const { createFolder } = require('./controllers/folderController');
+const { createFolder, updateFolder } = require('./controllers/folderController');
 
 const { connectMongo } = require('./config/mongodb');
 
@@ -56,6 +56,7 @@ server.get('/user/get/config', checkToken, isAuth, getConfig);
 server.patch('/user/update/config', postResponseLog, checkToken, isAuth, changeConfig);
 server.patch('/user/update/profile', postResponseLog, checkToken, isAuth, checkFilesUpload('profile_picture', 1), changeProfile);
 server.post('/user/create/folder/:folder_name', postResponseLog, checkToken, isAuth, createFolder);
+server.patch('/user/update/folder', postResponseLog, checkToken, isAuth, updateFolder);
 
 //Admins
 server.patch('/user/update/role/:id', postResponseLog, checkToken, isAuth, changeRole);

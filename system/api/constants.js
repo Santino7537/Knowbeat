@@ -2,7 +2,7 @@ const ADMINISTRATOR_ROLE = "Administrator";
 const MODERATOR_ROLE = "Moderator";
 const USER_ROLE = "User";
 
-const USER_PERMISSIONS = ['user-get-user', 'user-get-users', 'user-get-config', 'user-update-config', 'user-update-profile', 'user-create-folder', 'course-get-courses', 'user-get-progress', 'user-register-course', 'user-get-stats', 'user-update-goal'];
+const USER_PERMISSIONS = ['user-get-user', 'user-get-users', 'user-get-config', 'user-update-config', 'user-update-profile', 'user-create-folder', 'user-update-folder', 'course-get-courses', 'user-get-progress', 'user-register-course', 'user-get-stats', 'user-update-goal'];
 const ROLES_PERMISSIONS = {
     [USER_ROLE]: USER_PERMISSIONS,
     [MODERATOR_ROLE]: [...USER_PERMISSIONS],

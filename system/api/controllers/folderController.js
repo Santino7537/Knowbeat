@@ -32,7 +32,56 @@ const createFolder = async (req, res) => {
   }
 };
 
+const updateFolder = async (req, res) => {
+  const { isPublic, oldFolderName, newFolderName } = req.body;
+  const userId = req.user.user_id;
+  req.actions_data = {};
+
+  if (!oldFolderName) {
+    return res.status(400).json({ message: "Se necesita el nombre de la carpeta a modificar."});
+  }
+
+  if (typeof isPublic !== "boolean" && !newFolderName) {
+    return res.status(400).json({ message: "Se necesita al menos un campo para modificar."});
+  }
+
+  const updateFields = {};
+
+  typeof isPublic === "boolean" && (updateFields.public = isPublic);
+  newFolderName && (updateFields.name = newFolderName);
+
+  try {
+    const db = getDb();
+    const result = await db.collection("Folder").findOneAndUpdate(
+      {
+        author_id: userId,
+        name: oldFolderName
+      },
+      { $set: updateFields },
+      { returnDocument: "after" }
+    );
+
+    if (!result) {
+      return res.status(400).json({ message: `No existe la carpeta ${oldFolderName}.`});
+    }
+
+    const folderId = result.insertedId;
+
+    req.actions_data["update-folder"] = {
+      entity: "Folder",
+      record_id: folderId,
+      action: "update",
+      "old_dvh": null,
+      "new_dvh": null
+    };
+
+    res.status(200).json({ message: "se actualizó la carpeta." });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+};
 
 module.exports = {
-  createFolder
+  createFolder,
+  updateFolder
 };
