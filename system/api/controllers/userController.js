@@ -105,16 +105,16 @@ const register = async (req, res) => {
 };
 
 const getUser = async (req, res) => {
-  const userId = req.params.id
+  const username = req.params.username
 
   try {
-    let [user] = await db.query('SELECT * FROM User WHERE eliminated = 0 && id = ?', [userId]);
+    let [user] = await db.query('SELECT * FROM User WHERE eliminated = 0 && username = ?', [username]);
     if (user.length === 1) {
       user = user[0]
       user.picture = getPublicFileUrl("profiles", user.picture);
       return res.status(200).json(user);
     }
-    return res.status(400).json({ message: `No existe el usuario con id ${userId}` })
+    return res.status(400).json({ message: `No existe el usuario con nombre ${username}` })
 
   } catch (error) {
     console.error(error);

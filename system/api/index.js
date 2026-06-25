@@ -50,7 +50,7 @@ server.get('/', (req, res) => { res.status(200).send('Bienvenido a la API de Kno
 // Users
 server.post('/register', postResponseLog, register);
 server.post('/login', postResponseLog, login);
-server.get('/user/get/user/:id', checkToken, isAuth, getUser);
+server.get('/user/get/user/:username', checkToken, isAuth, getUser);
 server.get('/user/get/users', checkToken, isAuth, getUsers);
 server.get('/user/get/config', checkToken, isAuth, getConfig);
 server.patch('/user/update/config', postResponseLog, checkToken, isAuth, changeConfig);
