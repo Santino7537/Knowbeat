@@ -1,4 +1,4 @@
-const { createEmptyFolder } = require('./bucketController');
+const { createEmptyFolder, deleteFolder } = require('./bucketController');
 const { getDb } = require('../config/mongodb');
 
 const createFolder = async (req, res) => {
@@ -81,7 +81,95 @@ const updateFolder = async (req, res) => {
   }
 };
 
+const deleteFolder = async (req, res) => {
+  const folderName = req.params.folder_name;
+  const userId = req.user.user_id;
+  req.actions_data = {};
+
+  try {
+    const db = getDb();
+    const folder = await db.collection("Folder").findOne({
+      author_id: userId,
+      name: folderName
+    });
+
+    if (!folder) {
+      res.status(400).json({ message: `No existe la carpeta ${folderName}.` });
+    }
+
+    const folderId = folder._id;
+
+    const fileRelationships = await db.collection("FileRelation").find({
+      collection: "Folder",
+      collection_id: folderId
+    }).toArray();
+
+    const fileRelationIds = fileRelationships.map(rel => rel._id);
+    const fileIds = fileRelationships.map(rel => rel.file_id);
+
+    if (fileRelationIds.length !== 0) {    
+      fileRelationIds.map(id => {
+        await db.collection("FileRelation").deleteOne({ _id: id });
+
+        req.actions_data[`delete-file-relation-${id}`] = {
+          entity: "FileRelation",
+          record_id: id,
+          action: "delete",
+          "old_dvh": null,
+          "new_dvh": null
+        };
+      });
+
+      fileIds.map(id => {
+        await db.collection("File").deleteOne({ _id: id });
+
+        req.actions_data[`delete-file-${id}`] = {
+          entity: "File",
+          record_id: id,
+          action: "delete",
+          "old_dvh": null,
+          "new_dvh": null
+        };
+      });
+    }
+
+    const folderPermissions = await db.collection("FolderPermission").find({
+      folder_id: folderId
+    }).toArray();
+
+    const folderPermissionsIds = folderPermissions.map(per => per._id);
+
+    if (folderPermissionsIds.length !== 0) {    
+      folderPermissionsIds.map(id => {
+        await db.collection("FolderPermission").deleteOne({ _id: id });
+
+        req.actions_data[`delete-folder-permission-${id}`] = {
+          entity: "FolderPermission",
+          record_id: id,
+          action: "delete",
+          "old_dvh": null,
+          "new_dvh": null
+        };
+      });
+    }
+
+    await db.collection("Folder").deleteOne({ _id: folderId });
+    req.actions_data[`delete-folder`] = {
+      entity: "Folder",
+      record_id: folderId,
+      action: "delete",
+      "old_dvh": null,
+      "new_dvh": null
+    };
+
+    deleteFolder("user-files", `${userId}/${folderId}/`);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+};
+
 module.exports = {
   createFolder,
-  updateFolder
+  updateFolder,
+  deleteFolder
 };
