@@ -7,9 +7,7 @@ const createFolder = async (req, res) => {
   req.actions_data = {};
 
   try {
-    createEmptyFolder("user-files", `${userId}/${folderName}/`);
     const db = getDb();
-
     const result = await db.collection("Folder").insertOne({
       author_id: userId,
       name: folderName,
@@ -25,6 +23,8 @@ const createFolder = async (req, res) => {
       "old_dvh": null,
       "new_dvh": null
     };
+
+    createEmptyFolder("user-files", `${userId}/${folderId}/`);
 
     res.status(201).json({ folderId });
   } catch (err) {
