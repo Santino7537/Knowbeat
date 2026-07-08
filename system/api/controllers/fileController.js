@@ -1,4 +1,4 @@
-const { uploadFile } = require('./bucketController');
+const { uploadFile, deleteFile } = require('./bucketController');
 const { validateFile } = require('../utils/fileChecker')
 const { getDb } = require('../config/mongodb');
 const { ObjectId } = require("mongodb");
@@ -67,6 +67,56 @@ const uploadFileInFolder = async (req, res) => {
 	}
 };
 
+const deleteFileFromFolder = async (req, res) => {
+	const fileId = new ObjectId(req.params.file_id);
+	const folderId = new ObjectId(req.params.folder_id);
+	const userId = req.user.user_id;
+	req.actions_data = {};
+
+	try {
+		const db = getDb();
+		const dbFile = await db.collection("File").findOne({ _id: fileId });
+
+	if (!dbFile) {
+		return res.status(400).json({ message: `No existe el archivo con id ${fileId}.` });
+	}
+
+	const fileRelationship = await db.collection("FileRelation").findOne({
+		file_id: fileId,
+		collection: "Folder",
+		collection_id: folderId
+	});
+
+	await db.collection("File").deleteOne({ _id: fileId });
+	req.actions_data[`delete-file-${fileId}`] = {
+		entity: "File",
+		record_id: fileId,
+		action: "delete",
+		"old_dvh": null,
+		"new_dvh": null
+	};
+
+	if (fileRelationship) { 
+		const fileRelationId = fileRelationship._id;
+		await db.collection("FileRelation").deleteOne({ _id: fileRelationId });
+
+		req.actions_data[`delete-file-relation-${fileRelationId}`] = {
+			entity: "FileRelation",
+			record_id: fileRelationId,
+			action: "delete",
+			"old_dvh": null,
+			"new_dvh": null
+		};
+	}
+
+	await deleteFile("user-files", `${userId}/${folderId}/${fileId}`);
+	return res.status(200).json({ message: "Se eliminó el archivo." });
+	} catch (err) {
+		return res.status(400).json({ error: err.message });
+	}
+};
+
 module.exports = {
-	uploadFileInFolder
+	uploadFileInFolder,
+	deleteFileFromFolder
 };

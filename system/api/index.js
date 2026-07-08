@@ -7,7 +7,7 @@ const { changeRole, deleteUser } = require('./controllers/adminController');
 const { getCourses, getUserProgress, registerCourse, } = require('./controllers/coursesController');
 const { getUserStats, changeGoal } = require('./controllers/streakController');
 const { createFolder, updateFolder, deleteFolder, getFolderFiles } = require('./controllers/folderController');
-const { uploadFileInFolder } = require('./controllers/fileController');
+const { uploadFileInFolder, deleteFileFromFolder } = require('./controllers/fileController');
 
 const { connectMongo } = require('./config/mongodb');
 
@@ -61,8 +61,9 @@ server.patch('/user/update/profile', postResponseLog, checkToken, isAuth, checkF
 server.post('/user/create/folder/:folder_name', postResponseLog, checkToken, isAuth, createFolder);
 server.patch('/user/update/folder', postResponseLog, checkToken, isAuth, updateFolder);
 server.delete('/user/delete/folder/:folder_name', postResponseLog, checkToken, isAuth, deleteFolder);
-server.get('/user/get/folder/files/:folder_name', checkToken, isAuth, getFolderFiles)
-server.post('/user/upload/file/:folder_id', postResponseLog, checkToken, isAuth, checkFilesUpload('folder_file', 1), uploadFileInFolder)
+server.get('/user/get/folder/files/:folder_name', checkToken, isAuth, getFolderFiles);
+server.post('/user/upload/file/:folder_id', postResponseLog, checkToken, isAuth, checkFilesUpload('folder_file', 1), uploadFileInFolder);
+server.delete('/user/delete/file/:file_id/:folder_id', postResponseLog, checkToken, isAuth, deleteFileFromFolder);
 
 // Admins
 server.patch('/user/update/role/:id', postResponseLog, checkToken, isAuth, changeRole);
