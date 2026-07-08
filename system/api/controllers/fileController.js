@@ -1,4 +1,4 @@
-const { uploadFile, deleteFile } = require('./bucketController');
+const { uploadFile, deleteFile, getPrivateFileUrl } = require('./bucketController');
 const { validateFile } = require('../utils/fileChecker')
 const { getDb } = require('../config/mongodb');
 const { ObjectId } = require("mongodb");
@@ -116,7 +116,21 @@ const deleteFileFromFolder = async (req, res) => {
 	}
 };
 
+const getFileUrlFromFolder = async (req, res) => {
+	const fileId = req.params.file_id;
+	const folderId = req.params.folder_id;
+	const userId = req.user.user_id;
+
+	try {
+		const fileUrl = await getPrivateFileUrl("user-files", `${userId}/${folderId}/${fileId}`);
+		return res.status(200).json({ fileUrl });
+	} catch (err) {
+		return res.status(400).json({ error: err.message });
+	}
+};
+
 module.exports = {
 	uploadFileInFolder,
-	deleteFileFromFolder
+	deleteFileFromFolder,
+	getFileUrlFromFolder
 };

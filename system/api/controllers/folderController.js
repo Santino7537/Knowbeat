@@ -197,7 +197,7 @@ const getFolderFiles = async (req, res) => {
     if (fileIds.length !== 0) {
       const fileURLs = fileIds.map(async (id) => {
         const file = await db.collection("File").findOne({ _id: id });
-        return await getPrivateFileUrl("File", `${userId}/${folderId}/${id}`)
+        return await getPrivateFileUrl("user-files", `${userId}/${folderId}/${id}`)
       });
       return res.status(200).json({ fileURLs })
     }
