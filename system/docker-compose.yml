@@ -100,6 +100,8 @@ services:
     image: jrottenberg/ffmpeg:6.1-alpine
     container_name: ffmpeg
 
+    entrypoint: ["tail", "-f", "/dev/null"]
+
     volumes:
       - ./temp/ffmpeg:/data
 

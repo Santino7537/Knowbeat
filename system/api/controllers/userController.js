@@ -3,6 +3,7 @@ const { computeDVHFromObject } = require('../utils/dvhHelpers');
 const { convertImageToWebP, resizeImage } = require('../utils/fileChecker');
 const { getPublicFileUrl, uploadFile, deleteFile } = require('./bucketController');
 const { fileTypeFromBuffer } = require('file-type');
+const fs = require('fs/promises');
 const db = require('../config/db');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
@@ -375,10 +376,12 @@ const changeProfile = async (req, res) => {
     userPayload.biography = biography;
     updateFields.push("biography");
   }
+  if (file) {
+    const filePath = file.path;
 
-  try {
-    if (file) {
-      const filePath = await uploadFile("profiles", await resizeImage(await convertImageToWebP(file.buffer), 512, 512), "image/webp", "webp");
+    try {
+      const buffer = await fs.readFile(filePath);
+      const picturePath = await uploadFile("profiles", await resizeImage(await convertImageToWebP(buffer), 512, 512), "image/webp", "webp");
       userPayload.picture !== "default_profile.webp" && await deleteFile("profiles", userPayload.picture)
 
       req.actions_data["update-picture"] = {
@@ -388,10 +391,20 @@ const changeProfile = async (req, res) => {
         "old_dvh": userPayload.dvh,
         "new_dvh": null
       };
-      userPayload.picture = filePath;
+      userPayload.picture = picturePath;
       updateFields.push("picture");
+    } catch (err) {
+      return res.status(400).json({ message: err.message });
+    } finally {
+      if (filePath) {
+        try {
+          await fs.unlink(filePath);
+        } catch (_) {
+          // Si ya no existe o no pudo eliminarse, simplemente lo ignoramos.
+        }
+      }
     }
-  } catch (err) { return res.status(400).json({ message: err.message }); }
+  }
 
   if (Object.keys(req.actions_data).length === 0) {
     return res.status(400).json({ message: 'No se enviaron campos para actualizar' });

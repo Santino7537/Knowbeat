@@ -1,8 +1,9 @@
 const multer = require('multer');
 const { v4: uuidv4 } = require('uuid');
 const { MAX_FILE_SIZE } = require('../constants');
+const { TEMP_FFMPEG } = require("../config/paths");
 
-const storage = multer.diskStorage({ destination: "../../temp/ffmpeg" });
+const storage = multer.diskStorage({ destination: TEMP_FFMPEG });
 
 const upload = multer({
   storage,

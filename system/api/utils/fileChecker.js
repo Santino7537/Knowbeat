@@ -1,6 +1,6 @@
 const sharp = require('sharp');
+const fs = require('fs/promises');
 const { promisify } = require('util');
-const { fs } = require('fs/promises');
 const { exec } = require('child_process');
 const { fileTypeFromBuffer } = require('file-type');
 const { FILES_CONSTANTS, VALID_FILES_FORMATS } = require('../constants');
