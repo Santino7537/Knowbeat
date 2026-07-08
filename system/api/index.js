@@ -7,6 +7,7 @@ const { changeRole, deleteUser } = require('./controllers/adminController');
 const { getCourses, getUserProgress, registerCourse, } = require('./controllers/coursesController');
 const { getUserStats, changeGoal } = require('./controllers/streakController');
 const { createFolder, updateFolder, deleteFolder, getFolderFiles } = require('./controllers/folderController');
+const { uploadFileInFolder } = require('./controllers/fileController');
 
 const { connectMongo } = require('./config/mongodb');
 
@@ -54,26 +55,29 @@ server.get('/user/get/user/:username', checkToken, isAuth, getUser);
 server.get('/user/get/users', checkToken, isAuth, getUsers);
 server.get('/user/get/config', checkToken, isAuth, getConfig);
 server.patch('/user/update/config', postResponseLog, checkToken, isAuth, changeConfig);
+
+// Files
 server.patch('/user/update/profile', postResponseLog, checkToken, isAuth, checkFilesUpload('profile_picture', 1), changeProfile);
 server.post('/user/create/folder/:folder_name', postResponseLog, checkToken, isAuth, createFolder);
 server.patch('/user/update/folder', postResponseLog, checkToken, isAuth, updateFolder);
 server.delete('/user/delete/folder/:folder_name', postResponseLog, checkToken, isAuth, deleteFolder);
 server.get('/user/get/folder/files/:folder_name', checkToken, isAuth, getFolderFiles)
+server.post('/user/upload/file/:folder_id', postResponseLog, checkToken, isAuth, checkFilesUpload('folder_file', 1), uploadFileInFolder)
 
-//Admins
+// Admins
 server.patch('/user/update/role/:id', postResponseLog, checkToken, isAuth, changeRole);
 server.patch('/user/delete/user/:id', postResponseLog, checkToken, isAuth, deleteUser);
 
-//Courses
+// Courses
 server.get('/course/get/courses', checkToken, isAuth, getCourses);
 server.get('/user/get/progress', checkToken, isAuth, getUserProgress);
 server.post('/user/register/course/:id', postResponseLog, checkToken, isAuth, registerCourse);
 
-//Streak & Score
+// Streak & Score
 server.get('/user/get/stats', checkToken, isAuth, getUserStats)
 server.patch('/user/update/goal', postResponseLog, checkToken, isAuth, changeGoal)
 
-//Token
+// Token
 server.get('/token/get/user', checkToken, getUserByToken)
 
 server.listen(PORT, async () => {

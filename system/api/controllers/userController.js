@@ -3,6 +3,7 @@ const { computeDVHFromObject } = require('../utils/dvhHelpers');
 const { convertImageToWebP, resizeImage } = require('../utils/fileChecker');
 const { getPublicFileUrl, uploadFile, deleteFile } = require('./bucketController');
 const { fileTypeFromBuffer } = require('file-type');
+const { v4: uuidv4 } = require('uuid');
 const fs = require('fs/promises');
 const db = require('../config/db');
 const bcrypt = require('bcrypt');
@@ -381,7 +382,7 @@ const changeProfile = async (req, res) => {
 
     try {
       const buffer = await fs.readFile(filePath);
-      const picturePath = await uploadFile("profiles", await resizeImage(await convertImageToWebP(buffer), 512, 512), "image/webp", "webp");
+      const picturePath = await uploadFile("profiles", await resizeImage(await convertImageToWebP(buffer), 512, 512), `${uuidv4()}.webp`, "image/webp");
       userPayload.picture !== "default_profile.webp" && await deleteFile("profiles", userPayload.picture)
 
       req.actions_data["update-picture"] = {

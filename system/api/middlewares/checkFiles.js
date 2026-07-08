@@ -1,5 +1,4 @@
 const multer = require('multer');
-const { v4: uuidv4 } = require('uuid');
 const { MAX_FILE_SIZE } = require('../constants');
 const { TEMP_FFMPEG } = require("../config/paths");
 

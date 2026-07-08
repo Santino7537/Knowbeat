@@ -49,6 +49,11 @@ const validateFile = async (filePath) => {
 
     if (!type.valid) throw new Error("Invalid file");
 
+    // IMAGES
+    if (VALID_FILES_FORMATS.images.includes(type.mime)) {
+        return type;
+    }
+
     // MEDIA
     if (VALID_FILES_FORMATS.videos.includes(type.mime) ||
         VALID_FILES_FORMATS.audios.includes(type.mime)) {
@@ -71,7 +76,7 @@ const validateFile = async (filePath) => {
         return type;
     }
 
-  throw new Error("Unsupported file");
+    throw new Error("Unsupported file");
 }
 
 const convertImageToWebP = async (fileBuffer) => {
