@@ -1,4 +1,4 @@
-const { ADMINISTRATOR_ROLE, ROLES_PERMISSIONS, PENALTY_DATE } = require('../constants');
+const { ADMINISTRATOR_ROLE, ROLES_PERMISSIONS, PENALTY_DATE, CONFIG_JSON } = require('../constants');
 
 const { computeDVHFromObject } = require('../utils/dvhHelpers');
 const bcrypt = require('bcrypt')
@@ -18,33 +18,6 @@ const createAdmin = async () => {
     const password = process.env.ADMIN_PASSWORD;
     const hashedPassword = await bcrypt.hash(password, 10);
 
-
-    const config_json = JSON.stringify({
-        privacidad: {
-            cuenta_privada: false,
-            visibilidad_progreso: "todos",
-            mensajeria_restringida: false,
-            mostrar_actividad: true
-        },
-        preferencia: {
-            notacion: "americana",
-            ejercicios_microfono: true,
-            ejercicios_escucha: true,
-            notificaciones: {
-                recordatorio_racha: true,
-                emails: true,
-                menciones: true,
-                likes: true,
-                avisos_comunidad: true
-            }
-        },
-        apariencia: {
-            idioma: 'es-AR',
-            modo_oscuro: true
-        }
-    });
-
-
     try {
 
         const userPayload = {
@@ -53,14 +26,16 @@ const createAdmin = async () => {
             email: process.env.ADMIN_EMAIL,
             password: hashedPassword,
             picture: `default_profile.webp`,
-            configuration: config_json,
+            streak: 0,
+            score: 0,
+            configuration: CONFIG_JSON,
             penalty_date: PENALTY_DATE,
             eliminated: 0
         }
 
         userPayload.dvh = computeDVHFromObject(userPayload);
 
-        const admin = await db.query('INSERT INTO User (role_id, username, email, password, picture, configuration, penalty_date, eliminated, dvh) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);',
+        const admin = await db.query('INSERT INTO User (role_id, username, email, password, picture, streak, score, configuration, penalty_date, eliminated, dvh) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);',
             Object.values(userPayload));
         console.log("Admin creado correctamente.");
 
@@ -103,6 +78,7 @@ const createAdmin = async () => {
 
             return value;
         });
+        
 
         await db.query(
             "INSERT INTO Binnacle (actions, endpoint_route, ip_source, user_id, session_token, request_data, response_data, timestamp, dvh) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);",

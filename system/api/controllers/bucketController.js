@@ -1,4 +1,4 @@
-const { GetObjectCommand, PutObjectCommand, DeleteObjectCommand} = require('@aws-sdk/client-s3');
+const { GetObjectCommand, PutObjectCommand, DeleteObjectCommand, DeleteObjectsCommand, ListObjectsV2Command } = require('@aws-sdk/client-s3');
 const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
 const s3 = require('../config/s3_client');
 const { v4: uuidv4 } = require('uuid');
@@ -34,6 +34,16 @@ const uploadFile = async(bucket, file, mimeType, extension) => {
     return uniqueName
 };
 
+const createEmptyFolder = async(bucket, route) => {
+    // Creamos carpeta vacía en el bucket
+    const command = new PutObjectCommand({
+        Bucket: bucket,
+        Key: route
+    });
+
+    await s3.send(command);
+};
+
 const deleteFile = async(bucket, filePath) => {
     const command = new DeleteObjectCommand({
         Bucket: bucket,
@@ -43,9 +53,30 @@ const deleteFile = async(bucket, filePath) => {
     await s3.send(command);
 };
 
+const deleteFolderAndFiles = async (bucket, route) => {
+    const objects = await s3.send(
+        new ListObjectsV2Command({
+            Bucket: bucket,
+            Prefix: route
+        })
+    );
+
+    if (!objects.Contents?.length) { return; }
+
+    await s3.send(
+        new DeleteObjectsCommand({
+            Bucket: bucket,
+            Delete: { Objects: 
+                objects.Contents.map(obj => ({ Key: obj.Key })) }
+        })
+    );
+};
+
 module.exports = {
     getPrivateFileUrl,
     getPublicFileUrl,
     uploadFile,
-    deleteFile
+    createEmptyFolder,
+    deleteFile,
+    deleteFolderAndFiles
 };

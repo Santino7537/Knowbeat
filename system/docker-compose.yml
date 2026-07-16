@@ -87,11 +87,11 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: ${SQL_ROOT_PASSWORD}
       MYSQL_DATABASE: ${SQL_DATABASE_NAME}
-      MYSQL_USER: ${SQL_BACKEND_USER}
-      MYSQL_PASSWORD: ${SQL_BACKEND_PASSWORD}
+      SQL_BACKEND_USER: ${SQL_BACKEND_USER}
+      SQL_BACKEND_PASSWORD: ${SQL_BACKEND_PASSWORD}
 
     volumes:
-      - mysql_data:/data/db
+      - mysql_data:/var/lib/mysql
       - ./mysql/init:/docker-entrypoint-initdb.d
 
     restart: unless-stopped

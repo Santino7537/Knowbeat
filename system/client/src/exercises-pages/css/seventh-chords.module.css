@@ -1,0 +1,335 @@
+:root {
+  --bg: #0f1419;
+  --surface: #1a2332;
+  --surfaceInset: #121a24;
+  --border: #2d3a4d;
+  --text: #e8edf4;
+  --textMuted: #8b9cb3;
+  --accent: #3b82f6;
+  --accentHover: #2563eb;
+  --success: #15803d;
+  --successBg: #14532d;
+  --error: #b91c1c;
+  --errorBg: #450a0a;
+  --radius: 12px;
+  --radiusSm: 8px;
+}
+
+.container {
+  max-width: 960px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 32px 20px 48px;
+  color: var(--text);
+}
+
+.container * {
+  color: inherit;
+}
+
+.pageHeader {
+  margin-bottom: 28px;
+}
+
+.pageHeader h1 {
+  font-size: clamp(1.75rem, 4vw, 2.25rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-bottom: 6px;
+}
+
+.pageSubtitle {
+  color: var(--textMuted);
+  font-size: 1rem;
+}
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  margin-bottom: 20px;
+}
+
+.panelTitle {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: var(--text);
+}
+
+.panelTitleSm {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: var(--textMuted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.filtersGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.filterBox {
+  background: var(--surfaceInset);
+  border: 1px solid var(--border);
+  border-radius: var(--radiusSm);
+  padding: 16px;
+}
+
+.checkboxGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.checkboxGroup label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.9375rem;
+  cursor: pointer;
+  color: var(--text);
+  transition: color 0.15s;
+}
+
+.checkboxGroup label:hover {
+  color: #fff;
+}
+
+.checkboxGroup input[type='checkbox'] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.fieldLabel {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--textMuted);
+}
+
+select,
+input[type='number'] {
+  background: var(--surfaceInset);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 10px 12px;
+  border-radius: var(--radiusSm);
+  font-size: 0.9375rem;
+  width: 100%;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+option {
+  color: var(--text);
+  background-color: var(--surfaceInset);
+}
+
+select:hover,
+input[type='number']:hover {
+  border-color: #4b607a;
+}
+
+select:focus-visible,
+input[type='number']:focus-visible,
+.primaryButton:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+}
+
+select:disabled,
+input[type='number']:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.rangeInputs {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.exerciseConfig {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.primaryButton {
+  background: var(--accent);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: var(--radiusSm);
+  cursor: pointer;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  width: 100%;
+  max-width: 280px;
+  transition: background 0.15s, transform 0.1s, opacity 0.15s;
+}
+
+.primaryButton:not(.disabledButton):hover {
+  background: var(--accentHover);
+}
+
+.primaryButton:not(.disabledButton):active {
+  transform: scale(0.98);
+}
+
+.disabledButton {
+  opacity: 0.45;
+  cursor: not-allowed;
+  filter: none;
+}
+
+.exerciseArea,
+.keyboardHelpArea {
+  background: var(--surfaceInset);
+  border: 1px solid var(--border);
+  border-radius: var(--radiusSm);
+  padding: 28px 24px;
+}
+
+.keyboardHelpArea {
+  margin-top: 24px;
+}
+
+.exerciseTopbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  min-height: 36px;
+  margin-bottom: 24px;
+}
+
+.statBadge {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--textMuted);
+}
+
+.statBadge strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.gameHint {
+  text-align: center;
+  color: var(--textMuted);
+  font-size: 0.875rem;
+  margin-top: -16px;
+  margin-bottom: 24px;
+}
+
+.currentChord {
+  font-size: clamp(3rem, 10vw, 5rem);
+  text-align: center;
+  margin-bottom: 32px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  min-height: 1.1em;
+}
+
+.currentChordIdle {
+  color: var(--textMuted);
+  font-size: 1.25rem;
+  font-weight: 500;
+  letter-spacing: normal;
+}
+
+.answerBox {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.noteSlot {
+  width: 72px;
+  height: 72px;
+  border-radius: var(--radiusSm);
+  background: var(--surface);
+  border: 2px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: 700;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.noteSlotGoodAnswer {
+  background: var(--successBg);
+  border-color: var(--success);
+}
+
+.noteSlotBadAnswer {
+  background: var(--errorBg);
+  border-color: var(--error);
+}
+
+.keyboardGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+}
+
+.keyboardGrid .fieldGroup {
+  gap: 4px;
+}
+
+.keyboardHint {
+  margin-top: 12px;
+  font-size: 0.8125rem;
+  color: var(--textMuted);
+}
+
+.gameFinished {
+  text-align: center;
+  color: var(--textMuted);
+  font-size: 0.9375rem;
+  margin-bottom: 16px;
+}
+
+.gameFinished strong {
+  color: var(--text);
+}
+
+@media (max-width: 600px) {
+  .container {
+    padding: 20px 16px 32px;
+  }
+
+  .exerciseArea {
+    padding: 20px 16px;
+  }
+
+  .noteSlot {
+    width: 64px;
+    height: 64px;
+    font-size: 1.25rem;
+  }
+}

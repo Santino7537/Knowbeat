@@ -2,9 +2,13 @@ require('dotenv').config({ path: "../.env" }); // Carga las variables de entorno
 const express = require('express');
 const cors = require('cors');
 
-const { login, register, getUser, getUsers, getConfig, changeConfig, changeProfile } = require('./controllers/userController');
+const { login, register, getUser, getUserByToken, getUsers, getConfig, changeConfig, changeProfile } = require('./controllers/userController');
 const { changeRole, deleteUser } = require('./controllers/adminController');
 const { getCourses, getUserProgress, registerCourse, } = require('./controllers/coursesController');
+const { getUserStats, changeGoal } = require('./controllers/streakController');
+const { createFolder, updateFolder, deleteFolder, getFolderFiles } = require('./controllers/folderController');
+
+const { connectMongo } = require('./config/mongodb');
 
 const { postResponseLog } = require('./middlewares/binnacleHelper');
 const { checkFilesUpload } = require('./middlewares/checkFiles');
@@ -46,11 +50,15 @@ server.get('/', (req, res) => { res.status(200).send('Bienvenido a la API de Kno
 // Users
 server.post('/register', postResponseLog, register);
 server.post('/login', postResponseLog, login);
-server.get('/user/get/user/:id', checkToken, isAuth, getUser);
+server.get('/user/get/user/:username', checkToken, isAuth, getUser);
 server.get('/user/get/users', checkToken, isAuth, getUsers);
 server.get('/user/get/config', checkToken, isAuth, getConfig);
 server.patch('/user/update/config', postResponseLog, checkToken, isAuth, changeConfig);
 server.patch('/user/update/profile', postResponseLog, checkToken, isAuth, checkFilesUpload('profile_picture', 1), changeProfile);
+server.post('/user/create/folder/:folder_name', postResponseLog, checkToken, isAuth, createFolder);
+server.patch('/user/update/folder', postResponseLog, checkToken, isAuth, updateFolder);
+server.delete('/user/delete/folder/:folder_name', postResponseLog, checkToken, isAuth, deleteFolder);
+server.get('/user/get/folder/files/:folder_name', checkToken, isAuth, getFolderFiles)
 
 //Admins
 server.patch('/user/update/role/:id', postResponseLog, checkToken, isAuth, changeRole);
@@ -61,8 +69,19 @@ server.get('/course/get/courses', checkToken, isAuth, getCourses);
 server.get('/user/get/progress', checkToken, isAuth, getUserProgress);
 server.post('/user/register/course/:id', postResponseLog, checkToken, isAuth, registerCourse);
 
+//Streak & Score
+server.get('/user/get/stats', checkToken, isAuth, getUserStats)
+server.patch('/user/update/goal', postResponseLog, checkToken, isAuth, changeGoal)
+
+//Token
+server.get('/token/get/user', checkToken, getUserByToken)
+
 server.listen(PORT, async () => {
   console.log('La API está corriendo en el puerto ', PORT);
+  try {
+    await connectMongo();
+  } catch (err) { console.error("Failed to start MongoDB:", err); }
+
   await require('./config/createRoles')();
   await require('./config/createPermissions')();
   await require('./config/createAdmin')();

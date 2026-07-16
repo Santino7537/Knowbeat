@@ -20,23 +20,6 @@ const getCourses = async (req, res) => {
         AND p.user_id = ?
     `, [userId]);
 
-    res.json(rows);
-
-      /* Devuelve algo como esto:
-      [
-        {
-          "id": 1,
-          "name": "React",
-          "isEnrolled": 1
-        },
-        {
-          "id": 2,
-          "name": "Python",
-          "isEnrolled": 0
-        }
-      ]
-      */
-
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Error al obtener cursos' });
@@ -76,6 +59,9 @@ const registerCourse = async(req,res) => {
 
   // Por params (campo id) se recibe la id del curso, no del usuario (anteriormente se mandaba por params:id la id del user)
   const courseId = req.params.id;
+
+  req.actions.data = {};
+  if (req.body.password) req.body.password = "[REDACTED]";
   
   try {
         const [rows] = await db.query(`
@@ -84,13 +70,18 @@ const registerCourse = async(req,res) => {
           `, 
         [userId, courseId, 0]);
         
+        req.actions_data["user-register-course"] = {
+          entity: "Progress",
+          record_id: result.insertId,
+          action: "insert"
+        };
+
         res.json(rows);
 
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Error al anotarse a un curso' });
-    }
-
+  }
 }
 
 module.exports = {
