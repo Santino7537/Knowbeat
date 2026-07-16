@@ -1,4 +1,7 @@
 import { useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+
+import Sidebar from '../components/Sidebar'
 import Filters from './components/Filters.jsx'
 import ChordsGame from './components/ChordsGame.jsx'
 import {
@@ -11,6 +14,8 @@ import {
 import styles from './css/seventh-chords.module.css'
 
 function SeventhChordsExercise() {
+  const navigate = useNavigate()
+
   const [filters, setFilters] = useState(
     Object.fromEntries(seventh_chords_names.map((name) => [name, true]))
   )
@@ -28,10 +33,12 @@ function SeventhChordsExercise() {
       .filter((classification) => filters[classification])
       .reduce((acc, classification) => {
         const chords = Object.entries(seventh_chords[classification])
-          .filter(([, chordNotes]) => customChromaticScalePart.includes(chordNotes[0]))
+          .filter(([, chordNotes]) =>
+            customChromaticScalePart.includes(chordNotes[0])
+          )
           .reduce((obj, [chordName, chordNotes]) => {
-            obj[traduce_note(chordName, middleNotesMode)] = chordNotes.map((note) =>
-              traduce_note(note, middleNotesMode)
+            obj[traduce_note(chordName, middleNotesMode)] = chordNotes.map(
+              (note) => traduce_note(note, middleNotesMode)
             )
             return obj
           }, {})
@@ -42,25 +49,41 @@ function SeventhChordsExercise() {
   }, [customChromaticScalePart, filters, middleNotesMode])
 
   return (
-    <main className={styles.container}>
-      <header className={styles.pageHeader}>
-        <h1>Averiguar notas de acordes</h1>
-        <p className={styles.pageSubtitle}>
-          Practica identificando las notas de acordes de séptima con el teclado.
-        </p>
-      </header>
+    <div className={styles.page_layout}>
+      <Sidebar />
 
-      <Filters
-        setFilters={setFilters}
-        startNote={startNote}
-        setStartNote={setStartNote}
-        endNote={endNote}
-        setEndNote={setEndNote}
-        middleNotesMode={middleNotesMode}
-        setMiddleNotesMode={setMiddleNotesMode}
-      />
-      <ChordsGame filteredChords={filteredChords} />
-    </main>
+      <div className={styles.page_content}>
+        <button
+          type="button"
+          className={styles.back_button}
+          onClick={() => navigate('/exercises')}
+        >
+          ← Volver a ejercicios
+        </button>
+
+        <main className={styles.container}>
+          <header className={styles.pageHeader}>
+            <span className={styles.type_badge}>Acordes</span>
+            <h1>Averiguar notas de acordes</h1>
+            <p className={styles.pageSubtitle}>
+              Practica identificando las notas de acordes de séptima con tu
+              teclado.
+            </p>
+          </header>
+
+          <Filters
+            setFilters={setFilters}
+            startNote={startNote}
+            setStartNote={setStartNote}
+            endNote={endNote}
+            setEndNote={setEndNote}
+            middleNotesMode={middleNotesMode}
+            setMiddleNotesMode={setMiddleNotesMode}
+          />
+          <ChordsGame filteredChords={filteredChords} />
+        </main>
+      </div>
+    </div>
   )
 }
 

@@ -15,12 +15,57 @@
   --radiusSm: 8px;
 }
 
+.page_layout {
+  display: flex;
+  min-height: 100vh;
+  background: var(--bg);
+}
+
+.page_content {
+  flex: 1;
+  margin-left: 260px;
+  min-width: 0;
+}
+
+.back_button {
+  margin: 24px 20px 0;
+  padding: 10px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radiusSm);
+  background: var(--surface);
+  color: var(--textMuted);
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+
+.back_button:hover {
+  color: var(--text);
+  border-color: #4b607a;
+  background: var(--surfaceInset);
+}
+
 .container {
   max-width: 960px;
   width: 100%;
   margin: 0 auto;
-  padding: 32px 20px 48px;
+  padding: 16px 20px 48px;
   color: var(--text);
+}
+
+.type_badge {
+  display: inline-block;
+  margin-bottom: 12px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--surfaceInset);
+  border: 1px solid var(--border);
+  color: var(--textMuted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .container * {
@@ -316,6 +361,12 @@ input[type='number']:disabled {
 
 .gameFinished strong {
   color: var(--text);
+}
+
+@media (max-width: 900px) {
+  .page_content {
+    margin-left: 0;
+  }
 }
 
 @media (max-width: 600px) {
