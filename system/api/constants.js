@@ -3,12 +3,21 @@ const MODERATOR_ROLE = "Moderator";
 const USER_ROLE = "User";
 
 const USER_PERMISSIONS = ['user-get-user', 'user-get-users', 'user-get-config', 'user-update-config', 'user-update-profile', 'user-create-folder', 'user-update-folder', 'user-delete-folder', 'user-get-folder-files', 'user-upload-file', 'user-delete-file', 'user-get-file', 'course-get-courses', 'user-get-progress', 'user-register-course', 'user-get-stats', 'user-update-goal','user-report'];
+const ADMIN_PERMISSIONS = ['admin-reports','user-update-role', 'user-delete-user'];
 const ROLES_PERMISSIONS = {
     [USER_ROLE]: USER_PERMISSIONS,
     [MODERATOR_ROLE]: [...USER_PERMISSIONS],
-    [ADMINISTRATOR_ROLE]: [...USER_PERMISSIONS, 'user-update-role', 'user-delete-user']
+    [ADMINISTRATOR_ROLE]: [...USER_PERMISSIONS, ...ADMIN_PERMISSIONS]
 };
 const PERMISSIONS = [...new Set(Object.values(ROLES_PERMISSIONS).flat())].sort()
+
+const REPORT_STATUSES = ['PENDING', 'ACCEPTED', 'REJECTED'];
+const REPORT_REASONS = ['HARASSMENT', 'THREATS', 'OFFENSIVE_LANGUAGE', 'INAPPROPRIATE_CONTENT', 'SPAM', 'IDENTITY_THEFT', 'PERSONAL_DATA_EXPOSURE', 'OTHER'];
+
+const LOG_ACTIONS = {
+    REPORT_RESOLVE: 'resolve-report',
+    USER_BAN: 'ban-user'
+};
 
 const CONFIG_JSON = JSON.stringify({
     privacy: {
@@ -93,6 +102,9 @@ module.exports = {
     USER_ROLE,
     ROLES_PERMISSIONS,
     PERMISSIONS,
+    REPORT_STATUSES,
+    REPORT_REASONS,
+    LOG_ACTIONS,
     PENALTY_DATE,
     MAX_FILE_SIZE,
     VALID_FILES_FORMATS,

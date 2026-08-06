@@ -100,15 +100,27 @@ const register = async (req, res) => {
   userPayload.dvh = computeDVHFromObject(userPayload);
 
   // Crea el usuario en la base de datos
+  let dbResult;
   try {
-    const [user] = await db.query('INSERT INTO User (role_id, username, email, password, picture, streak, score, configuration, penalty_date, eliminated, dvh) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);',
-      Object.values(userPayload));
+    const [result] = await db.query(
+      'INSERT INTO User (role_id, username, email, password, picture, streak, score, configuration, penalty_date, eliminated, dvh) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);',
+      Object.values(userPayload)
+    );
+    dbResult = result;
   } catch (error) {
     console.log(error);
     return res.status(500).json({ error: 'Error al crear usuario' });
   }
 
-  res.json({ message: 'Registro exitoso', user });
+  res.status(201).json({
+    message: 'Registro exitoso',
+    user: {
+      id: dbResult.insertId,
+      username: userPayload.username,
+      email: userPayload.email,
+      picture: userPayload.picture
+    }
+  });
 };
 
 const getUser = async (req, res) => {

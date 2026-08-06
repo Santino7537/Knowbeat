@@ -3,7 +3,7 @@ const express = require('express');
 const cors = require('cors');
 
 const { login, register, getUser, getUserByToken, getUsers, getConfig, changeConfig, changeProfile, reportUser } = require('./controllers/userController');
-const { changeRole, deleteUser } = require('./controllers/adminController');
+const { changeRole, deleteUser, getReports, getReportDetail, resolveReport } = require('./controllers/adminController');
 const { getCourses, getUserProgress, registerCourse, } = require('./controllers/coursesController');
 const { getUserStats, changeGoal } = require('./controllers/streakController');
 const { createFolder, updateFolder, deleteFolder, getFolderFiles } = require('./controllers/folderController');
@@ -70,6 +70,9 @@ server.post('/user/report', postResponseLog, checkToken, isAuth, reportUser);
 // Admins
 server.patch('/user/update/role/:id', postResponseLog, checkToken, isAuth, changeRole);
 server.patch('/user/delete/user/:id', postResponseLog, checkToken, isAuth, deleteUser);
+server.get('/admin/reports', postResponseLog, checkToken, isAuth, getReports);
+server.get('/admin/reports/:id', postResponseLog, checkToken, isAuth, getReportDetail);
+server.patch('/admin/reports/:id', postResponseLog, checkToken, isAuth, resolveReport);
 
 // Courses
 server.get('/course/get/courses', checkToken, isAuth, getCourses);
