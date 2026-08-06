@@ -2,7 +2,7 @@ require('dotenv').config({ path: "../.env" }); // Carga las variables de entorno
 const express = require('express');
 const cors = require('cors');
 
-const { login, register, getUser, getUserByToken, getUsers, getConfig, changeConfig, changeProfile } = require('./controllers/userController');
+const { login, register, getUser, getUserByToken, getUsers, getConfig, changeConfig, changeProfile, reportUser } = require('./controllers/userController');
 const { changeRole, deleteUser } = require('./controllers/adminController');
 const { getCourses, getUserProgress, registerCourse, } = require('./controllers/coursesController');
 const { getUserStats, changeGoal } = require('./controllers/streakController');
@@ -65,6 +65,7 @@ server.get('/user/get/folder/files/:folder_name', checkToken, isAuth, getFolderF
 server.post('/user/upload/file/:folder_id', postResponseLog, checkToken, isAuth, checkFilesUpload('folder_file', 1), uploadFileInFolder);
 server.delete('/user/delete/file/:file_id/:folder_id', postResponseLog, checkToken, isAuth, deleteFileFromFolder);
 server.get('/user/get/file/:file_id/:folder_id', checkToken, isAuth, getFileUrlFromFolder);
+server.post('/user/report', postResponseLog, checkToken, isAuth, reportUser);
 
 // Admins
 server.patch('/user/update/role/:id', postResponseLog, checkToken, isAuth, changeRole);

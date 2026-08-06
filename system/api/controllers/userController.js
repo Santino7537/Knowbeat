@@ -55,9 +55,14 @@ const register = async (req, res) => {
   const langHeader = req.headers['accept-language'] || 'es';
   const detectedLang = langHeader.startsWith('en') ? 'en-US' : 'es-AR';
 
-  // Crea un clon de la constante config para registrarla con el idioma detectado
-  const config = structuredClone(CONFIG_JSON);
+  // 1. Convertimos el string a OBJETO para poder editarlo
+  const config = JSON.parse(CONFIG_JSON);
+
+  // 2. Modificamos la propiedad en el objeto
+  config.appearance = config.appearance || {};
   config.appearance.language = detectedLang;
+
+  // 3. Volvemos a convertir el objeto a STRING para guardarlo en la BD
   const config_json = JSON.stringify(config);
 
   // Se crea el JSON que contiene la configuración del usuario:
@@ -422,8 +427,92 @@ const changeProfile = async (req, res) => {
 
   await db.query(`UPDATE User SET ${setClause} WHERE id = ?;`,
     [...updateFields.map(field => userPayload[field]), req.user.user_id]);
-    
+
   res.status(200).json({ message: 'Usuario actualizado correctamente', userPayload });
+};
+
+const reportUser = async (req, res) => {
+  const { reported_id, reason, description } = req.body;
+  req.actions_data = {};
+
+  const reporterId = req.user?.user_id;
+  const reportedId = Number(reported_id);
+  const validReasons = [
+    'HARASSMENT',
+    'THREATS',
+    'OFFENSIVE_LANGUAGE',
+    'INAPPROPRIATE_CONTENT',
+    'SPAM',
+    'IDENTITY_THEFT',
+    'PERSONAL_DATA_EXPOSURE',
+    'OTHER'
+  ];
+
+  if (!reporterId) {
+    return res.status(401).json({ message: 'Usuario no autenticado' });
+  }
+
+
+  if (!reported_id || !reason || !description || typeof description !== 'string') {
+    return res.status(400).json({ message: 'reported_id, reason y description son obligatorios' });
+  }
+
+  if (!Number.isInteger(reportedId) || reportedId <= 0) {
+    return res.status(400).json({ message: 'reported_id inválido' });
+  }
+
+  if (reporterId === reportedId) {
+    return res.status(400).json({ message: 'No puedes reportarte a ti mismo' });
+  }
+
+  if (!validReasons.includes(reason)) {
+    return res.status(400).json({ message: 'Razón de reporte inválida' });
+  }
+
+  const trimmedDescription = description.trim();
+  if (trimmedDescription.length === 0) {
+    return res.status(400).json({ message: 'La descripción es obligatoria' });
+  }
+  
+  if (trimmedDescription.length > 500) {
+    return res.status(400).json({
+      message: 'La descripción es demasiado larga'
+    });
+  }
+
+  try {
+    const [reportedUser] = await db.query('SELECT id FROM User WHERE id = ?;', [reportedId]);
+    if (reportedUser.length === 0) {
+      return res.status(400).json({ message: 'El usuario reportado no existe' });
+    }
+
+    const [pendingReport] = await db.query(
+      'SELECT id FROM Report WHERE reporter_id = ? AND reported_id = ? AND status = ?;',
+      [reporterId, reportedId, 'PENDING']
+    );
+    if (pendingReport.length !== 0) {
+      return res.status(409).json({ message: 'Ya existe un reporte pendiente para este usuario' });
+    }
+
+    const [result] = await db.query(
+      'INSERT INTO Report (reporter_id, reported_id, status, reason, description, date) VALUES (?, ?, ?, ?, ?, NOW());',
+      [reporterId, reportedId, 'PENDING', reason, trimmedDescription]
+    );
+
+    const reportId = result.insertId;
+    req.actions_data['user-report'] = {
+      entity: 'Report',
+      record_id: reportId,
+      action: 'insert',
+      old_dvh: null,
+      new_dvh: null
+    };
+
+    return res.status(201).json({ message: 'Reporte enviado correctamente', reportId });
+  } catch (error) {
+    console.error('Error al reportar usuario:', error);
+    return res.status(500).json({ error: 'Error al procesar el reporte' });
+  }
 };
 
 module.exports = {
@@ -434,5 +523,6 @@ module.exports = {
   getUsers,
   getConfig,
   changeConfig,
-  changeProfile
+  changeProfile,
+  reportUser
 };
