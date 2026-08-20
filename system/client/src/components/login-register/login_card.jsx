@@ -30,7 +30,7 @@ function Login_card({ onLoginSuccess ,  switchToRegister }){
             onLoginSuccess(response.data.token); // redirige
         } catch (err) {
             const status = err.response?.status;
-            if (status === 401) {
+            if (status === 400 || status === 401) {
                 // Credenciales incorrectas: error en ambos campos para no revelar cuál falló
                 setErrors({
                 username: "Usuario o contraseña incorrectos",
@@ -67,7 +67,7 @@ function Login_card({ onLoginSuccess ,  switchToRegister }){
 
                         {errors.general && <FieldError message={errors.general} />}
 
-                        <button type='submit' className={styles.button} onClick={() => fetchLogin()}>Iniciar Sesión</button>
+                        <button type='submit' className={styles.button}>Iniciar Sesión</button>
                     </form>
                 </section>
                 <section className={styles.section} id={styles.change_section}>

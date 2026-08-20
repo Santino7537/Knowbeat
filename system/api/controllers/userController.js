@@ -1,4 +1,4 @@
-const { USER_ROLE, ROLES_PERMISSIONS, PENALTY_DATE, CONFIG_JSON, ALLOWED_CONFIGS } = require('../constants');
+const { USER_ROLE, ROLES_PERMISSIONS, PENALTY_DATE, CONFIG_JSON, ALLOWED_CONFIGS, REPORT_REASONS } = require('../constants');
 const { computeDVHFromObject } = require('../utils/dvhHelpers');
 const { convertImageToWebP, resizeImage } = require('../utils/fileChecker');
 const { getPublicFileUrl, uploadFile, deleteFile } = require('./bucketController');
@@ -70,14 +70,14 @@ const register = async (req, res) => {
   // Comprueba si el nombre de usuario e email ya existen
   try {
     const [existingUsername] = await db.query('SELECT id FROM User WHERE username = ?;', [username]);
-    if (existingUsername.length !== 0) return res.status(400).json({ message: 'El nombre de usuario ya está registrado' });
+    if (existingUsername.length !== 0) return res.status(409).json({ message: 'El nombre de usuario ya está registrado' });
   } catch (error) {
     return res.status(500).json({ error: 'Error al comprobar nombre de usuario' });
   }
 
   try {
     const [existingMail] = await db.query('SELECT id FROM User WHERE email = ?;', [email]);
-    if (existingMail.length !== 0) return res.status(400).json({ message: 'El email ya está registrado' });
+    if (existingMail.length !== 0) return res.status(409).json({ message: 'El email ya está registrado' });
   } catch (error) {
     return res.status(500).json({ error: 'Error al comprobar email' });
   }
@@ -179,7 +179,15 @@ const getConfig = async (req, res) => {
 
   try {
     const [user] = await db.query('SELECT configuration FROM User WHERE id = ?', [req.user.user_id]);
-    res.json(user[0].configuration);
+    if (user.length === 0) {
+      return res.status(404).json({ error: 'Configuración de usuario no encontrada' });
+    }
+
+    const configuration = typeof user[0].configuration === 'string'
+      ? JSON.parse(user[0].configuration)
+      : user[0].configuration;
+
+    res.json(configuration);
 
   } catch (error) {
     console.error(error);
@@ -448,54 +456,44 @@ const reportUser = async (req, res) => {
   req.actions_data = {};
 
   const reporterId = req.user?.user_id;
-  const reportedId = Number(reported_id);
-  const validReasons = [
-    'HARASSMENT',
-    'THREATS',
-    'OFFENSIVE_LANGUAGE',
-    'INAPPROPRIATE_CONTENT',
-    'SPAM',
-    'IDENTITY_THEFT',
-    'PERSONAL_DATA_EXPOSURE',
-    'OTHER'
-  ];
 
   if (!reporterId) {
-    return res.status(401).json({ message: 'Usuario no autenticado' });
+    return res.status(401).json({ status: 'error', message: 'Usuario no autenticado' });
   }
 
-
-  if (!reported_id || !reason || !description || typeof description !== 'string') {
-    return res.status(400).json({ message: 'reported_id, reason y description son obligatorios' });
-  }
-
+  const reportedId = Number(reported_id);
   if (!Number.isInteger(reportedId) || reportedId <= 0) {
-    return res.status(400).json({ message: 'reported_id inválido' });
+    return res.status(422).json({ status: 'error', message: 'reported_id debe ser un entero positivo' });
+  }
+
+  const normalizedReason = typeof reason === 'string' ? reason.trim().toUpperCase() : '';
+  const normalizedDescription = typeof description === 'string'
+    ? description.replace(/[\u0000-\u001F\u007F]/g, '').trim()
+    : '';
+
+  if (!REPORT_REASONS.includes(normalizedReason)) {
+    return res.status(422).json({ status: 'error', message: 'Razón de reporte inválida' });
   }
 
   if (reporterId === reportedId) {
-    return res.status(400).json({ message: 'No puedes reportarte a ti mismo' });
+    return res.status(422).json({ status: 'error', message: 'No puedes reportarte a ti mismo' });
   }
 
-  if (!validReasons.includes(reason)) {
-    return res.status(400).json({ message: 'Razón de reporte inválida' });
+  if (!normalizedDescription) {
+    return res.status(422).json({ status: 'error', message: 'La descripción es obligatoria' });
   }
 
-  const trimmedDescription = description.trim();
-  if (trimmedDescription.length === 0) {
-    return res.status(400).json({ message: 'La descripción es obligatoria' });
-  }
-  
-  if (trimmedDescription.length > 500) {
-    return res.status(400).json({
-      message: 'La descripción es demasiado larga'
-    });
+  if (normalizedDescription.length > 500) {
+    return res.status(422).json({ status: 'error', message: 'La descripción es demasiado larga' });
   }
 
   try {
-    const [reportedUser] = await db.query('SELECT id FROM User WHERE id = ?;', [reportedId]);
+    const [reportedUser] = await db.query(
+      'SELECT id FROM User WHERE id = ? AND eliminated = 0;',
+      [reportedId]
+    );
     if (reportedUser.length === 0) {
-      return res.status(400).json({ message: 'El usuario reportado no existe' });
+      return res.status(404).json({ status: 'error', message: 'El usuario reportado no existe' });
     }
 
     const [pendingReport] = await db.query(
@@ -503,12 +501,12 @@ const reportUser = async (req, res) => {
       [reporterId, reportedId, 'PENDING']
     );
     if (pendingReport.length !== 0) {
-      return res.status(409).json({ message: 'Ya existe un reporte pendiente para este usuario' });
+      return res.status(409).json({ status: 'error', message: 'Ya existe un reporte pendiente para este usuario' });
     }
 
     const [result] = await db.query(
       'INSERT INTO Report (reporter_id, reported_id, status, reason, description, date) VALUES (?, ?, ?, ?, ?, NOW());',
-      [reporterId, reportedId, 'PENDING', reason, trimmedDescription]
+      [reporterId, reportedId, 'PENDING', normalizedReason, normalizedDescription]
     );
 
     const reportId = result.insertId;
@@ -520,10 +518,14 @@ const reportUser = async (req, res) => {
       new_dvh: null
     };
 
-    return res.status(201).json({ message: 'Reporte enviado correctamente', reportId });
+    return res.status(201).json({
+      status: 'success',
+      message: 'Reporte enviado correctamente',
+      data: { reportId }
+    });
   } catch (error) {
     console.error('Error al reportar usuario:', error);
-    return res.status(500).json({ error: 'Error al procesar el reporte' });
+    return res.status(500).json({ status: 'error', message: 'Error al procesar el reporte' });
   }
 };
 
