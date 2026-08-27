@@ -1,0 +1,253 @@
+/* Fondo oscuro semitransparente que cubre toda la pantalla */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+/*
+  Tamaño del modal.
+  Me diste que sobre una pantalla de referencia de 1024x768 el modal
+  mide 661x539. Convierto eso a porcentaje del viewport en vez de usar
+  un valor fijo, así el modal escala igual sin importar la resolución:
+
+  ancho:  661 / 1024 = 0.6455 -> 64.55vw
+  alto:   539 / 768  = 0.7018 -> 70.18vh
+
+  Le agrego un max-width/max-height en rem para que en pantallas muy
+  grandes el modal no se vuelva gigante, y un min-width/min-height
+  para que en pantallas chicas siga siendo usable.
+*/
+.modal {
+  width: 64.55vw;
+  height: 70.18vh;
+  max-width: 45rem;
+  max-height: 40rem;
+  min-width: 20rem;
+  min-height: 26rem;
+  background-color: #2a3952;
+  border-radius: 0.6rem; /* esquinas muy levemente curvadas */
+  padding: 2rem 2.5rem;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  color: #ffffff;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.title {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #ffffff;
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  color: #ffffff;
+  font-size: 1.3rem;
+  font-weight: 700;
+  line-height: 1;
+  padding: 0.3rem 0.6rem;
+  border-radius: 0.35rem;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+/* "se oscurece un poco con hover" */
+.closeButton:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.75);
+}
+
+/* Contenedor de todos los campos, con scroll propio por si el modal
+   queda chico para el contenido (por ejemplo con muchas etiquetas) */
+.body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  overflow-y: auto;
+  min-height: 0; /* necesario para que el flex hijo pueda scrollear */
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+
+/* El campo "Cuerpo" es el que más espacio ocupa, como en la referencia */
+.bodyField {
+  flex: 1;
+  min-height: 0;
+}
+
+.label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+/* Estilo compartido por input de título y textarea de cuerpo */
+.input,
+.textarea {
+  background-color: #1e293b;
+  border: 0.0625rem solid #334155;
+  border-radius: 0.4rem;
+  color: #ffffff;
+  padding: 0.65rem 0.9rem;
+  font-size: 0.95rem;
+  font-family: inherit;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease;
+}
+
+.input::placeholder,
+.textarea::placeholder {
+  color: #94a3b8;
+}
+
+.input:focus,
+.textarea:focus {
+  border-color: #3b82f6;
+}
+
+.textarea {
+  flex: 1;
+  min-height: 6rem;
+  resize: none;
+}
+
+.charCount {
+  align-self: flex-end;
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+
+/* Fila que contiene el campo de etiquetas junto al botón de publicar */
+.tagsRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+/*
+  Campo de etiquetas: se ve igual que los otros inputs (mismo fondo y
+  borde), pero en vez de mostrar texto plano muestra los "chips" de
+  etiquetas ya creadas más un input chico para seguir escribiendo.
+
+  max-height + overflow-y controlan el pedido de que, si hay muchas
+  etiquetas, aparezca una scrollbar en vez de que el campo crezca sin
+  límite.
+*/
+.tagsField {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  background-color: #1e293b;
+  border: 0.0625rem solid #334155;
+  border-radius: 0.4rem;
+  padding: 0.5rem 0.7rem;
+  max-height: 5rem;
+  overflow-y: auto;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease;
+}
+
+.tagsField:focus-within {
+  border-color: #3b82f6;
+}
+
+/* Cada etiqueta ya confirmada, con el borde azul pedido */
+.tagChip {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  border: 0.0625rem solid #2563eb;
+  border-radius: 0.35rem;
+  padding: 0.15rem 0.5rem;
+  font-size: 0.8rem;
+  color: #ffffff;
+  white-space: nowrap;
+}
+
+.tagRemoveButton {
+  background: none;
+  border: none;
+  color: #ffffff;
+  opacity: 0.7;
+  font-size: 0.85rem;
+  line-height: 1;
+  padding: 0;
+  cursor: pointer;
+}
+
+.tagRemoveButton:hover {
+  opacity: 1;
+}
+
+/* Input chico donde se escribe la próxima etiqueta */
+.tagInput {
+  flex: 1;
+  min-width: 6rem;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #ffffff;
+  font-size: 0.9rem;
+  font-family: inherit;
+  padding: 0.15rem 0.2rem;
+}
+
+.tagInput::placeholder {
+  color: #94a3b8;
+}
+
+.publishButton {
+  flex-shrink: 0;
+  background-color: #2563eb;
+  color: #ffffff;
+  border: none;
+  border-radius: 0.4rem;
+  padding: 0.75rem 1.6rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.15s ease;
+}
+
+.publishButton:hover {
+  background-color: #1d4ed8;
+}
+
+.publishButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.errorText {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #f87171;
+  flex-shrink: 0;
+}

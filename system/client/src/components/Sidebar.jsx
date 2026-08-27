@@ -6,7 +6,7 @@ const Sidebar = () => {
   const location = useLocation();
 
   const items = [
-    { name: "Comunidad", path: "/comunidad" },
+    { name: "Comunidad", path: "/community" },
     { name: "Aprender", path: "/courses" },
     { name: "Ejercicios", path: "/exercises" },
     { name: "Carpetas", path: "/folders" },

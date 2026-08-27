@@ -4,6 +4,7 @@ import Landing from './pages/Landing.jsx'
 import Courses from './pages/Courses.jsx';
 import Exercises from './pages/Exercises.jsx';
 import SeventhChordsExercise from './exercises-pages/seventh-chords.jsx'
+import Community from './pages/Community.jsx';
 import { Routes, Route } from 'react-router-dom'
 
 import Login_register from './pages/login_register.jsx'
@@ -21,6 +22,7 @@ function App() {
         <Route path="/courses" element={<Courses />} />
         <Route path="/exercises" element={<Exercises />}/>
         <Route path="/exercises/seventh-chords" element={<SeventhChordsExercise />} />
+        <Route path="/community" element={<Community/>} />
       </Routes>
     </>
   )
