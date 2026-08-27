@@ -78,3 +78,33 @@ const searchUsers = async (req, res) => {
 		return res.status(500).json({ message: 'Error al buscar usuarios' });
 	}
 };
+
+const searchThreads = async (req, res) => {
+	const pagination = parsePagination(req);
+	const query = String(req.query.query ?? req.query.q ?? '').trim();
+	const tags = String(req.query.tags ?? '').trim();
+
+	try {
+		const db = getDb();
+		const filter = {};
+		if (query) {
+			const expression = { $regex: escapeRegex(query), $options: 'i' };
+			filter.$or = [{ title: expression }, { text: expression }];
+		}
+		if (tags) filter.tags = { $elemMatch: { $regex: `^${escapeRegex(tags)}$`, $options: 'i' } };
+
+		const order = { likes_count: -1, created_at: -1 };
+		const [threads, total] = await Promise.all([
+			db.collection('Thread').find(filter).sort(order).skip(pagination.skip).limit(pagination.limit).toArray(),
+			db.collection('Thread').countDocuments(filter)
+		]);
+
+		return res.status(200).json({
+			data: threads.map(thread => ({ ...thread, id: thread._id })),
+			pagination: { page: pagination.page, limit: pagination.limit, total }
+		});
+	} catch (error) {
+		console.error('Error al buscar hilos:', error);
+		return res.status(500).json({ message: 'Error al buscar hilos' });
+	}
+};
