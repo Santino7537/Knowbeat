@@ -10,21 +10,21 @@ const Courses = () => {
 
   const token = localStorage.getItem("token");
 
-  const user = JSON.parse(
-    localStorage.getItem("user")
-  );
+  const user = JSON.parse(localStorage.getItem("user") || "null");
+  const settings = user?.configuration || user;
 
   /* ==========================================
       APLICAR CONFIGURACIÓN DE DARK MODE
   ========================================== */
 
   useEffect(() => {
-    if (user?.configuration?.apariencia?.modo_oscuro === false) {
-      document.body.classList.add("light_mode");
+    if (settings?.appearance?.dark_mode === false) {
+      document.body.classList.add("light-mode");
     } else {
-      document.body.classList.remove("light_mode");
+      document.body.classList.remove("light-mode");
     }
-  }, [user]);
+    return () => document.body.classList.remove("light-mode");
+  }, [settings?.appearance?.dark_mode]);
 
   const authHeaders = {
     headers: {
@@ -94,7 +94,9 @@ const Courses = () => {
   }
 
   return (
-    <div className={styles.courses_layout}>
+    <div className={`${styles.courses_layout} ${
+      settings?.appearance?.dark_mode === false ? styles.light_mode : ""
+    }`}>
       <Sidebar />
       <main className={styles.courses_main}>
 

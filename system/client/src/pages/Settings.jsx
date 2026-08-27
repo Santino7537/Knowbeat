@@ -29,24 +29,20 @@ const defaultSettings = {
   }
 };
 
-function normalizeSettings(configuration) {
-  if (!configuration || typeof configuration !== "object") {
-    return defaultSettings;
-  }
-
-  return {
-    privacy: { ...defaultSettings.privacy, ...configuration.privacy },
-    preferences: {
-      ...defaultSettings.preferences,
-      ...configuration.preferences,
-      notifications: {
-        ...defaultSettings.preferences.notifications,
-        ...configuration.preferences?.notifications
-      }
-    },
-    appearance: { ...defaultSettings.appearance, ...configuration.appearance }
-  };
-}
+const mergeSettings = (savedSettings) => ({
+  ...defaultSettings,
+  ...savedSettings,
+  privacy: { ...defaultSettings.privacy, ...savedSettings?.privacy },
+  preferences: {
+    ...defaultSettings.preferences,
+    ...savedSettings?.preferences,
+    notifications: {
+      ...defaultSettings.preferences.notifications,
+      ...savedSettings?.preferences?.notifications
+    }
+  },
+  appearance: { ...defaultSettings.appearance, ...savedSettings?.appearance }
+});
 
 const Settings = () => {
 
@@ -56,12 +52,8 @@ const Settings = () => {
 
   const token = localStorage.getItem("token");
 
-  let storedUser = null;
-  try {
-    storedUser = JSON.parse(localStorage.getItem("user"));
-  } catch {
-    localStorage.removeItem("user");
-  }
+  const storedUser = JSON.parse(localStorage.getItem("user") || "null");
+  const savedSettings = storedUser?.configuration || storedUser;
 
 
   /* ======================================================
@@ -103,12 +95,7 @@ const Settings = () => {
   //   }
   // };
 
-  const storedConfiguration = storedUser?.configuration ?? storedUser;
-  const [settings, setSettings] = useState(
-    normalizeSettings(storedConfiguration)
-  );
-
-  const [loading] = useState(false);
+  const [settings, setSettings] = useState(mergeSettings(savedSettings));
 
   /* ======================================================
      MODO OSCURO
@@ -116,11 +103,12 @@ const Settings = () => {
 
   useEffect(() => {
     if (settings.appearance.dark_mode) {
-      document.body.classList.remove("light_mode");
+      document.body.classList.remove("light-mode");
     } else {
       document.body.classList.add("light_mode");
     }
-  }, [settings]);
+    return () => document.body.classList.remove("light-mode");
+  }, [settings.appearance.dark_mode]);
 
 
   const updateConfig = async (body) => {
@@ -163,15 +151,11 @@ const Settings = () => {
   ====================================================== */
 
   const updateLocalStorageUser = (updatedSettings) => {
-    const updatedUser = {
-      ...(storedUser ?? {}),
-      configuration: updatedSettings
-    };
+    const updatedUser = storedUser?.configuration
+      ? { ...storedUser, configuration: updatedSettings }
+      : updatedSettings;
 
-    localStorage.setItem(
-      "user",
-      JSON.stringify(updatedUser)
-    );
+    localStorage.setItem("user", JSON.stringify(updatedUser));
   };
 
   /* ======================================================
@@ -230,14 +214,6 @@ const Settings = () => {
      LOADING
   ====================================================== */
 
-  if (loading) {
-    return (
-      <div className={styles.settings_loading}>
-        <div className={styles.loader}></div>
-      </div>
-    );
-  }
-
   /* ======================================================
      RENDER
   ====================================================== */
@@ -251,7 +227,11 @@ const Settings = () => {
       {/* CONTENIDO PRINCIPAL */}
       <div style={{ marginLeft: "260px", width: "100%" }}>
 
-        <div className={styles.settings_page}>
+        <div
+          className={`${styles.settings_page} ${
+            !settings.appearance.dark_mode ? styles.light_mode : ""
+          }`}
+        >
 
           <div className={styles.settings_container}>
 
@@ -267,7 +247,7 @@ const Settings = () => {
             <div className={styles.settings_tabs}>
 
               <button
-                className={activeTab === "notificaciones" ? styles.active : ""}
+                  className={activeTab === "notificaciones" ? styles.active : ""}
                 onClick={() => setActiveTab("notificaciones")}
               >
                 Notificaciones

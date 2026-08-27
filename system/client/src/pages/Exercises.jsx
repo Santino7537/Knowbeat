@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import Sidebar from '../components/Sidebar'
@@ -8,6 +8,19 @@ import styles from './CSS/Exercises.module.css'
 const Exercises = () => {
   const navigate = useNavigate()
   const [activeType, setActiveType] = useState('Todos')
+  const user = JSON.parse(localStorage.getItem('user') || 'null')
+  const settings = user?.configuration || user
+  const isLightMode = settings?.appearance?.dark_mode === false
+
+  useEffect(() => {
+    if (isLightMode) {
+      document.body.classList.add('light-mode')
+    } else {
+      document.body.classList.remove('light-mode')
+    }
+
+    return () => document.body.classList.remove('light-mode')
+  }, [isLightMode])
 
   const filteredExercises = useMemo(() => {
     if (activeType === 'Todos') {
@@ -24,7 +37,9 @@ const Exercises = () => {
   ).length
 
   return (
-    <div className={styles.exercises_layout}>
+    <div className={`${styles.exercises_layout} ${
+      isLightMode ? styles.light_mode : ''
+    }`}>
       <Sidebar />
 
       <main className={styles.exercises_main}>
