@@ -109,6 +109,24 @@ const searchThreads = async (req, res) => {
 	}
 };
 
+const searchThread = async (req, res) => {
+	const threadId = req.params.thread_id;
+
+	try {
+		const db = getDb();
+		const thread = await db.collection('Thread').findOne({ _id: new ObjectId(threadId) });
+
+		if (!thread) {
+			return res.status(404).json({ message: 'Hilo no encontrado' });
+		}
+		
+		return res.status(200).json({ data: { ...thread, id: thread._id } });
+	} catch (error) {
+		console.error('Error al buscar hilo:', error);
+		return res.status(500).json({ message: 'Error al buscar hilo' });
+	}
+};
+
 const runSearch = (controller, request) => new Promise((resolve, reject) => {
     const response = {
         status: statusCode => ({ json: body => statusCode >= 400 ? reject(new Error(body.message)) : resolve(body) }),
@@ -180,4 +198,4 @@ const createThread = async (req, res) => {
   }
 };
 
-module.exports = { searchCommunity, createThread };
+module.exports = { searchCommunity, searchThread, createThread };

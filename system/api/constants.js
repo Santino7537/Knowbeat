@@ -2,7 +2,7 @@ const ADMINISTRATOR_ROLE = "Administrator";
 const MODERATOR_ROLE = "Moderator";
 const USER_ROLE = "User";
 
-const USER_PERMISSIONS = ['user-get-user', 'user-get-users', 'user-get-config', 'user-update-config', 'user-update-profile', 'user-create-folder', 'user-update-folder', 'user-delete-folder', 'user-get-folder-files', 'user-upload-file', 'user-delete-file', 'user-get-file', 'course-get-courses', 'user-get-progress', 'user-register-course', 'user-get-stats', 'user-update-goal','user-report', 'community-search', 'community-create-thread'];
+const USER_PERMISSIONS = ['user-get-user', 'user-get-users', 'user-get-config', 'user-update-config', 'user-update-profile', 'user-create-folder', 'user-update-folder', 'user-delete-folder', 'user-get-folder-files', 'user-upload-file', 'user-delete-file', 'user-get-file', 'course-get-courses', 'user-get-progress', 'user-register-course', 'user-get-stats', 'user-update-goal','user-report', 'community-search', 'community-search-thread','community-create-thread'];
 const ADMIN_PERMISSIONS = ['admin-reports','user-update-role', 'user-delete-user'];
 const ROLES_PERMISSIONS = {
     [USER_ROLE]: USER_PERMISSIONS,
