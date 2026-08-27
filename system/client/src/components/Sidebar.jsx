@@ -1,9 +1,14 @@
 import { useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext.jsx";
 import "./Sidebar.css";
 
 const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { loggedUser } = useAuth();
+  const profilePath = loggedUser?.username
+    ? `/user/${encodeURIComponent(loggedUser.username)}`
+    : null;
 
   const items = [
     { name: "Comunidad", path: "/comunidad" },
@@ -44,6 +49,14 @@ const Sidebar = () => {
 
       {/* NAV INFERIOR */}
       <div className="sidebar-bottom">
+        <div
+          className={`nav-item ${
+            location.pathname === profilePath ? "active" : ""
+          }`}
+          onClick={() => profilePath && navigate(profilePath)}
+        >
+          <span className="nav-text">Perfil</span>
+        </div>
         <div
           className={`nav-item ${
             location.pathname === "/settings" ? "active" : ""

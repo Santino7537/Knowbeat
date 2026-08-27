@@ -2,30 +2,27 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useAuth } from "../context/AuthContext.jsx";
+import Sidebar from "../components/Sidebar.jsx";
 import styles from "./CSS/UserProfile.module.css";
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
-function ProfileHeader({ user, isOwner, onEditClick }) {
+function ProfileHeader({ user, isOwner, isMenuOpen, onMenuToggle, onEditClick }) {
   const initial = user.username?.[0]?.toUpperCase() ?? "U";
+  const courses = user.courses ?? [];
+  const completedCourses = courses.filter((course) => {
+    return course.total_lessons > 0 && course.current_lesson >= course.total_lessons;
+  }).length;
 
   return (
     <section className={styles.profileHeader} aria-label="Información del perfil">
       <div className={styles.profileMain}>
 
-        {/* Avatar */}
+        {/* Identidad visual sin depender de una foto subida */}
         <div className={styles.avatarWrapper}>
-          {user.picture ? (
-            <img
-              className={styles.avatar}
-              src={user.picture}
-              alt={`Foto de perfil de ${user.username}`}
-            />
-          ) : (
-            <div className={styles.avatarFallback} aria-hidden="true">
-              {initial}
-            </div>
-          )}
+          <div className={styles.avatarFallback} aria-hidden="true">
+            {initial}
+          </div>
         </div>
 
         {/* Nombre + botón editar (solo si es el dueño del perfil) */}
@@ -33,44 +30,32 @@ function ProfileHeader({ user, isOwner, onEditClick }) {
           <div className={styles.usernameRow}>
             <h1 className={styles.username}>{user.username}</h1>
             {isOwner && (
-              <button
-                className={styles.editButton}
-                onClick={onEditClick}
-                aria-label="Editar perfil"
-                title="Editar perfil"
-                type="button"
-              >
-                {/* Ícono lápiz SVG inline — sin dependencia externa */}
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  aria-hidden="true"
+              <div className={styles.profileMenu}>
+                <button
+                  className={styles.menuButton}
+                  onClick={onMenuToggle}
+                  aria-label="Abrir opciones del perfil"
+                  aria-expanded={isMenuOpen}
+                  title="Opciones del perfil"
+                  type="button"
                 >
-                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                </svg>
-              </button>
+                  <span aria-hidden="true">•••</span>
+                </button>
+                {isMenuOpen && (
+                  <div className={styles.menuDropdown} role="menu">
+                    <button type="button" role="menuitem" onClick={onEditClick}>Editar perfil</button>
+                  </div>
+                )}
+              </div>
             )}
           </div>
           {user.biography && (
             <p className={styles.description}>{user.biography}</p>
           )}
-        </div>
-
-        {/* Stats */}
-        <div className={styles.statsGroup}>
-          <button className={styles.statChip} type="button">
-            <span className={styles.statValue}>{formatCount(user.following ?? 0)}</span>
-            <span className={styles.statLabel}>seguidos</span>
-          </button>
-          <button className={styles.statChip} type="button">
-            <span className={styles.statValue}>{formatCount(user.followers ?? 0)}</span>
-            <span className={styles.statLabel}>seguidores</span>
-          </button>
+          <div className={styles.profileStats} aria-label="Resumen del perfil">
+            <span><strong>{courses.length}</strong> cursos</span>
+            <span><strong>{completedCourses}</strong> completados</span>
+          </div>
         </div>
 
       </div>
@@ -78,127 +63,119 @@ function ProfileHeader({ user, isOwner, onEditClick }) {
   );
 }
 
-function TabBar({ tabs, activeTab, onTabChange }) {
-  return (
-    <div className={styles.tabBar} role="tablist" aria-label="Secciones del perfil">
-      {tabs.map((tab) => (
-        <button
-          key={tab.id}
-          role="tab"
-          aria-selected={activeTab === tab.id}
-          aria-controls={`tabpanel-${tab.id}`}
-          id={`tab-${tab.id}`}
-          className={`${styles.tabButton} ${activeTab === tab.id ? styles.tabButtonActive : ""}`}
-          onClick={() => onTabChange(tab.id)}
-          type="button"
-        >
-          {tab.label}
-        </button>
-      ))}
-    </div>
-  );
-}
-
-function PostCard({ post }) {
-  return (
-    <article className={styles.postCard}>
-      <div className={styles.postAvatar} aria-hidden="true">
-        {post.authorInitial}
-      </div>
-      <div className={styles.postBody}>
-        <span className={styles.postAuthor}>{post.authorName}</span>
-        <p className={styles.postContent}>{post.content}</p>
-      </div>
-    </article>
-  );
-}
-
-function FolderCard({ folder }) {
-  return (
-    <article className={styles.folderCard}>
-      <div className={styles.folderIcon} aria-hidden="true">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-          <path strokeLinecap="round" strokeLinejoin="round"
-            d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v8.25A2.25 2.25 0 0 0 4.5 16.5h15a2.25 2.25 0 0 0 2.25-2.25V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z" />
-        </svg>
-      </div>
-      <div className={styles.folderBody}>
-        <span className={styles.folderName}>{folder.name}</span>
-        <span className={styles.folderMeta}>
-          {folder.itemCount} elemento{folder.itemCount !== 1 ? "s" : ""}
-        </span>
-      </div>
-    </article>
-  );
-}
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
-function formatCount(n) {
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
-  if (n >= 1_000)     return `${(n / 1_000).toFixed(1)}k`;
-  return String(n);
-}
-
-const TABS = [
-  { id: "folders", label: "Carpetas" },
-  { id: "posts",   label: "Publicaciones" },
-];
-
-// ── Datos mock temporales (reemplazar por fetches reales) ─────────────────────
-const MOCK_POSTS = [
-  { id: 1, authorName: "María González", authorInitial: "M", content: "¿Alguien más usa Zustand para estado global en React? Hace semanas que no toco Redux y no lo extraño." },
-  { id: 2, authorName: "María González", authorInitial: "M", content: "Recordatorio: las buenas API son las que no necesitan documentación para las cosas simples." },
-];
-const MOCK_FOLDERS = [
-  { id: 1, name: "Recursos de diseño",  itemCount: 14 },
-  { id: 2, name: "Snippets de React",   itemCount: 7  },
-];
-
 // ── Main component ─────────────────────────────────────────────────────────────
 
 export default function UserProfile() {
   const {username} = useParams();          // /user/:username
   const navigate = useNavigate();
-  const { loggedUser } = useAuth();            // usuario de la sesión activa
+  const { loggedUser, refreshUser } = useAuth(); // usuario de la sesión activa
 
-  const [profileUser, setProfileUser] = useState(null); // usuario que se está viendo
+  const [profileUser, setProfileUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("posts");
+  const [error, setError] = useState("");
+  const [isEditing, setIsEditing] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [form, setForm] = useState({ username: "", email: "", biography: "", password: "" });
 
-  // Determina si quien navega es el dueño del perfil
-  // Comparamos username porque es lo que devuelve getUserByToken
-  // Si querés más robustez, el endpoint /user/:id podría devolver el id
-  // y compararías loggedUser.id === profileUser.id
   const isOwner =
     loggedUser &&
     profileUser &&
     loggedUser.username === profileUser.username;
 
-  // Fetch del perfil a mostrar
   useEffect(() => {
+    let isMounted = true;
+
     const fetchProfile = async () => {
       setLoading(true);
+      setError("");
       try {
-        const { data } = await axios.get(`http://localhost:3000/user/${username}`);
-        setProfileUser(data);
+        const token = localStorage.getItem("token");
+        if (!token) {
+          throw new Error("No hay una sesión activa");
+        }
+
+        const { data } = await axios.get(
+          `http://localhost:3000/user/get/user/username/${encodeURIComponent(username)}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        if (isMounted) {
+          setProfileUser(data);
+          setForm({
+            username: data.username ?? "",
+            email: data.email ?? "",
+            biography: data.biography ?? "",
+            password: ""
+          });
+        }
       } catch (err) {
         console.error("Error al cargar perfil:", err.response?.data ?? err.message);
+        if (isMounted) {
+          setProfileUser(null);
+          setError(
+            err.response?.status === 404
+              ? "Usuario no encontrado."
+              : "No se pudo cargar el perfil."
+          );
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
     };
+
     fetchProfile();
+    return () => {
+      isMounted = false;
+    };
   }, [username]);
 
   const handleEditClick = () => {
-    // Navegás a la página de edición — ajustá la ruta según tu router
-    navigate("/settings");
+    setIsEditing((current) => !current);
+    setIsMenuOpen(false);
+    setError("");
+  };
+
+  const handleMenuToggle = () => {
+    setIsMenuOpen((current) => !current);
+  };
+
+  const handleFormChange = (event) => {
+    const { name, value } = event.target;
+    setForm((current) => ({ ...current, [name]: value }));
+  };
+
+  const handleProfileSave = async (event) => {
+    event.preventDefault();
+    setSaving(true);
+    setError("");
+
+    try {
+      const token = localStorage.getItem("token");
+      const payload = { ...form };
+      if (!payload.password) delete payload.password;
+
+      const { data } = await axios.patch("http://localhost:3000/user/update/profile", payload, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      setProfileUser((current) => ({ ...current, ...payload, ...data.userPayload }));
+      setForm((current) => ({ ...current, password: "" }));
+      setIsEditing(false);
+      await refreshUser();
+      if (payload.username !== username) {
+        navigate(`/user/${encodeURIComponent(payload.username)}`, { replace: true });
+      }
+    } catch (err) {
+      setError(err.response?.data?.message ?? "No se pudo guardar el perfil.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   if (loading) {
     return (
       <div className={styles.layout}>
+        <Sidebar />
         <main className={styles.main}>
           <p className={styles.loadingText}>Cargando perfil…</p>
         </main>
@@ -209,8 +186,9 @@ export default function UserProfile() {
   if (!profileUser) {
     return (
       <div className={styles.layout}>
+        <Sidebar />
         <main className={styles.main}>
-          <p className={styles.loadingText}>Usuario no encontrado.</p>
+          <p className={styles.loadingText}>{error}</p>
         </main>
       </div>
     );
@@ -218,35 +196,87 @@ export default function UserProfile() {
 
   return (
     <div className={styles.layout}>
+      <Sidebar />
       <main className={styles.main}>
 
         <ProfileHeader
           user={profileUser}
           isOwner={isOwner}
+          isMenuOpen={isMenuOpen}
+          onMenuToggle={handleMenuToggle}
           onEditClick={handleEditClick}
         />
 
-        <div className={styles.contentArea}>
-          <TabBar tabs={TABS} activeTab={activeTab} onTabChange={setActiveTab} />
+        {isOwner && isEditing && (
+          <form className={styles.editPanel} onSubmit={handleProfileSave}>
+            <div className={styles.editPanelHeading}>
+              <div>
+                <p className={styles.sectionEyebrow}>DATOS PERSONALES</p>
+                <h2 className={styles.contentTitle}>Editar perfil</h2>
+              </div>
+              <button className={styles.closeButton} type="button" onClick={handleEditClick} aria-label="Cerrar edición">×</button>
+            </div>
+            <div className={styles.formGrid}>
+              <label>Nombre de usuario<input name="username" value={form.username} onChange={handleFormChange} required minLength="3" /></label>
+              <label>Email<input name="email" type="email" value={form.email} onChange={handleFormChange} required /></label>
+              <label className={styles.fullField}>Biografía<textarea name="biography" value={form.biography} onChange={handleFormChange} maxLength="240" rows="3" placeholder="Contale a la comunidad quién sos" /></label>
+              <label className={styles.fullField}>Nueva contraseña <span>(opcional)</span><input name="password" type="password" value={form.password} onChange={handleFormChange} minLength="8" /></label>
+            </div>
+            <div className={styles.formActions}>
+              {error && <p className={styles.formError}>{error}</p>}
+              <button className={styles.saveButton} type="submit" disabled={saving}>{saving ? "Guardando..." : "Guardar cambios"}</button>
+            </div>
+          </form>
+        )}
 
-          <div
-            role="tabpanel"
-            id={`tabpanel-${activeTab}`}
-            aria-labelledby={`tab-${activeTab}`}
-            className={styles.tabPanel}
-          >
-            {activeTab === "posts" && (
-              <div className={styles.cardList}>
-                {MOCK_POSTS.map((post) => <PostCard key={post.id} post={post} />)}
-              </div>
-            )}
-            {activeTab === "folders" && (
-              <div className={styles.cardList}>
-                {MOCK_FOLDERS.map((f) => <FolderCard key={f.id} folder={f} />)}
-              </div>
-            )}
+        <section className={styles.contentArea} aria-label="Cursos del perfil">
+          <div className={styles.contentHeading}>
+            <div>
+              <p className={styles.sectionEyebrow}>RUTA DE APRENDIZAJE</p>
+              <h2 className={styles.contentTitle}>Cursos en progreso</h2>
+            </div>
+            <span className={styles.courseCount}>{profileUser.courses?.length ?? 0}</span>
           </div>
-        </div>
+          {!profileUser.progressVisible ? (
+            <div className={styles.emptyState}>
+              <p>Este usuario mantiene sus cursos en privado.</p>
+            </div>
+          ) : profileUser.courses?.length ? (
+            <div className={styles.courseList}>
+              {profileUser.courses.map((course) => {
+                const current = course.current_lesson ?? 0;
+                const total = course.total_lessons ?? 0;
+                const percent = total ? Math.min(100, Math.round((current / total) * 100)) : 0;
+                const completed = percent >= 100;
+
+                return (
+                  <article className={styles.courseCard} key={course.course_id}>
+                    <div className={styles.courseIcon} aria-hidden="true">{course.name?.[0]?.toUpperCase() ?? "C"}</div>
+                    <div className={styles.courseBody}>
+                      <div className={styles.courseTitleRow}>
+                        <h3>{course.name}</h3>
+                        <span className={completed ? styles.completed : styles.inProgress}>
+                          {completed ? "Completado" : "En progreso"}
+                        </span>
+                      </div>
+                      <div className={styles.progressMeta}>
+                        <span>{current} de {total} lecciones</span>
+                        <strong>{percent}%</strong>
+                      </div>
+                      <div className={styles.progressTrack} role="progressbar" aria-valuenow={percent} aria-valuemin="0" aria-valuemax="100">
+                        <span style={{ width: `${percent}%` }} />
+                      </div>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          ) : (
+            <div className={styles.emptyState}>
+              <p>Este usuario todavía no está inscripto en ningún curso.</p>
+            </div>
+          )}
+        </section>
       </main>
     </div>
   );
