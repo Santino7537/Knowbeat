@@ -1,5 +1,6 @@
 const { getDb } = require('../config/dbdb');
 const db = require('../config/db');
+const { ObjectId } = require('mongodb');
 const { getPublicFileUrl } = require('./bucketController');
 
 const MAX_LIMIT = 50;
@@ -8,9 +9,6 @@ const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 const parsePagination = (query) => {
     let { page, limit } = query;
-    if (!page || limit === null) {
-		return res.status(422).json({ message: 'Los parámetros de página o límite son inválidos' });
-	}
 
 	page = Number.parseInt(page || '1', 10);
 	limit = Number.parseInt(limit || '20', 10);
@@ -200,4 +198,81 @@ const createThread = async (req, res) => {
   }
 };
 
-module.exports = { searchCommunity, searchThread, createThread };
+const createResponse = async (req, res) => {
+	const { text } = req.body;
+	const threadId = req.params.thread_id;
+	const userId = req.user.user_id;
+
+	if (!text || !text.trim()) {
+		return res.status(400).json({ message: 'El contenido de la respuesta es obligatorio' });
+	}
+
+	if (!ObjectId.isValid(threadId)) {
+		return res.status(400).json({ message: 'La id del hilo es inválida' });
+	}
+
+	req.actions_data = {};
+
+	try {
+		const db = getDb();
+		const threadObjectId = new ObjectId(threadId);
+		const thread = await db.collection('Thread').findOne({ _id: threadObjectId });
+
+		if (!thread) {
+			return res.status(404).json({ message: 'Hilo no encontrado' });
+		}
+
+		const result = await db.collection('Response').insertOne({
+			thread_id: threadObjectId,
+			author_id: userId,
+			text: text.trim(),
+			likes_count: 0,
+			created_at: new Date()
+		});
+
+		req.actions_data["create-response"] = {
+			entity: "Response",
+			record_id: result.insertedId,
+			action: "insert",
+			"old_dvh": null,
+			"new_dvh": null
+		};
+
+		return res.status(201).json({ responseId: result.insertedId });
+	} catch (error) {
+		console.error('Error al crear respuesta:', error);
+		return res.status(500).json({ message: 'Error al crear respuesta' });
+	}
+};
+
+const searchResponses = async (req, res) => {
+	const threadId = req.params.thread_id;
+	const pagination = parsePagination(req.query);
+
+	if (!ObjectId.isValid(threadId)) {
+		return res.status(400).json({ message: 'La id del hilo es inválida' });
+	}
+
+	try {
+		const db = getDb();
+		const filter = { thread_id: new ObjectId(threadId) };
+		const [responses, total] = await Promise.all([
+			db.collection('Response').find(filter)
+				.sort({ created_at: 1 })
+				.skip(pagination.skip)
+				.limit(pagination.limit)
+				.toArray(),
+			db.collection('Response').countDocuments(filter)
+		]);
+
+		return res.status(200).json({
+			data: responses.map(response => ({ ...response, id: response._id })),
+			pagination: { page: pagination.page, limit: pagination.limit, total }
+		});
+	} catch (error) {
+		console.error('Error al buscar respuestas del hilo:', error);
+		return res.status(500).json({ message: 'Error al buscar respuestas del hilo' });
+	}
+};
+
+module.exports = { searchCommunity, searchThread, createThread, createResponse, searchResponses };
