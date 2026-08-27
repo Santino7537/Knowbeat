@@ -7,6 +7,7 @@ import CourseLessonMapPage from './pages/CourseLessons.jsx';
 import UserProfile from './pages/UserProfile.jsx'
 import Exercises from './pages/Exercises.jsx';
 import SeventhChordsExercise from './exercises-pages/seventh-chords.jsx'
+import Community from './pages/Community.jsx';
 import Messages from './pages/Messages.jsx';
 
 import Login_register from './pages/login_register.jsx'
@@ -73,7 +74,8 @@ function App() {
             <Route path="/messages" element={<Messages/>} />
             <Route path="/user/:username" element={<UserProfile />} />
           </Route>
-        </Routes>
+          <Route path="/community" element={<Community/>} />
+      </Routes>
       </AuthProvider>
     </>
   )

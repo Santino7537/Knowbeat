@@ -1,0 +1,112 @@
+/*
+  Fondo general de la página.
+  Uso 100vh (no altura fija en rem) porque queremos que ocupe
+  siempre toda la ventana, sea cual sea el tamaño de fuente del navegador.
+*/
+.page {
+  min-height: 100vh;
+  background-color: #0f172a;
+  display: flex;
+}
+
+/*
+  La Sidebar ya está hecha y (asumo) usa position: fixed con 260px de ancho,
+  que es el patrón típico en layouts tipo dashboard.
+  Como un elemento fixed no ocupa espacio en el flujo normal,
+  el contenido principal necesita un margen izquierdo igual al ancho
+  de la sidebar para no quedar tapado por ella.
+
+  260px equivale a 16.25rem (260 / 16, tomando el tamaño de fuente
+  base típico de 16px). Uso rem en vez de px para no romper la regla
+  de "sin medidas absolutas", aunque el valor derive de un ancho fijo
+  que ya existe en otro componente.
+
+  Si tu Sidebar en realidad NO es "fixed" sino que participa del flex
+  normal del layout, este margin-left sobra: avisame y lo saco.
+*/
+.mainArea {
+  flex: 1;
+  margin-left: 16.25rem;
+  padding: 2rem 3%;
+  box-sizing: border-box;
+}
+
+/* Fila superior: búsqueda + botón de "+" centrados en el área de contenido */
+.topBar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  width: 100%;
+}
+
+/*
+  Contenedor de la barra de búsqueda.
+  No me diste colores para este elemento puntual, así que usé la misma
+  paleta "slate" que el resto de la interfaz (fondo 1E293B, borde 334155)
+  para mantener coherencia visual con el modal. Si preferís otro color,
+  lo cambiamos sin problema.
+*/
+.searchWrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  max-width: 40rem;
+  background-color: #1e293b;
+  border: 0.0625rem solid #334155;
+  border-radius: 0.75rem;
+  padding: 0.75rem 1.25rem;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease;
+}
+
+.searchWrapper:focus-within {
+  border-color: #3b82f6;
+}
+
+.searchIcon {
+  flex-shrink: 0;
+  width: 1.25rem;
+  height: 1.25rem;
+  color: #94a3b8;
+}
+
+.searchInput {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #ffffff;
+  font-size: 1rem;
+  min-width: 0;
+}
+
+.searchInput::placeholder {
+  color: #94a3b8;
+}
+
+/* Botón circular/redondeado con el ícono de "+" */
+.addButton {
+  flex-shrink: 0;
+  width: 3rem;
+  height: 3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 0.75rem;
+  background-color: #2563eb;
+  color: #ffffff;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.addButton:hover {
+  background-color: #1d4ed8;
+}
+
+.addButton svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
