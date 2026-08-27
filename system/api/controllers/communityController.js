@@ -50,3 +50,31 @@ const searchFolders = async (req, res) => {
 		return res.status(500).json({ message: 'Error al buscar carpetas' });
 	}
 };
+
+const searchUsers = async (req, res) => {
+	const pagination = parsePagination(req);
+	const query = String(req.query.query ?? req.query.q ?? '').trim();
+
+	try {
+		const conditions = ['eliminated = 0'];
+		const params = [];
+		if (query) {
+			conditions.push('username LIKE ?');
+			params.push(`%${query}%`);
+		}
+		const where = conditions.join(' AND ');
+		const [users] = await db.query(
+			`SELECT id, username, picture FROM User WHERE ${where} ORDER BY username ASC LIMIT ? OFFSET ?`,
+			[...params, pagination.limit, pagination.skip]
+		);
+		const [count] = await db.query(`SELECT COUNT(*) AS total FROM User WHERE ${where}`, params);
+
+		return res.status(200).json({
+			data: users.map(user => ({ ...user, picture: getPublicFileUrl('profiles', user.picture) })),
+			pagination: { page: pagination.page, limit: pagination.limit, total: Number(count[0].total) }
+		});
+	} catch (error) {
+		console.error('Error al buscar usuarios:', error);
+		return res.status(500).json({ message: 'Error al buscar usuarios' });
+	}
+};
