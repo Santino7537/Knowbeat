@@ -108,3 +108,42 @@ const searchThreads = async (req, res) => {
 		return res.status(500).json({ message: 'Error al buscar hilos' });
 	}
 };
+
+const runSearch = (controller, request) => new Promise((resolve, reject) => {
+    const response = {
+        status: statusCode => ({ json: body => statusCode >= 400 ? reject(new Error(body.message)) : resolve(body) }),
+        json: resolve
+    };
+    controller(request, response).catch(reject);
+});
+
+const searchCommunity = async (req, res) => {
+	const pagination = parsePagination(req);
+	const query = String(req.query.query ?? req.query.q ?? '').trim();
+	const tags = String(req.query.tags ?? '').trim();
+	const types = String(req.query.types ?? 'folders,users,threads')
+		.split(',')
+		.map(type => type.trim().toLowerCase())
+		.filter(Boolean);
+	const allowedTypes = ['folders', 'users', 'threads'];
+
+	if (types.length === 0 || types.some(type => !allowedTypes.includes(type))) {
+		return res.status(422).json({ message: 'Los tipos de búsqueda son inválidos' });
+	}
+
+	try {
+		const searches = [];
+		if (types.includes('folders')) searches.push(runSearch(searchFolders, { req: { query: { query, tags } } }).then(data => ['folders', data]));
+		if (types.includes('users')) searches.push(runSearch(searchUsers, { req: { query: { query, tags } } }).then(data => ['users', data]));
+		if (types.includes('threads')) searches.push(runSearch(searchThreads, { req: { query: { query, tags } } }).then(data => ['threads', data]));
+
+		const result = Object.fromEntries(await Promise.all(searches));
+
+		return res.status(200).json(result);
+	} catch (error) {
+		console.error('Error en la búsqueda de comunidad:', error);
+		return res.status(500).json({ message: 'Error en la búsqueda de comunidad' });
+	}
+};
+
+module.exports = { searchCommunity };

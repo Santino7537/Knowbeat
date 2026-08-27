@@ -8,6 +8,7 @@ const { getCourses, getUserProgress, registerCourse, } = require('./controllers/
 const { getUserStats, changeGoal } = require('./controllers/streakController');
 const { createFolder, updateFolder, deleteFolder, getFolderFiles } = require('./controllers/folderController');
 const { uploadFileInFolder, deleteFileFromFolder, getFileUrlFromFolder } = require('./controllers/fileController');
+const { searchCommunity } = require('./controllers/communityController');
 
 const { connectMongo } = require('./config/mongodb');
 
@@ -66,6 +67,9 @@ server.post('/user/upload/file/:folder_id', postResponseLog, checkToken, isAuth,
 server.delete('/user/delete/file/:file_id/:folder_id', postResponseLog, checkToken, isAuth, deleteFileFromFolder);
 server.get('/user/get/file/:file_id/:folder_id', checkToken, isAuth, getFileUrlFromFolder);
 server.post('/user/report', postResponseLog, checkToken, isAuth, reportUser);
+
+// Community
+server.get('/community/search', checkToken, isAuth, searchCommunity);
 
 // Admins
 server.patch('/user/update/role/:id', postResponseLog, checkToken, isAuth, changeRole);
