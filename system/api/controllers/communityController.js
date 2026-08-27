@@ -177,12 +177,18 @@ const createThread = async (req, res) => {
       author_id: userId,
       title,
 	  text,
-	  tags,
 	  likes_count: 0,
 	  created_at: new Date(),
     });
 
     const threadId = result.insertedId;
+
+	const existingTags = await searchTags();
+	const newTags = tags.filter(tag => !existingTags.some(existingTag => existingTag.name.toLowerCase() === tag.toLowerCase()));
+	
+	newTags.forEach(async tag => {
+		await createTag(tag);
+	});
 
     req.actions_data["create-thread"] = {
       entity: "Thread",
@@ -273,6 +279,42 @@ const searchResponses = async (req, res) => {
 		console.error('Error al buscar respuestas del hilo:', error);
 		return res.status(500).json({ message: 'Error al buscar respuestas del hilo' });
 	}
+};
+
+const searchTags = async () => {
+	const db = getDb();
+
+	return db.collection('Tag').find({}).sort({ name: 1 }).toArray();
+};
+
+const createTag = async (name) => {
+	if (typeof name !== 'string' || !name.trim()) {
+		throw new TypeError('El nombre de la etiqueta es obligatorio');
+	}
+
+	req.actions_data = {};
+
+	const normalizedName = name.trim();
+	const db = getDb();
+	const existingTag = await db.collection('Tag').findOne({
+		name: { $regex: `^${escapeRegex(normalizedName)}$`, $options: 'i' }
+	});
+
+	if (existingTag) {
+		return existingTag;
+	}
+
+	const result = await db.collection('Tag').insertOne({ name: normalizedName });
+
+	req.actions_data["create-tag"] = {
+		entity: "Tag",
+		record_id: result.insertedId,
+		action: "insert",
+		"old_dvh": null,
+		"new_dvh": null
+	};
+
+	return { _id: result.insertedId, name: normalizedName };
 };
 
 module.exports = { searchCommunity, searchThread, createThread, createResponse, searchResponses };
