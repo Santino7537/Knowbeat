@@ -145,4 +145,39 @@ const searchCommunity = async (req, res) => {
 	}
 };
 
-module.exports = { searchCommunity };
+const createThread = async (req, res) => {
+  const { title, text, tags } = req.body;
+  const userId = req.user.user_id;
+
+  if (!title || !text || !tags || !Array.isArray(tags) || tags.length === 0) {
+    return res.status(400).json({ message: 'Título, contenido o etiquetas faltantes' });
+  }
+
+  req.actions_data = {};
+
+  try {
+    const db = getDb();
+    const result = await db.collection("Thread").insertOne({
+      author_id: userId,
+      title,
+	  text,
+	  tags,
+    });
+
+    const threadId = result.insertedId;
+
+    req.actions_data["create-thread"] = {
+      entity: "Thread",
+      record_id: threadId,
+      action: "insert",
+      "old_dvh": null,
+      "new_dvh": null
+    };
+
+    return res.status(201).json({ threadId });
+  } catch (err) {
+    return res.status(400).json({ error: err.message });
+  }
+};
+
+module.exports = { searchCommunity, createThread };
