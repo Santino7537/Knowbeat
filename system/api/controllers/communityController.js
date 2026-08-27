@@ -7,13 +7,13 @@ const MAX_LIMIT = 50;
 const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 const parsePagination = (query) => {
-    const { page, limit } = query;
+    let { page, limit } = query;
     if (!page || limit === null) {
 		return res.status(422).json({ message: 'Los parámetros de página o límite son inválidos' });
 	}
 
-	const page = Number.parseInt(page || '1', 10);
-	const limit = Number.parseInt(limit || '20', 10);
+	page = Number.parseInt(page || '1', 10);
+	limit = Number.parseInt(limit || '20', 10);
 
 	if (page < 1 || limit < 1 || limit > MAX_LIMIT) {
 		return res.status(400).json({ message: 'Los parámetros de página o límite son inválidos' });
@@ -118,7 +118,6 @@ const runSearch = (controller, request) => new Promise((resolve, reject) => {
 });
 
 const searchCommunity = async (req, res) => {
-	const pagination = parsePagination(req);
 	const query = String(req.query.query ?? req.query.q ?? '').trim();
 	const tags = String(req.query.tags ?? '').trim();
 	const types = String(req.query.types ?? 'folders,users,threads')
