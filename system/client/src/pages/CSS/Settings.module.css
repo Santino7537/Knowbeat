@@ -183,13 +183,7 @@
 
 /* MODO CLARO */
 
-body.light_mode {
-
-  background: #f1f5f9;
-  color: #0f172a;
-}
-
-body.light_mode .settings-page {
+.light_mode {
 
   background:
     linear-gradient(
@@ -201,7 +195,7 @@ body.light_mode .settings-page {
   color: #0f172a;
 }
 
-body.light_mode .settings_card {
+.light_mode .settings_card {
 
   background: rgba(255,255,255,.85);
 
@@ -211,25 +205,25 @@ body.light_mode .settings_card {
   color: #0f172a;
 }
 
-body.light_mode .settings_tabs button {
+.light_mode .settings_tabs button {
 
   background: rgba(15,23,42,.06);
 
   color: #0f172a;
 }
 
-body.light_mode .settings_tabs .active {
+.light_mode .settings_tabs .active {
 
   background: #2563eb;
   color: white;
 }
 
-body.light_mode .setting_item p {
+.light_mode .setting_item p {
 
   color: #475569;
 }
 
-body.light_mode .slider {
+.light_mode .slider {
 
   background: #cbd5e1;
 }

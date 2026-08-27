@@ -279,58 +279,58 @@
    LIGHT MODE
 ================================================== */
 
-body.light_mode .courses_layout {
+.light_mode {
   background: #f8fafc;
 }
 
-body.light_mode .courses_header h1 {
+.light_mode .courses_header h1 {
   color: #0f172a;
 }
 
-body.light_mode .courses_header p {
+.light_mode .courses_header p {
   color: #64748b;
 }
 
-body.light_mode .user_info {
+.light_mode .user_info {
   background: white;
   border: 1px solid #e2e8f0;
   color: #0f172a;
 }
 
-body.light_mode .course_card {
+.light_mode .course_card {
   background: white;
   border: 1px solid #e2e8f0;
 }
 
-body.light_mode .course_card:hover {
+.light_mode .course_card:hover {
   border-color: #cbd5e1;
 }
 
-body.light_mode .course_top h2 {
+.light_mode .course_top h2 {
   color: #0f172a;
 }
 
-body.light_mode .progress_info {
+.light_mode .progress_info {
   color: #475569;
 }
 
-body.light_mode .progress_bar {
+.light_mode .progress_bar {
   background: #e2e8f0;
 }
 
-body.light_mode .empty_state {
+.light_mode .empty_state {
   background: white;
   border: 1px solid #e2e8f0;
 }
 
-body.light_mode .empty_state h2 {
+.light_mode .empty_state h2 {
   color: #0f172a;
 }
 
-body.light_mode .empty_state p {
+.light_mode .empty_state p {
   color: #64748b;
 }
 
-body.light_mode .courses_loading {
+.light_mode .courses_loading {
   background: #f8fafc;
 }

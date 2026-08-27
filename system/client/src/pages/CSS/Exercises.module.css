@@ -265,3 +265,58 @@
     flex-direction: column;
   }
 }
+
+/* ==================================================
+   LIGHT MODE
+================================================== */
+
+.light_mode {
+  background: #f8fafc;
+}
+
+.light_mode .exercises_header h1,
+.light_mode .panel_header h2,
+.light_mode .types_panel h3,
+.light_mode .exercise_card h3,
+.light_mode .empty_state h3 {
+  color: #0f172a;
+}
+
+.light_mode .exercises_header p,
+.light_mode .panel_header p,
+.light_mode .exercise_card p,
+.light_mode .empty_state p {
+  color: #64748b;
+}
+
+.light_mode .stat_pill,
+.light_mode .types_panel,
+.light_mode .exercise_card,
+.light_mode .empty_state {
+  background: #ffffff;
+  border-color: #e2e8f0;
+}
+
+.light_mode .stat_pill {
+  color: #475569;
+}
+
+.light_mode .type_button {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+.light_mode .type_button:hover {
+  background: #cbd5e1;
+}
+
+.light_mode .type_button_active,
+.light_mode .type_button_active:hover {
+  background: #2563eb;
+  color: #ffffff;
+}
+
+.light_mode .type_badge {
+  background: #e2e8f0;
+  color: #475569;
+}

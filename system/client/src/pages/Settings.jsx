@@ -4,6 +4,46 @@ import axios from "axios";
 import styles from "./CSS/Settings.module.css";
 import Sidebar from "../components/Sidebar";
 
+const defaultSettings = {
+  privacy: {
+    private_account: false,
+    progress_visibility: "everyone",
+    restricted_messaging: false,
+    show_activity: true
+  },
+  preferences: {
+    notation: "american",
+    microphone_exercises: true,
+    listening_exercises: true,
+    notifications: {
+      streak_reminders: true,
+      emails: true,
+      mentions: true,
+      likes: true,
+      community_announcements: true
+    }
+  },
+  appearance: {
+    language: "es-AR",
+    dark_mode: true
+  }
+};
+
+const mergeSettings = (savedSettings) => ({
+  ...defaultSettings,
+  ...savedSettings,
+  privacy: { ...defaultSettings.privacy, ...savedSettings?.privacy },
+  preferences: {
+    ...defaultSettings.preferences,
+    ...savedSettings?.preferences,
+    notifications: {
+      ...defaultSettings.preferences.notifications,
+      ...savedSettings?.preferences?.notifications
+    }
+  },
+  appearance: { ...defaultSettings.appearance, ...savedSettings?.appearance }
+});
+
 const Settings = () => {
 
   /* ======================================================
@@ -12,9 +52,8 @@ const Settings = () => {
 
   const token = localStorage.getItem("token");
 
-  const storedUser = JSON.parse(
-    localStorage.getItem("user")
-  );
+  const storedUser = JSON.parse(localStorage.getItem("user") || "null");
+  const savedSettings = storedUser?.configuration || storedUser;
 
 
   /* ======================================================
@@ -56,40 +95,20 @@ const Settings = () => {
   //   }
   // };
 
-  const [settings, setSettings] =
-    useState(storedUser);
-
-  const [loading, setLoading] =
-    useState(true);
-
-  /* ======================================================
-     CARGAR CONFIGURACIÓN REAL DEL USUARIO
-  ====================================================== */
-
-  useEffect(() => {
-    if (!storedUser) {
-      setLoading(false);
-      return;
-    }
-
-    if (storedUser.configuration) {
-      setSettings(storedUser.configuration);
-    }
-
-    setLoading(false);
-  }, []);
+  const [settings, setSettings] = useState(mergeSettings(savedSettings));
 
   /* ======================================================
      MODO OSCURO
   ====================================================== */
 
   useEffect(() => {
-    if (settings.apariencia.modo_oscuro) {
+    if (settings.appearance.dark_mode) {
       document.body.classList.remove("light-mode");
     } else {
       document.body.classList.add("light-mode");
     }
-  }, [settings]);
+    return () => document.body.classList.remove("light-mode");
+  }, [settings.appearance.dark_mode]);
 
 
   const updateConfig = async (body) => {
@@ -132,15 +151,11 @@ const Settings = () => {
   ====================================================== */
 
   const updateLocalStorageUser = (updatedSettings) => {
-    const updatedUser = {
-      ...storedUser,
-      configuration: updatedSettings
-    };
+    const updatedUser = storedUser?.configuration
+      ? { ...storedUser, configuration: updatedSettings }
+      : updatedSettings;
 
-    localStorage.setItem(
-      "user",
-      JSON.stringify(updatedUser)
-    );
+    localStorage.setItem("user", JSON.stringify(updatedUser));
   };
 
   /* ======================================================
@@ -199,14 +214,6 @@ const Settings = () => {
      LOADING
   ====================================================== */
 
-  if (loading) {
-    return (
-      <div className={styles.settings_loading}>
-        <div className={styles.loader}></div>
-      </div>
-    );
-  }
-
   /* ======================================================
      RENDER
   ====================================================== */
@@ -220,7 +227,11 @@ const Settings = () => {
       {/* CONTENIDO PRINCIPAL */}
       <div style={{ marginLeft: "260px", width: "100%" }}>
 
-        <div className={styles.settings_page}>
+        <div
+          className={`${styles.settings_page} ${
+            !settings.appearance.dark_mode ? styles.light_mode : ""
+          }`}
+        >
 
           <div className={styles.settings_container}>
 
@@ -236,21 +247,21 @@ const Settings = () => {
             <div className={styles.settings_tabs}>
 
               <button
-                className={activeTab === styles.notificaciones ? styles.active : ""}
+                  className={activeTab === "notificaciones" ? styles.active : ""}
                 onClick={() => setActiveTab("notificaciones")}
               >
                 Notificaciones
               </button>
 
               <button
-                className={activeTab === styles.privacidad ? styles.active : ""}
+                className={activeTab === "privacidad" ? styles.active : ""}
                 onClick={() => setActiveTab("privacidad")}
               >
                 Privacidad
               </button>
 
               <button
-                className={activeTab === styles.apariencia ? styles.active : ""}
+                className={activeTab === "apariencia" ? styles.active : ""}
                 onClick={() => setActiveTab("apariencia")}
               >
                 Apariencia
@@ -272,11 +283,11 @@ const Settings = () => {
                   <label className={styles.switch}>
                     <input
                       type="checkbox"
-                      checked={settings.privacidad.cuenta_privada}
+                      checked={settings.privacy.private_account}
                       onChange={(e) =>
                         handleToggle(
-                          "privacidad",
-                          "cuenta_privada",
+                          "privacy",
+                          "private_account",
                           e.target.checked
                         )
                       }
@@ -294,11 +305,11 @@ const Settings = () => {
                   <label className={styles.switch}>
                     <input
                       type="checkbox"
-                      checked={settings.privacidad.mostrar_actividad}
+                      checked={settings.privacy.show_activity}
                       onChange={(e) =>
                         handleToggle(
-                          "privacidad",
-                          "mostrar_actividad",
+                          "privacy",
+                          "show_activity",
                           e.target.checked
                         )
                       }
@@ -315,7 +326,7 @@ const Settings = () => {
               <div className={styles.settings_card}>
                 <h2>Notificaciones</h2>
 
-                {Object.entries(settings.preferencia.notificaciones).map(
+                {Object.entries(settings.preferences.notifications).map(
                   ([key, value]) => (
                     <div className={styles.setting_item} key={key}>
                       <div>
@@ -328,8 +339,8 @@ const Settings = () => {
                           checked={value}
                           onChange={(e) =>
                             handleNestedToggle(
-                              "preferencia",
-                              "notificaciones",
+                              "preferences",
+                              "notifications",
                               key,
                               e.target.checked
                             )
@@ -357,11 +368,11 @@ const Settings = () => {
                   <label className={styles.switch}>
                     <input
                       type="checkbox"
-                      checked={settings.apariencia.modo_oscuro}
+                      checked={settings.appearance.dark_mode}
                       onChange={(e) =>
                         handleToggle(
-                          "apariencia",
-                          "modo_oscuro",
+                          "appearance",
+                          "dark_mode",
                           e.target.checked
                         )
                       }
