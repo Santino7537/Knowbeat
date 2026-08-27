@@ -180,6 +180,8 @@ const createThread = async (req, res) => {
       title,
 	  text,
 	  tags,
+	  likes_count: 0,
+	  created_at: new Date(),
     });
 
     const threadId = result.insertedId;
