@@ -142,6 +142,62 @@ const getUser = async (req, res) => {
 
 };
 
+const getUserByUsername = async (req, res) => {
+  const { username } = req.params;
+
+  try {
+    let [users] = await db.query(
+      'SELECT id, username, email, biography, picture, configuration FROM User WHERE eliminated = 0 && username = ?',
+      [username]
+    );
+    if (users.length === 1) {
+      const user = users[0];
+      let configuration = {};
+
+      try {
+        configuration = typeof user.configuration === 'string'
+          ? JSON.parse(user.configuration)
+          : user.configuration || {};
+      } catch {
+        configuration = {};
+      }
+
+      const isOwner = req.user.user_id === user.id;
+      const progressVisibility = configuration.privacy?.progress_visibility ?? 'everyone';
+      const canViewProgress = isOwner || progressVisibility === 'everyone';
+      let courses = [];
+
+      if (canViewProgress) {
+        [courses] = await db.query(`
+          SELECT
+            c.id AS course_id,
+            c.name,
+            c.total_lessons,
+            p.current_lesson
+          FROM Progress p
+          JOIN Course c ON c.id = p.course_id
+          WHERE p.user_id = ?
+          ORDER BY c.name ASC
+        `, [user.id]);
+      }
+
+      user.picture = getPublicFileUrl("profiles", user.picture);
+      delete user.id;
+      delete user.configuration;
+      if (!isOwner) delete user.email;
+      return res.status(200).json({
+        ...user,
+        courses,
+        progressVisible: canViewProgress
+      });
+    }
+    return res.status(404).json({ message: `No existe el usuario ${username}` });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error al obtener el usuario' });
+  }
+};
+
 const getUserByToken = async (req, res) => {
   const userId = req.user.user_id
 
@@ -344,7 +400,7 @@ const changeProfile = async (req, res) => {
   userPayload = userPayload[0]
   if (username) {
     try {
-      const [existingUsername] = await db.query('SELECT id FROM User WHERE username = ?;', [username]);
+      const [existingUsername] = await db.query('SELECT id FROM User WHERE username = ? AND id <> ?;', [username, req.user.user_id]);
       if (existingUsername.length !== 0) return res.status(400).json({ message: 'El nombre de usuario ya está registrado' });
     } catch (error) {
       return res.status(500).json({ error: 'Error al comprobar el nombre de usuario' });
@@ -362,7 +418,7 @@ const changeProfile = async (req, res) => {
 
   if (email) {
     try {
-      const [existingEmail] = await db.query('SELECT id FROM User WHERE email = ?;', [email]);
+      const [existingEmail] = await db.query('SELECT id FROM User WHERE email = ? AND id <> ?;', [email, req.user.user_id]);
       if (existingEmail.length !== 0) return res.status(400).json({ message: 'El email ya está registrado' });
     } catch (error) {
       return res.status(500).json({ error: 'Error al comprobar el email' });
@@ -391,7 +447,7 @@ const changeProfile = async (req, res) => {
     updateFields.push("password");
   }
 
-  if (biography) {
+  if (biography !== undefined) {
     req.actions_data["update-biography"] = {
       entity: "User",
       record_id: req.user.user_id,
@@ -533,6 +589,7 @@ module.exports = {
   login,
   register,
   getUser,
+  getUserByUsername,
   getUserByToken,
   getUsers,
   getConfig,
