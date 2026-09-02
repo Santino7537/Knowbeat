@@ -129,6 +129,17 @@
   border-color: #3b82f6;
 }
 
+/*
+  Borde rojo cuando el campo quedó vacío al intentar publicar.
+  Se define después de .input/.textarea para que, con la misma
+  especificidad (una sola clase), esta regla gane y pinte el borde.
+  En la práctica nunca compite con :focus, porque el borde rojo se
+  saca por estado de React apenas el usuario hace foco en el campo.
+*/
+.inputErrorBorder {
+  border-color: #f87171;
+}
+
 .textarea {
   flex: 1;
   min-height: 6rem;
@@ -245,9 +256,18 @@
   cursor: not-allowed;
 }
 
+/*
+  min-height fijo reservado siempre (con o sin mensaje), para que el
+  cálculo de alto del .body no cambie cuando aparece un error.
+  1.1rem alcanza para una línea de texto a este tamaño de fuente;
+  los mensajes de error que usamos son cortos y entran en una sola
+  línea dentro del ancho del modal.
+*/
 .errorText {
   margin: 0;
+  min-height: 1.1rem;
   font-size: 0.85rem;
+  line-height: 1.1rem;
   color: #f87171;
   flex-shrink: 0;
 }
