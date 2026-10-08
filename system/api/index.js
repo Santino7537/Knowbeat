@@ -7,7 +7,7 @@ const { changeRole, deleteUser, getReports, getReportDetail, resolveReport } = r
 
 const { getCourses, getUserProgress, registerCourse, } = require('./controllers/coursesController');
 const { getUserStats, changeGoal } = require('./controllers/streakController');
-const { createFolder, updateFolder, deleteFolder, getFolderFiles } = require('./controllers/folderController');
+const { getUserFolders, createFolder, updateFolder, deleteFolder, getFolderFiles } = require('./controllers/folderController');
 const { uploadFileInFolder, deleteFileFromFolder, getFileUrlFromFolder } = require('./controllers/fileController');
 const { searchCommunity, searchThread, createThread, createResponse, searchResponses } = require('./controllers/communityController');
 
@@ -61,6 +61,7 @@ server.patch('/user/update/config', postResponseLog, checkToken, isAuth, changeC
 
 // Files
 server.patch('/user/update/profile', postResponseLog, checkToken, isAuth, checkFilesUpload('profile_picture', 1), changeProfile);
+server.get('/user/get/folders', checkToken, isAuth, getUserFolders);
 server.post('/user/create/folder/:folder_name', postResponseLog, checkToken, isAuth, createFolder);
 server.patch('/user/update/folder', postResponseLog, checkToken, isAuth, updateFolder);
 server.delete('/user/delete/folder/:folder_name', postResponseLog, checkToken, isAuth, deleteFolder);

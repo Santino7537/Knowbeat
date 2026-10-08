@@ -3,6 +3,7 @@ import Settings from './pages/Settings.jsx'
 import Landing from './pages/Landing.jsx'
 import Courses from './pages/Courses.jsx';
 import UserProfile from './pages/UserProfile.jsx'
+import Folders from './pages/Folders.jsx'
 import Exercises from './pages/Exercises.jsx';
 import SeventhChordsExercise from './exercises-pages/seventh-chords.jsx'
 
@@ -20,6 +21,7 @@ function App() {
         <Route path="/Login" element={<Login_register />} />
         <Route path="/" element={<Landing />} />
         <Route path="/courses" element={<Courses />} />
+        <Route path="/folders" element={<Folders />} />
         <Route path="/exercises" element={<Exercises />}/>
         <Route path="/exercises/seventh-chords" element={<SeventhChordsExercise />} />
         

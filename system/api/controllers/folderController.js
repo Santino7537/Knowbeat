@@ -1,6 +1,36 @@
 const { createEmptyFolder, deleteFolderAndFiles, getPrivateFileUrl } = require('./bucketController');
 const { getDb } = require('../config/mongodb');
 
+const getUserFolders = async (req, res) => {
+  const userId = req.user.user_id;
+
+  try {
+    const db = getDb();
+    const folders = await db.collection('Folder')
+      .find({ author_id: userId })
+      .sort({ name: 1 })
+      .toArray();
+
+    const data = await Promise.all(folders.map(async (folder) => {
+      const filesCount = await db.collection('FileRelation').countDocuments({
+        collection: 'Folder',
+        collection_id: folder._id
+      });
+
+      return {
+        id: folder._id.toString(),
+        name: folder.name,
+        public: Boolean(folder.public),
+        filesCount
+      };
+    }));
+
+    return res.status(200).json(data);
+  } catch (err) {
+    return res.status(500).json({ message: 'Error al obtener las carpetas', error: err.message });
+  }
+};
+
 const createFolder = async (req, res) => {
   const folderName = req.params.folder_name;
   const userId = req.user.user_id;
@@ -195,20 +225,23 @@ const getFolderFiles = async (req, res) => {
     const fileIds = fileRelationships.map(rel => rel.file_id);
 
     if (fileIds.length !== 0) {
-      const fileURLs = fileIds.map(async (id) => {
+      const fileURLs = await Promise.all(fileIds.map(async (id) => {
         const file = await db.collection("File").findOne({ _id: id });
-        return await getPrivateFileUrl("user-files", `${userId}/${folderId}/${id}`)
-      });
-      return res.status(200).json({ fileURLs })
+        if (!file) return null;
+        return await getPrivateFileUrl("user-files", `${userId}/${folderId}/${id}`);
+      }));
+
+      return res.status(200).json(fileURLs.filter(Boolean));
     }
 
-    return res.status(400).json({ message: "No existe ningun archivo en la carpeta."})
+    return res.status(200).json([]);
   } catch (err) {
     return res.status(400).json({ error: err.message });
   }
 };
 
 module.exports = {
+  getUserFolders,
   createFolder,
   updateFolder,
   deleteFolder,
