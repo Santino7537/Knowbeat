@@ -1,7 +1,15 @@
 import { useState } from 'react';
 import Sidebar from '../components/Sidebar';
 import CreatePostModal from '../components/Community/Createpostmodal';
+import PostCard from '../components/Community/Postcard';
 import styles from './CSS/Community.module.css';
+
+var post = {
+  title : "Titulo insano",
+  text : "Un día vi una clase de enzo sin aburrirme vestida de uniforme",
+  likes_count : 28,
+  created_at : "1/2/2001"
+}
 
 export default function Community() {
   // Texto actual de la barra de búsqueda.
@@ -69,6 +77,7 @@ export default function Community() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
       />
+      {/* <PostCard post={post} onLike={() => print("like")} onOpenComments={() => print("comentarios")}/> */}
     </div>
   );
 }

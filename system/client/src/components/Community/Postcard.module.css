@@ -1,0 +1,167 @@
+/*
+  TAMAÑO DE LA CARD
+  Diseño original: 468 x 365 px, sobre pantalla de referencia 1024 x 768.
+
+  - width: 468 / 1024 = 45.70vw, con tope en 29.25rem (468 / 16) para que
+    en pantallas grandes no supere el tamaño del diseño.
+  - height: no uso vh. aspect-ratio mantiene siempre la forma 468:365
+    sin importar la proporción de la ventana (con vh se deformaría).
+  - container-type: inline-size convierte a la card en un "contenedor", y
+    eso habilita la unidad cqw para sus hijos: 1cqw = 1% del ancho de la card.
+    Así TODO lo de adentro escala junto con la card y conserva la proporción
+    de la imagen. Cada valor de abajo es: px del diseño / 468 * 100.
+*/
+.card {
+  container-type: inline-size;
+  width: 45.7vw;
+  max-width: 29.25rem;
+  min-width: 20rem; /* evita que los textos queden ilegibles en pantallas chicas */
+  aspect-ratio: 468 / 365;
+  background-color: #1e293b;
+  border: 0.0625rem solid #334155;
+  border-radius: 0.6rem; /* esquinas muy levemente curvadas, igual que el modal */
+  box-sizing: border-box;
+  overflow: hidden; /* el contenido nunca puede estirar la card */
+}
+
+.inner {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 4.2cqw 4.7cqw 3.2cqw; /* ~22px a los costados en el diseño */
+  box-sizing: border-box;
+}
+
+/* ---------- Parte superior ---------- */
+.header {
+  display: flex;
+  align-items: center;
+  gap: 2.1cqw; /* ~10px */
+  flex-shrink: 0;
+}
+
+/* Círculo de 58px -> 58 / 468 = 12.39cqw. aspect-ratio lo mantiene redondo. */
+.avatar {
+  flex-shrink: 0;
+  width: 12.39cqw;
+  aspect-ratio: 1 / 1;
+  border-radius: 50%;
+  background-color: #d9d9d9;
+  object-fit: cover;
+}
+
+.userInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4cqw;
+  min-width: 0; /* permite que el nombre largo se corte con "..." en vez de desbordar */
+}
+
+.username {
+  font-size: 4.5cqw;
+  font-weight: 700;
+  line-height: 1.2;
+  color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.date {
+  font-size: 3.2cqw;
+  font-weight: 600;
+  line-height: 1.2;
+  color: #94a3b8;
+}
+
+/* ---------- Parte central ---------- */
+/*
+  flex: 1 hace que esta zona ocupe todo el espacio libre entre el header y
+  el footer. Así la línea separadora y los botones quedan siempre pegados
+  abajo y todas las cards del feed se ven iguales, sin importar el largo
+  del texto.
+*/
+.content {
+  flex: 1;
+  min-height: 0;
+  margin-top: 4cqw;
+  overflow: hidden;
+}
+
+/* El título (máx. 100 caracteres) ocupa una sola línea y se corta con "..." */
+.title {
+  margin: 0;
+  font-size: 5.55cqw;
+  font-weight: 700;
+  line-height: 1.2;
+  color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/*
+  Cuerpo limitado a 6 líneas (como en la imagen) con "..." al final.
+  pre-line respeta los saltos de línea que el usuario escribió en el textarea.
+  overflow-wrap evita que una palabra larguísima rompa el ancho de la card.
+*/
+.text {
+  margin: 1.6cqw 0 0;
+  font-size: 3.85cqw;
+  font-weight: 600;
+  line-height: 1.35;
+  color: #94a3b8;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 6;
+  line-clamp: 6;
+  overflow: hidden;
+}
+
+/* ---------- Parte inferior ---------- */
+.footer {
+  display: flex;
+  align-items: center;
+  gap: 4.3cqw;
+  flex-shrink: 0;
+  padding-top: 2.8cqw;
+  border-top: 0.0625rem solid #94a3b8; /* mismo color que el texto poco importante */
+}
+
+.likeGroup {
+  display: flex;
+  align-items: center;
+  gap: 2.5cqw;
+}
+
+/* Reset de estilos nativos de <button> compartido por ambos botones */
+.likeButton,
+.commentsButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  background: none;
+  color: #94a3b8; /* estado "apagado" */
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+/* Rojo al dar "me gusta". Va después de .likeButton para ganar por orden. */
+.likeButtonActive {
+  color: #ef4444;
+}
+
+.icon {
+  width: 6cqw;
+  height: 6cqw;
+}
+
+.likeCount {
+  font-size: 3.4cqw;
+  font-weight: 600;
+  color: #ffffff;
+}
