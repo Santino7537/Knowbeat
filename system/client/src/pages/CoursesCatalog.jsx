@@ -3,7 +3,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
 import Sidebar from "../components/Sidebar";
-import CourseCard from "./CourseCard";
+import CourseCard from "../components/CourseCard";
 import styles from "./CSS/Courses.module.css";
 
 const CoursesCatalog = () => {

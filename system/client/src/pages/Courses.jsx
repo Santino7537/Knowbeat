@@ -3,7 +3,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
 import Sidebar from "../components/Sidebar";
-import CourseCard from "./CourseCard";
+import CourseCard from "../components/CourseCard";
 import styles from "./CSS/Courses.module.css";
 
 const Courses = () => {
@@ -118,7 +118,14 @@ const Courses = () => {
         {/* GRID */}
         <div className={styles.courses_grid}>
           {courses.map((course) => (
-            <CourseCard key={course.course_id} course={course} showProgress />
+            <CourseCard
+              key={course.course_id}
+              course={course}
+              showProgress
+              onContinue={() => navigate(`/courses/${course.course_id}/lessons`, {
+                state: { courseName: course.name }
+              })}
+            />
           ))}
         </div>
       </main>

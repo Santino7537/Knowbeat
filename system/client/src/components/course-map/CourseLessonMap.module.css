@@ -1,0 +1,328 @@
+.mapShell {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.mapViewport {
+  flex: 1 1 auto;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  scrollbar-color: #475569 transparent;
+  scrollbar-width: thin;
+  outline: none;
+}
+
+.mapViewport:focus-visible {
+  box-shadow: inset 0 0 0 2px rgba(96, 165, 250, 0.75);
+}
+
+.lessonSvg {
+  display: block;
+  max-width: none;
+}
+
+.staffLines line {
+  stroke: #64748b;
+  stroke-width: 2;
+  opacity: 0.72;
+}
+
+.lessonNote {
+  cursor: pointer;
+  outline: none;
+}
+
+.noteHitTarget {
+  fill: transparent;
+  pointer-events: all;
+}
+
+.lessonNote:focus-visible .selectionRing {
+  stroke: #bfdbfe;
+  stroke-width: 3;
+}
+
+.noteStem,
+.noteFlag {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 5.5;
+  stroke-linecap: round;
+}
+
+.noteFlag {
+  fill: currentColor;
+  stroke: none;
+}
+
+.noteHead {
+  fill: currentColor;
+  stroke: currentColor;
+  stroke-width: 1;
+  transform-box: fill-box;
+  transform-origin: center;
+  transform: rotate(-22deg);
+  transition: transform 160ms ease, fill 160ms ease;
+}
+
+.completed {
+  color: #cbd5e1;
+}
+
+.available {
+  color: #dbeafe;
+  filter: drop-shadow(0 0 8px rgba(96, 165, 250, 0.95)) drop-shadow(0 0 18px rgba(59, 130, 246, 0.72));
+}
+
+.locked {
+  color: #64748b;
+  opacity: 0.68;
+}
+
+.lessonNote:hover .noteHead {
+  transform: rotate(-22deg) scale(1.08);
+}
+
+.locked:hover {
+  opacity: 1;
+}
+
+.selected .noteHead {
+  fill: #ffffff;
+}
+
+.selectionRing {
+  fill: rgba(96, 165, 250, 0.08);
+  stroke: #93c5fd;
+  stroke-width: 2.5;
+}
+
+.panelBackdrop {
+  position: fixed;
+  z-index: 1090;
+  inset: 0 0 0 260px;
+  border: 0;
+  background: rgba(2, 6, 23, 0.42);
+  cursor: default;
+}
+
+.detailsPanel {
+  position: fixed;
+  z-index: 1091;
+  top: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  width: min(380px, calc(100vw - 24px));
+  height: 100vh;
+  box-sizing: border-box;
+  padding: 28px;
+  overflow-y: auto;
+  border-left: 1px solid #334155;
+  background: #1e293b;
+  box-shadow: -16px 0 42px rgba(0, 0, 0, 0.24);
+  color: #e2e8f0;
+  animation: panelEnter 180ms ease-out;
+}
+
+.panelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.panelEyebrow {
+  color: #93c5fd;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.closeButton {
+  padding: 8px 12px;
+  border: 1px solid #475569;
+  border-radius: 8px;
+  background: transparent;
+  color: #e2e8f0;
+  cursor: pointer;
+}
+
+.detailsPanel h2 {
+  margin: 0 0 14px;
+  color: #ffffff;
+  font-size: 1.6rem;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.lessonDescription {
+  margin: 0;
+  color: #cbd5e1;
+  font-size: 0.98rem;
+  line-height: 1.65;
+}
+
+.lessonMetadata {
+  display: grid;
+  gap: 0;
+  margin: 30px 0 0;
+  border-top: 1px solid #334155;
+}
+
+.lessonMetadata div {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 0;
+  border-bottom: 1px solid #334155;
+}
+
+.lessonMetadata dt {
+  color: #94a3b8;
+}
+
+.lessonMetadata dd {
+  margin: 0;
+  color: #f1f5f9;
+  font-weight: 600;
+  text-align: right;
+}
+
+.statusValue.completed {
+  color: #e2e8f0;
+}
+
+.statusValue.available {
+  color: #93c5fd;
+}
+
+.statusValue.locked {
+  color: #94a3b8;
+}
+
+.lockedHint {
+  margin: 22px 0 0;
+  color: #94a3b8;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.startButton {
+  width: 100%;
+  margin-top: auto;
+  padding: 13px 16px;
+  border: 0;
+  border-radius: 8px;
+  background: #2563eb;
+  color: #ffffff;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.startButton:hover:not(:disabled) {
+  background: #1d4ed8;
+}
+
+.startButton:disabled {
+  background: #334155;
+  color: #94a3b8;
+  cursor: not-allowed;
+}
+
+@keyframes panelEnter {
+  from { opacity: 0; transform: translateX(16px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.lightMode .staffLines line {
+  stroke: #94a3b8;
+}
+
+.lightMode .completed {
+  color: #475569;
+}
+
+.lightMode .available {
+  color: #2563eb;
+  filter: drop-shadow(0 0 8px rgba(37, 99, 235, 0.72)) drop-shadow(0 0 18px rgba(59, 130, 246, 0.52));
+}
+
+.lightMode .detailsPanel {
+  border-color: #e2e8f0;
+  background: #ffffff;
+  color: #0f172a;
+}
+
+.lightMode .closeButton {
+  border-color: #cbd5e1;
+  color: #334155;
+}
+
+.lightMode .detailsPanel h2 {
+  color: #0f172a;
+}
+
+.lightMode .lessonDescription {
+  color: #475569;
+}
+
+.lightMode .lessonMetadata,
+.lightMode .lessonMetadata div {
+  border-color: #e2e8f0;
+}
+
+.lightMode .lessonMetadata dt,
+.lightMode .lockedHint {
+  color: #64748b;
+}
+
+.lightMode .lessonMetadata dd {
+  color: #1e293b;
+}
+
+.lightMode .statusValue.completed {
+  color: #334155;
+}
+
+.lightMode .statusValue.available {
+  color: #1d4ed8;
+}
+
+.lightMode .statusValue.locked {
+  color: #64748b;
+}
+
+.lightMode .startButton:disabled {
+  background: #e2e8f0;
+  color: #64748b;
+}
+
+@media (max-width: 1024px) {
+  .panelBackdrop {
+    left: 220px;
+  }
+}
+
+@media (max-width: 768px) {
+  .panelBackdrop {
+    left: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .detailsPanel,
+  .noteHead {
+    animation: none;
+    transition: none;
+  }
+}

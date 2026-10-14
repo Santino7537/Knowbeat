@@ -1,4 +1,4 @@
-import styles from "./CSS/Courses.module.css";
+import styles from "../pages/CSS/Courses.module.css";
 
 const courseImages = {
   guitarra: "/coursesPicture/guitarra.png",
@@ -18,7 +18,8 @@ const CourseCard = ({
   showProgress = false,
   isEnrolled = false,
   registering = false,
-  onRegister
+  onRegister,
+  onContinue
 }) => {
   const totalLessons = Number(course.total_lessons) || 0;
   const currentLesson = Number(course.current_lesson) || 0;
@@ -67,7 +68,7 @@ const CourseCard = ({
                 />
               </div>
             </div>
-            <button className={styles.continue_btn}>
+            <button className={styles.continue_btn} onClick={onContinue}>
               Continuar
             </button>
           </div>

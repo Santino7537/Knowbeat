@@ -1,0 +1,94 @@
+.coursePage {
+  height: 100vh;
+  height: 100dvh;
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+  background: #0f172a;
+  color: #e2e8f0;
+}
+
+.courseMain {
+  display: flex;
+  flex-direction: column;
+  width: calc(100% - 260px);
+  min-width: 0;
+  height: 100%;
+  min-height: 0;
+  box-sizing: border-box;
+  margin-left: 260px;
+  padding: 20px 36px 24px;
+}
+
+.pageHeader {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.backButton {
+  flex: 0 0 auto;
+  padding: 10px 14px;
+  border: 1px solid #475569;
+  border-radius: 8px;
+  background: transparent;
+  color: #e2e8f0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.backButton:hover {
+  border-color: #3b82f6;
+  color: #93c5fd;
+}
+
+.mapSection {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+
+.lightMode {
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+.lightMode .backButton {
+  border-color: #cbd5e1;
+  color: #334155;
+}
+
+.lightMode .backButton:hover {
+  border-color: #2563eb;
+  color: #1d4ed8;
+}
+
+@media (max-width: 1024px) {
+  .courseMain {
+    width: calc(100% - 220px);
+    margin-left: 220px;
+    padding: 30px;
+  }
+}
+
+@media (max-width: 768px) {
+  .courseMain {
+    width: 100%;
+    margin-left: 0;
+    padding: 16px 18px 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .courseMain {
+    padding: 12px 12px 16px;
+  }
+
+  .pageHeader {
+    margin-bottom: 10px;
+  }
+}
