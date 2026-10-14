@@ -123,17 +123,17 @@ const register = async (req, res) => {
   });
 };
 
-const getUser = async (req, res) => {
-  const username = req.params.username
+const getUserById = async (req, res) => {
+  const UserId = req.params.id
 
   try {
-    let [user] = await db.query('SELECT * FROM User WHERE eliminated = 0 && username = ?', [username]);
+    let [user] = await db.query('SELECT * FROM User WHERE eliminated = 0 && id = ?', [UserId]);
     if (user.length === 1) {
       user = user[0]
       user.picture = getPublicFileUrl("profiles", user.picture);
       return res.status(200).json(user);
     }
-    return res.status(400).json({ message: `No existe el usuario con nombre ${username}` })
+    return res.status(404).json({ message: `No existe el usuario con ID ${UserId}` });
 
   } catch (error) {
     console.error(error);
@@ -588,7 +588,7 @@ const reportUser = async (req, res) => {
 module.exports = {
   login,
   register,
-  getUser,
+  getUserById,
   getUserByUsername,
   getUserByToken,
   getUsers,

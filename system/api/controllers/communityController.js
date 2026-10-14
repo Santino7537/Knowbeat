@@ -1,4 +1,4 @@
-const { getDb } = require('../config/dbdb');
+const { getDb } = require('../config/mongodb');
 const db = require('../config/db');
 const { ObjectId } = require('mongodb');
 const { getPublicFileUrl } = require('./bucketController');
