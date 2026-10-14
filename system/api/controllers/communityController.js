@@ -317,4 +317,74 @@ const createTag = async (name) => {
 	return { _id: result.insertedId, name: normalizedName };
 };
 
-module.exports = { searchCommunity, searchThread, createThread, createResponse, searchResponses };
+const likePublication = (publication_type) => {
+    return async (req, res) => {
+        const publicationId = req.params.publication_id;
+		const userId = req.user.user_id;
+
+		if (!ObjectId.isValid(publicationId)) {
+			return res.status(400).json({ message: 'La id de la publicación es inválida' });
+		}
+
+		try {
+			const db = getDb();
+			switch (publication_type) {
+				case 'thread':
+					const thread = await db.collection('Thread').findOne({ _id: new ObjectId(publicationId) });
+
+					if (!thread) {
+						return res.status(404).json({ message: 'Hilo no encontrado' });
+					}
+
+					const old_thread_like = await db.collection('ThreadLikes').findOne({ thread_id: new ObjectId(publicationId) });
+
+					if (old_thread_like) {
+						return res.status(400).json({ message: 'Ya has dado like a este hilo' });
+					}
+
+					await db.collection('Thread').updateOne(
+						{ _id: new ObjectId(publicationId) },
+						{ $inc: { likes_count: 1 } }
+					);
+
+					await db.collection('ThreadLikes').insertOne({
+						thread_id: new ObjectId(publicationId),
+						user_id: new ObjectId(userId)
+					});
+
+					break;
+				case 'response':
+					const response = await db.collection('Response').findOne({ _id: new ObjectId(publicationId) });
+
+					if (!response) {
+						return res.status(404).json({ message: 'Respuesta no encontrada' });
+					}
+
+					const old_response_like = await db.collection('ResponseLikes').findOne({ response_id: new ObjectId(publicationId) });
+
+					if (old_response_like) {
+						return res.status(400).json({ message: 'Ya has dado like a esta respuesta' });
+					}
+
+					await db.collection('Response').updateOne(
+						{ _id: new ObjectId(publicationId) },
+						{ $inc: { likes_count: 1 } }
+					);
+
+					await db.collection('ResponseLikes').insertOne({
+						response_id: new ObjectId(publicationId),
+						user_id: new ObjectId(userId)
+					});
+					
+					break;
+			}
+		} catch (error) {
+			console.error(`Error al dar like a la publicación (${publication_type}):`, error);
+			return res.status(500).json({ message: `Error al dar like a la publicación (${publication_type})` });
+		}
+
+		return res.status(200).json({ message: `Like dado a la publicación (${publication_type})` });
+    };
+}
+
+module.exports = { searchCommunity, searchThread, createThread, createResponse, searchResponses, likePublication };

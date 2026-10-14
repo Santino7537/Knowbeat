@@ -7,7 +7,7 @@ const USER_PERMISSIONS = ['user-get-user-by-id', 'user-get-user-username', 'user
   'user-update-folder', 'user-delete-folder', 'user-get-folder-files', 'user-upload-file', 'user-delete-file', 
   'user-get-file', 'course-get-courses', 'user-get-progress', 'user-register-course',
   'user-get-stats', 'user-update-goal', 'user-report', 'community-search', 'community-search-thread', 
-  'community-create-thread', 'community-create-response', 'community-search-responses'];
+  'community-create-thread', 'community-create-response', 'community-like-thread', 'community-like-response', 'community-search-responses'];
 
   const ADMIN_PERMISSIONS = ['admin-reports', 'user-update-role', 'user-delete-user'];
 

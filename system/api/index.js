@@ -9,7 +9,7 @@ const { getCourses, getUserProgress, registerCourse, } = require('./controllers/
 const { getUserStats, changeGoal } = require('./controllers/streakController');
 const { createFolder, updateFolder, deleteFolder, getFolderFiles } = require('./controllers/folderController');
 const { uploadFileInFolder, deleteFileFromFolder, getFileUrlFromFolder } = require('./controllers/fileController');
-const { searchCommunity, searchThread, createThread, createResponse, searchResponses } = require('./controllers/communityController');
+const { searchCommunity, searchThread, createThread, createResponse, searchResponses, likePublication } = require('./controllers/communityController');
 
 const { connectMongo } = require('./config/mongodb');
 
@@ -75,6 +75,8 @@ server.get('/community/search', checkToken, isAuth, searchCommunity);
 server.get('/community/search/thread/:thread_id', checkToken, isAuth, searchThread);
 server.post('/community/create/thread', postResponseLog, checkToken, isAuth, createThread);
 server.post('/community/create/response/:thread_id', postResponseLog, checkToken, isAuth, createResponse);
+server.patch('/community/like/thread/:publication_id', postResponseLog, checkToken, isAuth, likePublication('thread'));
+server.patch('/community/like/response/:publication_id', postResponseLog, checkToken, isAuth, likePublication('response'));
 server.get('/community/search/thread/:thread_id/responses', checkToken, isAuth, searchResponses);
 
 // Admins
