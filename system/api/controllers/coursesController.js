@@ -1,6 +1,31 @@
 const db = require('../config/db');
 
 const getCourses = async (req, res) => {
+  const userId = req.user.user_id;
+
+  try {
+    const [rows] = await db.query(`
+      SELECT
+        c.id AS course_id,
+        c.name,
+        c.total_lessons,
+        EXISTS (
+          SELECT 1
+          FROM Progress p
+          WHERE p.course_id = c.id AND p.user_id = ?
+        ) AS is_enrolled
+      FROM Course c
+      ORDER BY c.name ASC
+    `, [userId]);
+
+    res.json(rows);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error al obtener el catálogo de cursos' });
+  }
+};
+
+const getCoursesRegistered = async (req, res) => {
 
   const userId = req.user.user_id;
 
@@ -56,36 +81,64 @@ const getUserProgress = async (req, res) => {
 const registerCourse = async(req,res) => {
 
   const userId = req.user.user_id;
+  const courseId = Number(req.params.id);
 
-  // Por params (campo id) se recibe la id del curso, no del usuario (anteriormente se mandaba por params:id la id del user)
-  const courseId = req.params.id;
+  if (!Number.isSafeInteger(courseId) || courseId <= 0) {
+    return res.status(400).json({ error: 'El ID del curso no es válido' });
+  }
 
-  req.actions.data = {};
-  if (req.body.password) req.body.password = "[REDACTED]";
-  
+  let connection;
   try {
-        const [rows] = await db.query(`
-          INSERT INTO Progress (user_id, course_id, current_lesson) 
-          VALUES (?,?,?)
-          `, 
-        [userId, courseId, 0]);
-        
-        req.actions_data["user-register-course"] = {
-          entity: "Progress",
-          record_id: result.insertId,
-          action: "insert"
-        };
+    connection = await db.getConnection();
+    await connection.beginTransaction();
 
-        res.json(rows);
+    const [courses] = await connection.query(
+      'SELECT id FROM Course WHERE id = ? FOR UPDATE',
+      [courseId]
+    );
 
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Error al anotarse a un curso' });
+    if (courses.length === 0) {
+      await connection.rollback();
+      return res.status(404).json({ error: 'El curso no existe' });
+    }
+
+    const [enrollments] = await connection.query(
+      'SELECT user_id FROM Progress WHERE user_id = ? AND course_id = ? LIMIT 1',
+      [userId, courseId]
+    );
+
+    if (enrollments.length > 0) {
+      await connection.rollback();
+      return res.status(409).json({ error: 'Ya estás anotado a este curso' });
+    }
+
+    const [result] = await connection.query(
+      'INSERT INTO Progress (user_id, course_id, current_lesson) VALUES (?, ?, 0)',
+      [userId, courseId]
+    );
+
+    await connection.commit();
+    req.actions_data = {
+      'user-register-course': {
+        entity: 'Progress',
+        record_id: result.insertId,
+        action: 'insert'
+      }
+    };
+
+    return res.status(201).json({ message: 'Te anotaste al curso correctamente' });
+  } catch (error) {
+    if (connection) await connection.rollback();
+    console.error(error);
+    return res.status(500).json({ error: 'Error al anotarse a un curso' });
+  } finally {
+    connection?.release();
   }
 }
 
 module.exports = {
     getCourses,
+    getCoursesRegistered,
     getUserProgress,
-    registerCourse
+    registerCourse,
 };

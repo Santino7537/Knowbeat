@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 import Sidebar from "../components/Sidebar";
 import styles from "./CSS/Courses.module.css";
 
 const Courses = () => {
+  const navigate = useNavigate();
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -26,45 +28,31 @@ const Courses = () => {
     return () => document.body.classList.remove("light-mode");
   }, [settings?.appearance?.dark_mode]);
 
-  const authHeaders = {
-    headers: {
-      Authorization: `Bearer ${token}`
-    }
-  };
-
-  /* ==========================================
-      FETCH COURSES
-  ========================================== */
-
-  const fetchCourses = async () => {
-    try {
-      const res = await axios.get(
-        "http://localhost:3000/user/get/progress",
-        authHeaders
-      );
-
-      setCourses(res.data);
-    } catch (error) {
-      console.error(
-        "Error obteniendo cursos:",
-        error
-      );
-    }
-  };
-
   /* ==========================================
       INIT
   ========================================== */
 
   useEffect(() => {
+    let active = true;
+
     const init = async () => {
       setLoading(true);
-      await fetchCourses();
-      setLoading(false);
+      try {
+        const response = await axios.get(
+          "http://localhost:3000/user/get/progress",
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        if (active) setCourses(response.data);
+      } catch (error) {
+        console.error("Error obteniendo cursos:", error);
+      } finally {
+        if (active) setLoading(false);
+      }
     };
 
     init();
-  }, []);
+    return () => { active = false; };
+  }, [token]);
 
   /* ==========================================
       HELPERS
@@ -110,8 +98,16 @@ const Courses = () => {
               lo dejaste.
             </p>
           </div>
-          <div className={styles.user_info}>
-            <span>{user?.username}</span>
+          <div className={styles.catalog_header_actions}>
+            <div className={styles.user_info}>
+              <span>{user?.username}</span>
+            </div>
+            <button
+              className={styles.catalog_back_btn}
+              onClick={() => navigate("/courses/catalog")}
+            >
+              Explorar catálogo
+            </button>
           </div>
 
         </div>
