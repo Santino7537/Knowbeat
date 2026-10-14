@@ -3,6 +3,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
 import Sidebar from "../components/Sidebar";
+import CourseCard from "./CourseCard";
 import styles from "./CSS/Courses.module.css";
 
 const CoursesCatalog = () => {
@@ -133,34 +134,15 @@ const CoursesCatalog = () => {
           <div className={styles.catalog_list}>
             {courses.map((course) => {
               const isEnrolled = Boolean(Number(course.is_enrolled));
-              const totalLessons = Number(course.total_lessons) || 0;
 
               return (
-                <article className={styles.catalog_card} key={course.course_id}>
-                  <div className={styles.catalog_course_info}>
-                    <h2>{course.name}</h2>
-                    <p>{totalLessons} {totalLessons === 1 ? "lección" : "lecciones"}</p>
-                  </div>
-                  <span className={isEnrolled ? styles.course_status : styles.catalog_status}>
-                    {isEnrolled ? "Ya estás anotado" : "Disponible"}
-                  </span>
-                  <div className={styles.catalog_actions}>
-                    <button className={styles.catalog_content_btn} disabled title="Disponible próximamente">
-                      Ver contenido
-                    </button>
-                    <button
-                      className={styles.continue_btn}
-                      disabled={isEnrolled || registeringId === course.course_id}
-                      onClick={() => registerCourse(course.course_id)}
-                    >
-                      {isEnrolled
-                        ? "Inscripto"
-                        : registeringId === course.course_id
-                          ? "Anotándote..."
-                          : "Anotarme"}
-                    </button>
-                  </div>
-                </article>
+                <CourseCard
+                  key={course.course_id}
+                  course={course}
+                  isEnrolled={isEnrolled}
+                  registering={registeringId === course.course_id}
+                  onRegister={() => registerCourse(course.course_id)}
+                />
               );
             })}
           </div>

@@ -3,6 +3,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
 import Sidebar from "../components/Sidebar";
+import CourseCard from "./CourseCard";
 import styles from "./CSS/Courses.module.css";
 
 const Courses = () => {
@@ -53,21 +54,6 @@ const Courses = () => {
     init();
     return () => { active = false; };
   }, [token]);
-
-  /* ==========================================
-      HELPERS
-  ========================================== */
-
-  const calculatePercent = (
-    current,
-    total
-  ) => {
-    if (!total) return 0;
-
-    return Math.round(
-      (current / total) * 100
-    );
-  };
 
   /* ==========================================
       LOADING
@@ -131,72 +117,9 @@ const Courses = () => {
 
         {/* GRID */}
         <div className={styles.courses_grid}>
-          {
-            courses.map((course) => {
-
-              const currentLesson =
-                course.current_lesson || 0;
-
-              const totalLessons =
-                course.total_lessons || 0;
-
-              const percent =
-                calculatePercent(
-                  currentLesson,
-                  totalLessons
-                );
-
-              const remaining =
-                totalLessons -
-                currentLesson;
-
-              return (
-
-                <div
-                  key={course.course_id}
-                  className={styles.course_card}
-                >
-
-                  <div className={styles.course_top}>
-
-                    <h2>
-                      {course.name}
-                    </h2>
-
-                    <span className={styles.course_percent}>
-                      {percent}%
-                    </span>
-
-                  </div>
-
-                  <span className={styles.course_status}>
-                    En progreso
-                  </span>
-
-                  <div className={styles.progress_info}>
-                    <span>
-                      {currentLesson} /{" "}
-                      {totalLessons} lecciones
-                    </span>
-                    <span>
-                      {remaining} restantes
-                    </span>
-                  </div>
-                  <div className={styles.progress_bar}>
-                    <div
-                      className={styles.progress_fill}
-                      style={{
-                        width: `${percent}%`
-                      }}/>
-                  </div>
-
-                  <button className={styles.continue_btn}>
-                    Continuar
-                  </button>
-                </div>
-              );
-            })
-          }
+          {courses.map((course) => (
+            <CourseCard key={course.course_id} course={course} showProgress />
+          ))}
         </div>
       </main>
     </div>
