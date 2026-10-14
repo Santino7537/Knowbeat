@@ -44,41 +44,45 @@
   pointer-events: all;
 }
 
-.lessonNote:focus-visible .selectionRing {
-  stroke: #bfdbfe;
-  stroke-width: 3;
-}
-
-.noteStem,
-.noteFlag {
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 5.5;
-  stroke-linecap: round;
-}
-
-.noteFlag {
-  fill: currentColor;
-  stroke: none;
-}
-
-.noteHead {
-  fill: currentColor;
-  stroke: currentColor;
-  stroke-width: 1;
+.noteGlyph {
+  overflow: visible;
+  color: inherit;
   transform-box: fill-box;
   transform-origin: center;
-  transform: rotate(-22deg);
-  transition: transform 160ms ease, fill 160ms ease;
+  transition: color 180ms ease, filter 180ms ease, transform 180ms ease;
 }
 
 .completed {
   color: #cbd5e1;
 }
 
+.completed .noteGlyph {
+  animation: completedNotePulse 2.8s ease-in-out infinite alternate;
+}
+
 .available {
   color: #dbeafe;
-  filter: drop-shadow(0 0 8px rgba(96, 165, 250, 0.95)) drop-shadow(0 0 18px rgba(59, 130, 246, 0.72));
+}
+
+.available .noteGlyph {
+  filter: drop-shadow(0 0 5px rgba(96, 165, 250, 0.92)) drop-shadow(0 0 13px rgba(59, 130, 246, 0.58));
+}
+
+.lessonNote:hover .noteGlyph,
+.lessonNote:focus-visible .noteGlyph,
+.selected .noteGlyph {
+  color: #ffffff;
+  transform: scale(1.04);
+}
+
+.locked:hover .noteGlyph,
+.locked:focus-visible .noteGlyph {
+  filter: brightness(1.3);
+}
+
+.completed:hover .noteGlyph,
+.completed:focus-visible .noteGlyph {
+  animation-duration: 1.4s;
 }
 
 .locked {
@@ -86,22 +90,16 @@
   opacity: 0.68;
 }
 
-.lessonNote:hover .noteHead {
-  transform: rotate(-22deg) scale(1.08);
+.available:hover .noteGlyph {
+  filter: drop-shadow(0 0 8px rgba(96, 165, 250, 0.98)) drop-shadow(0 0 17px rgba(59, 130, 246, 0.72));
 }
 
 .locked:hover {
   opacity: 1;
 }
 
-.selected .noteHead {
-  fill: #ffffff;
-}
-
-.selectionRing {
-  fill: rgba(96, 165, 250, 0.08);
-  stroke: #93c5fd;
-  stroke-width: 2.5;
+.selected.available .noteGlyph {
+  filter: drop-shadow(0 0 8px rgba(96, 165, 250, 0.98)) drop-shadow(0 0 17px rgba(59, 130, 246, 0.72));
 }
 
 .panelBackdrop {
@@ -111,6 +109,7 @@
   border: 0;
   background: rgba(2, 6, 23, 0.42);
   cursor: default;
+  animation: backdropEnter 220ms ease-out both;
 }
 
 .detailsPanel {
@@ -129,7 +128,7 @@
   background: #1e293b;
   box-shadow: -16px 0 42px rgba(0, 0, 0, 0.24);
   color: #e2e8f0;
-  animation: panelEnter 180ms ease-out;
+  animation: panelEnter 260ms cubic-bezier(0.22, 0.8, 0.25, 1) both;
 }
 
 .panelHeader {
@@ -240,21 +239,75 @@
 }
 
 @keyframes panelEnter {
-  from { opacity: 0; transform: translateX(16px); }
+  from { opacity: 0; transform: translateX(24px); }
   to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes backdropEnter {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes completedNotePulse {
+  from {
+    filter: drop-shadow(0 0 2px rgba(191, 219, 254, 0.3)) drop-shadow(0 0 7px rgba(96, 165, 250, 0.14));
+  }
+  to {
+    filter: drop-shadow(0 0 5px rgba(191, 219, 254, 0.72)) drop-shadow(0 0 12px rgba(96, 165, 250, 0.38)) brightness(1.08);
+  }
+}
+
+@keyframes completedNotePulseLight {
+  from {
+    filter: drop-shadow(0 0 2px rgba(37, 99, 235, 0.18)) drop-shadow(0 0 7px rgba(37, 99, 235, 0.08));
+  }
+  to {
+    filter: drop-shadow(0 0 5px rgba(37, 99, 235, 0.42)) drop-shadow(0 0 12px rgba(37, 99, 235, 0.2)) brightness(1.08);
+  }
 }
 
 .lightMode .staffLines line {
   stroke: #94a3b8;
 }
 
-.lightMode .completed {
+.lightMode .completed,
+:global(body.light-mode) .completed {
   color: #475569;
 }
 
-.lightMode .available {
+.lightMode .completed .noteGlyph,
+:global(body.light-mode) .completed .noteGlyph {
+  animation-name: completedNotePulseLight;
+}
+
+.lightMode .available,
+:global(body.light-mode) .available {
   color: #2563eb;
-  filter: drop-shadow(0 0 8px rgba(37, 99, 235, 0.72)) drop-shadow(0 0 18px rgba(59, 130, 246, 0.52));
+}
+
+.lightMode .available .noteGlyph,
+:global(body.light-mode) .available .noteGlyph {
+  filter: drop-shadow(0 0 5px rgba(37, 99, 235, 0.78)) drop-shadow(0 0 13px rgba(59, 130, 246, 0.48));
+}
+
+.lightMode .available:hover .noteGlyph,
+.lightMode .selected.available .noteGlyph,
+:global(body.light-mode) .available:hover .noteGlyph,
+:global(body.light-mode) .selected.available .noteGlyph {
+  filter: drop-shadow(0 0 8px rgba(37, 99, 235, 0.88)) drop-shadow(0 0 17px rgba(59, 130, 246, 0.62));
+}
+
+.lightMode .lessonNote:hover .noteGlyph,
+.lightMode .lessonNote:focus-visible .noteGlyph,
+:global(body.light-mode) .lessonNote:hover .noteGlyph,
+:global(body.light-mode) .lessonNote:focus-visible .noteGlyph,
+:global(body.light-mode) .selected .noteGlyph {
+  color: #1d4ed8;
+}
+
+:global(body.light-mode) .locked {
+  color: #475569;
+  opacity: 0.82;
 }
 
 .lightMode .detailsPanel {
@@ -321,7 +374,9 @@
 
 @media (prefers-reduced-motion: reduce) {
   .detailsPanel,
-  .noteHead {
+  .panelBackdrop,
+  .noteGlyph,
+  .completed .noteGlyph {
     animation: none;
     transition: none;
   }

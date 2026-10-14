@@ -22,7 +22,7 @@ const Sidebar = () => {
     <div className="sidebar">
       {/* BRAND */}
       <div className="sidebar-brand">
-        <span>KnowBeat</span>
+        <img className="sidebar-logo" src="/Logo.png" alt="Knowbeat" />
       </div>
 
       {/* DIVIDER */}

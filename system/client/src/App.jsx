@@ -3,7 +3,7 @@ import Settings from './pages/Settings.jsx'
 import Landing from './pages/Landing.jsx'
 import Courses from './pages/Courses.jsx';
 import CoursesCatalog from './pages/CoursesCatalog.jsx';
-import CourseLessonMapPage from './pages/CourseLessonMapPage.jsx';
+import CourseLessonMapPage from './pages/CourseLessons.jsx';
 import UserProfile from './pages/UserProfile.jsx'
 import Exercises from './pages/Exercises.jsx';
 import SeventhChordsExercise from './exercises-pages/seventh-chords.jsx'
