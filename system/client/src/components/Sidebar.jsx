@@ -59,11 +59,11 @@ const Sidebar = () => {
   }, [loggedUser?.picture]);
 
   const items = [
-    { name: "Comunidad", path: "/comunidad", icon: navIcons.comunidad },
     { name: "Aprender", path: "/courses", icon: navIcons.aprender },
     { name: "Ejercicios", path: "/exercises", icon: navIcons.ejercicios },
-    { name: "Carpetas", path: "/folders", icon: navIcons.carpetas },
     { name: "Mensajes", path: "/messages", icon: navIcons.mensajes },
+    { name: "Comunidad", path: "/comunidad", icon: navIcons.comunidad },
+    { name: "Carpetas", path: "/folders", icon: navIcons.carpetas },
   ];
 
   const profileImage = loggedUser?.picture && String(loggedUser.picture).trim();

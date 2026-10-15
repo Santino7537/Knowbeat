@@ -30,17 +30,41 @@
   margin-bottom: 14px;
 }
 
-.courseTitle {
-  max-width: 62%;
-  margin: 0;
-  color: #f8fafc;
-  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  font-size: 2.2rem;
-  font-weight: 700;
-  line-height: 1.15;
-  letter-spacing: -0.02em;
-  text-align: right;
-  overflow-wrap: anywhere;
+.courseTitleWrap {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-width: 0;
+}
+
+.courseTitleIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: clamp(92px, 10vw, 170px);
+  height: clamp(92px, 10vw, 170px);
+  min-width: 92px;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.courseTitleIcon svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  fill: #fff;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .backButton {
@@ -78,8 +102,8 @@
   color: #334155;
 }
 
-.lightMode .courseTitle {
-  color: #0f172a;
+.lightMode .courseTitleIcon svg {
+  fill: #0f172a;
 }
 
 .lightMode .backButton:hover {
@@ -102,9 +126,9 @@
     padding: 16px 18px 20px;
   }
 
-  .courseTitle {
-    max-width: 60%;
-    font-size: 1.8rem;
+  .courseTitleIcon {
+    width: clamp(78px, 18vw, 130px);
+    height: clamp(78px, 18vw, 130px);
   }
 }
 
@@ -117,8 +141,8 @@
     margin-bottom: 10px;
   }
 
-  .courseTitle {
-    max-width: 56%;
-    font-size: 1.35rem;
+  .courseTitleIcon {
+    width: clamp(70px, 20vw, 110px);
+    height: clamp(70px, 20vw, 110px);
   }
 }
