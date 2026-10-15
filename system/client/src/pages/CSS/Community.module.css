@@ -1,34 +1,41 @@
 /*
-  Fondo general de la página.
-  Uso 100vh (no altura fija en rem) porque queremos que ocupe
-  siempre toda la ventana, sea cual sea el tamaño de fuente del navegador.
+  La página ocupa exactamente el alto de la ventana y NO scrollea ella misma:
+  el que scrollea es .mainArea (ver abajo). Así la scrollbar queda dentro de
+  nuestro CSS Module y podemos pintarla con la paleta oscura, sin tocar estilos
+  globales del <body> que afectarían al resto de la app.
+  100dvh evita que en celulares la barra del navegador tape el final de la página.
 */
 .page {
-  min-height: 100vh;
-  background-color: #0f172a;
   display: flex;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  background-color: #0f172a;
 }
 
 /*
-  La Sidebar ya está hecha y (asumo) usa position: fixed con 260px de ancho,
-  que es el patrón típico en layouts tipo dashboard.
-  Como un elemento fixed no ocupa espacio en el flujo normal,
-  el contenido principal necesita un margen izquierdo igual al ancho
-  de la sidebar para no quedar tapado por ella.
+  La Sidebar (asumo position: fixed, 260px) no ocupa lugar en el flujo, por eso
+  el margen izquierdo: 260 / 16 = 16.25rem. Si en realidad no es fixed, avisame
+  y se saca.
 
-  260px equivale a 16.25rem (260 / 16, tomando el tamaño de fuente
-  base típico de 16px). Uso rem en vez de px para no romper la regla
-  de "sin medidas absolutas", aunque el valor derive de un ancho fijo
-  que ya existe en otro componente.
+  Padding de 1.25rem (20px) a los costados, como pediste. El de arriba es un
+  poco mayor (1.75rem) para igualar el aire que tiene la barra de búsqueda
+  en tu captura.
 
-  Si tu Sidebar en realidad NO es "fixed" sino que participa del flex
-  normal del layout, este margin-left sobra: avisame y lo saco.
+  overflow-y: auto muestra la scrollbar SOLO cuando las publicaciones se
+  salen de la pantalla. scrollbar-color/width la adaptan al tema oscuro
+  (thumb 334155 sobre el fondo 0F172A, el mismo del borde de los campos).
 */
 .mainArea {
   flex: 1;
+  min-width: 0;
+  height: 100%;
   margin-left: 16.25rem;
-  padding: 2rem 3%;
+  padding: 1.75rem 1.25rem 1.25rem;
   box-sizing: border-box;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #334155 #0f172a;
 }
 
 /* Fila superior: búsqueda + botón de "+" centrados en el área de contenido */
@@ -38,21 +45,20 @@
   justify-content: center;
   gap: 1rem;
   width: 100%;
+  margin-bottom: 1.75rem;
 }
 
 /*
-  Contenedor de la barra de búsqueda.
-  No me diste colores para este elemento puntual, así que usé la misma
-  paleta "slate" que el resto de la interfaz (fondo 1E293B, borde 334155)
-  para mantener coherencia visual con el modal. Si preferís otro color,
-  lo cambiamos sin problema.
+  max-width 35.5rem: en tu captura de 1024px la barra mide ~569px
+  (569 / 16 = 35.5rem), antes tenía 40rem. width 100% la deja achicarse
+  en pantallas angostas.
 */
 .searchWrapper {
   display: flex;
   align-items: center;
   gap: 0.75rem;
   width: 100%;
-  max-width: 40rem;
+  max-width: 35.5rem;
   background-color: #1e293b;
   border: 0.0625rem solid #334155;
   border-radius: 0.75rem;
@@ -86,7 +92,6 @@
   color: #94a3b8;
 }
 
-/* Botón circular/redondeado con el ícono de "+" */
 .addButton {
   flex-shrink: 0;
   width: 3rem;
@@ -109,4 +114,106 @@
 .addButton svg {
   width: 1.25rem;
   height: 1.25rem;
+}
+
+/*
+  Reparto horizontal (a 1024px):
+    sidebar 260 | 20 | columna de posts (flexible, ~476) | 20 | filtros 228 | 20
+  La columna de posts toma todo el espacio que sobra (flex: 1) y el panel de
+  filtros tiene ancho propio. El gap de 1.25rem (20px) los separa.
+*/
+.columns {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.25rem;
+}
+
+/*
+  min-width: 0 es necesario para que una columna flex pueda achicarse por
+  debajo del ancho de su contenido en vez de empujar el layout.
+  align-items: center centra las cards si la columna es más ancha que 468px.
+*/
+.feed {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+/* Lista de publicaciones: 1.25rem (20px) entre cada una, como pediste */
+.list {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  transition: opacity 0.15s ease;
+}
+
+/* Mientras carga otra página, lo anterior queda atenuado en vez de desaparecer */
+.listLoading {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/*
+  Selector de filtros: 228 / 1024 = 22.27vw, con tope en 14.25rem (228 / 16)
+  para que no crezca en pantallas grandes. flex-shrink: 0 impide que la
+  columna de posts lo aplaste.
+*/
+.filters {
+  flex-shrink: 0;
+  width: 22.27vw;
+  max-width: 14.25rem;
+  box-sizing: border-box;
+  padding: 1rem;
+  background-color: #1e293b;
+  border: 0.0625rem solid #334155;
+  border-radius: 0.6rem;
+  color: #ffffff;
+}
+
+.filtersTitle {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+/* Estados de la lista: cargando / vacío / error */
+.statusBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.statusText {
+  margin: 0;
+  padding: 2rem 0;
+  font-size: 1rem;
+  text-align: center;
+  color: #94a3b8;
+}
+
+.statusBox .statusText {
+  padding: 0;
+}
+
+.retryButton {
+  padding: 0.6rem 1.4rem;
+  border: none;
+  border-radius: 0.4rem;
+  background-color: #2563eb;
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.retryButton:hover {
+  background-color: #1d4ed8;
 }
