@@ -1,0 +1,209 @@
+/*
+  TAMAÑO DEL PANEL
+  Diseño de referencia: 228 x 300 px (pantalla de 1024 x 768).
+
+  ANCHO: el mismo que ya tenía el marcador de posición: 228 / 1024 = 22.27vw,
+  con tope en 14.25rem (228 / 16). flex-shrink: 0 impide que la columna de
+  publicaciones lo aplaste.
+
+  ALTO: fijo en el diseño (300px), así que uso aspect-ratio 228 / 300: el alto
+  se deriva del ancho y la proporción se conserva en cualquier tamaño. El campo
+  de etiquetas es el que absorbe el espacio sobrante (flex: 1), así que si algo
+  cambia ligeramente, lo que se ajusta es ese rectángulo y no se rompe nada.
+
+  Medidas internas en cqw (1cqw = 1% del ancho del panel): px del diseño / 228 * 100.
+*/
+.panel {
+  container-type: inline-size;
+  flex-shrink: 0;
+  width: 22.27vw;
+  max-width: 14.25rem;
+  aspect-ratio: 228 / 300;
+  background-color: #1e293b;
+  border: 0.0625rem solid #334155;
+  border-radius: 0.6rem;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.inner {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 9.5cqw 7.7cqw 8.5cqw;
+  box-sizing: border-box;
+}
+
+/* "Filtros": texto importante */
+.title {
+  margin: 0;
+  font-size: 9.5cqw;
+  font-weight: 700;
+  line-height: 1.2;
+  color: #ffffff;
+}
+
+/* "Contenido Visible" y "Etiquetas": texto normal, más chico que el título */
+.subtitle {
+  display: block;
+  margin: 5.6cqw 0 0;
+  font-size: 6.4cqw;
+  font-weight: 700;
+  line-height: 1.2;
+  color: #94a3b8;
+}
+
+/* El segundo subtítulo lleva más aire arriba, como en la imagen */
+.tagsTitle {
+  margin-top: 8.3cqw;
+}
+
+/* ---------- Checkboxes ---------- */
+.options {
+  display: flex;
+  flex-direction: column;
+  gap: 4.9cqw;
+  margin-top: 3.1cqw;
+}
+
+/* Etiqueta a la izquierda (con sangría) y cuadrado al extremo derecho */
+.option {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 5.6cqw;
+  padding-left: 6.1cqw;
+  cursor: pointer;
+}
+
+.optionLabel {
+  font-size: 5.2cqw;
+  font-weight: 700;
+  line-height: 1;
+  color: #94a3b8;
+}
+
+/* Input real: invisible pero funcional (foco, teclado y lectores de pantalla) */
+.checkboxInput {
+  position: absolute;
+  width: 0;
+  height: 0;
+  margin: 0;
+  opacity: 0;
+}
+
+/* Cuadrado que se ve: 2A3952 desmarcado, celeste al marcar */
+.checkbox {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 5.4cqw;
+  height: 5.4cqw;
+  border-radius: 0.9cqw;
+  background-color: #2a3952;
+  color: #ffffff;
+  transition: background-color 0.15s ease;
+}
+
+/* Marcado. Va después de .checkbox para ganar por orden. */
+.checkboxChecked {
+  background-color: #3ebcca;
+}
+
+/* Anillo de foco solo al navegar con teclado */
+.checkboxInput:focus-visible + .checkbox {
+  outline: 0.125rem solid #3b82f6;
+  outline-offset: 0.125rem;
+}
+
+.checkIcon {
+  width: 80%;
+  height: 80%;
+}
+
+/* ---------- Etiquetas ---------- */
+/*
+  Rectángulo de 2A3952. flex: 1 + min-height: 0 hacen que ocupe todo el alto
+  que sobra hasta el final del panel, y overflow-y: auto muestra la scrollbar
+  cuando hay más etiquetas de las que entran (igual que en el modal).
+  El borde es del mismo color que el fondo (invisible) para que, al enfocar,
+  pase a azul 3B82F6 sin que el contenido se mueva.
+*/
+.tagsField {
+  flex: 1;
+  min-height: 0;
+  margin-top: 8.3cqw;
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  align-items: center;
+  gap: 2cqw;
+  padding: 2.5cqw 3cqw;
+  background-color: #2a3952;
+  border: 0.0625rem solid #2a3952;
+  border-radius: 1.2cqw;
+  box-sizing: border-box;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #334155 transparent;
+  transition: border-color 0.15s ease;
+}
+
+.tagsField:focus-within {
+  border-color: #3b82f6;
+}
+
+/* Etiqueta confirmada: encapsulada con borde 2563EB */
+.tagChip {
+  display: flex;
+  align-items: center;
+  gap: 1.5cqw;
+  max-width: 100%;
+  padding: 0.8cqw 2.2cqw;
+  border: 0.0625rem solid #2563eb;
+  border-radius: 1.2cqw;
+  font-size: 4.6cqw;
+  line-height: 1.2;
+  color: #ffffff;
+}
+
+/* Una etiqueta muy larga se corta con "..." en vez de romper el panel */
+.tagText {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tagRemoveButton {
+  padding: 0;
+  border: none;
+  background: none;
+  color: #ffffff;
+  opacity: 0.7;
+  font-size: 4.8cqw;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.tagRemoveButton:hover {
+  opacity: 1;
+}
+
+.tagInput {
+  flex: 1;
+  min-width: 28cqw;
+  padding: 0.8cqw 0.5cqw;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 5cqw;
+}
+
+.tagInput::placeholder {
+  color: #94a3b8;
+}

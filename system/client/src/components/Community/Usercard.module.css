@@ -1,0 +1,117 @@
+/*
+  TAMAÑO DE LA CARD
+  Diseño de referencia: 468 x 100 px (pantalla de 1024 x 768), mismo ancho
+  que las publicaciones.
+
+  ANCHO: igual que PostCard: 100% de la columna, con tope en 29.25rem (468 / 16).
+
+  ALTO: acá SÍ es fijo (100px de diseño), así que uso aspect-ratio 468 / 100:
+  el alto se deriva del ancho y la proporción se conserva en cualquier tamaño.
+  overflow: hidden evita que un texto largo estire la card.
+
+  container-type: inline-size habilita cqw en los hijos (1cqw = 1% del ancho de
+  la card). Todos los valores son los mismos que en PostCard, para que el avatar
+  y los textos se vean idénticos: px del diseño / 468 * 100.
+*/
+.card {
+  container-type: inline-size;
+  width: 100%;
+  max-width: 29.25rem;
+  aspect-ratio: 468 / 100;
+  background-color: #1e293b;
+  border: 0.0625rem solid #334155;
+  border-radius: 0.6rem; /* esquinas muy levemente curvadas, igual que las publicaciones */
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+/* Todo en una fila, centrado verticalmente: avatar | texto | racha */
+.inner {
+  display: flex;
+  align-items: center;
+  gap: 2.1cqw; /* ~10px entre avatar y texto */
+  height: 100%;
+  padding: 0 4.7cqw; /* ~22px a los costados, igual que PostCard */
+  box-sizing: border-box;
+}
+
+/* Mismo tamaño que en la publicación: 58px -> 12.39cqw */
+.avatar {
+  flex-shrink: 0;
+  width: 12.39cqw;
+  aspect-ratio: 1 / 1;
+  border-radius: 50%;
+  background-color: #d9d9d9;
+  object-fit: cover;
+}
+
+/*
+  flex: 1 hace que el bloque de texto ocupe todo el espacio libre y empuje
+  la racha al extremo derecho. min-width: 0 permite que los textos largos
+  se corten en vez de desbordar la card.
+*/
+.userInfo {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4cqw;
+}
+
+.username {
+  font-size: 4.5cqw;
+  font-weight: 700;
+  line-height: 1.2;
+  color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/*
+  La biografía puede ser larga y la card tiene alto fijo, así que se limita a
+  2 líneas con "..." (entran con holgura: nombre + 2 líneas ocupan ~13.5cqw
+  de los ~21cqw de alto de la card).
+*/
+.biography {
+  font-size: 3.2cqw;
+  font-weight: 600;
+  line-height: 1.2;
+  color: #94a3b8;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+}
+
+/*
+  Círculo de la racha (~35px en el diseño -> 7.5cqw). Con 1 o 2 dígitos es un
+  círculo perfecto; si la racha crece (100, 1000...) min-width deja que se
+  ensanche y el border-radius (la mitad del alto) lo convierte en una píldora,
+  así el número nunca se sale del círculo.
+  Color apagado cuando la racha es 0.
+*/
+.streak {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 7.5cqw;
+  height: 7.5cqw;
+  margin-left: 2.1cqw;
+  padding: 0 1cqw;
+  box-sizing: border-box;
+  border-radius: 3.75cqw;
+  background-color: #2a3952;
+  color: #ffffff;
+  font-size: 3.6cqw;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* Racha mayor a 0. Va después de .streak para ganar por orden. */
+.streakActive {
+  background-color: #3ebcca;
+}

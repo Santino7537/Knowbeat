@@ -1,0 +1,77 @@
+/*
+  Misma card que UserCard: mismo ancho (100% de la columna, tope 29.25rem)
+  y mismo alto (468 / 100 con aspect-ratio). Las medidas internas están en cqw
+  (1cqw = 1% del ancho de la card): px del diseño / 468 * 100, así todo escala
+  junto con la card y se alinea con las publicaciones y los perfiles.
+*/
+.card {
+  container-type: inline-size;
+  width: 100%;
+  max-width: 29.25rem;
+  aspect-ratio: 468 / 100;
+  background-color: #1e293b;
+  border: 0.0625rem solid #334155;
+  border-radius: 0.6rem;
+  box-sizing: border-box;
+  overflow: hidden; /* un texto largo nunca estira la card */
+}
+
+.inner {
+  display: flex;
+  align-items: center;
+  gap: 2.1cqw; /* ~10px entre el cuadrado y el texto */
+  height: 100%;
+  padding: 0 4.7cqw; /* ~22px a los costados */
+  box-sizing: border-box;
+}
+
+/*
+  Cuadrado del mismo tamaño que el avatar (58px -> 12.39cqw), con esquinas
+  curvadas (~10px -> 2.1cqw) y fondo 2A3952. aspect-ratio lo mantiene cuadrado.
+*/
+.iconBox {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 12.39cqw;
+  aspect-ratio: 1 / 1;
+  border-radius: 2.1cqw;
+  background-color: #2a3952;
+}
+
+/* El ícono ocupa un poco menos de la mitad del cuadrado (~29px -> 6.2cqw) */
+.icon {
+  width: 6.2cqw;
+  height: 6.2cqw;
+  object-fit: contain;
+}
+
+/* min-width: 0 deja que los textos largos se corten con "..." en vez de desbordar */
+.folderInfo {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4cqw;
+}
+
+.name {
+  font-size: 4.5cqw;
+  font-weight: 700;
+  line-height: 1.2;
+  color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.creator {
+  font-size: 3.2cqw;
+  font-weight: 600;
+  line-height: 1.2;
+  color: #94a3b8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

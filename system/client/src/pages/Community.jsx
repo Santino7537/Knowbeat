@@ -1,116 +1,233 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 import Sidebar from '../components/Sidebar';
 import CreatePostModal from '../components/Community/Createpostmodal';
-import PostCard from '../components/Community/Postcard';
-import Pagination from '../components/general/Pagination';
+import PostCard from '../components/Community/PostCard';
+import FolderCard from '../components/Community/Foldercard';
+import UserCard from '../components/Community/Usercard';
+import FilterPanel from '../components/Community/Filterpanel';
+import Pagination from '../components/Community/Pagination';
 import styles from './CSS/Community.module.css';
 
-// Publicaciones por página. La paginación solo aparece si hay más de esto.
+// Elementos por página, POR CADA tipo de contenido marcado en los filtros.
 const PAGE_SIZE = 10;
 
-// ASUMIDO: la lista de hilos se pide a través de searchCommunity, que es lo único
-// que exporta tu controller. Confirmá el path real en tu archivo de rutas:
-// es la única línea que habría que cambiar.
+// Espera desde la última tecla antes de buscar (ver más abajo por qué).
+const SEARCH_DEBOUNCE_MS = 400;
+
+// ASUMIDO: la búsqueda se pide a través de searchCommunity, que es lo único
+// que exporta tu controller. Confirmá el path real en tu archivo de rutas.
 const COMMUNITY_SEARCH_ENDPOINT = '/community/search';
 const USER_BY_ID_ENDPOINT = '/user/get/user';
 
+// Tipos de contenido. Los `value` son los mismos que acepta el backend en
+// `types`. El orden de esta lista es el orden del panel Y el orden en que se
+// muestran en la página (publicaciones, luego carpetas, luego usuarios).
+const CONTENT_TYPES = [
+  { value: 'threads', label: 'Publicaciones' },
+  { value: 'folders', label: 'Carpetas' },
+  { value: 'users', label: 'Usuarios' },
+];
+
 export default function Community() {
-  // Texto de la barra de búsqueda. Todavía no filtra: queda para un próximo paso.
-  const [search, setSearch] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const [threads, setThreads] = useState([]);
-  const [total, setTotal] = useState(0);
+  // --- Búsqueda ---
+  // `search` es lo que el usuario está escribiendo (cambia en cada tecla).
+  // `query` es el texto ya "aplicado": el que realmente se manda al backend.
+  const [search, setSearch] = useState('');
+  const [query, setQuery] = useState('');
+  const appliedQueryRef = useRef('');
+
+  // --- Filtros ---
+  // Por defecto solo publicaciones, como en tu imagen del panel.
+  const [visibleTypes, setVisibleTypes] = useState(['threads']);
+  const [tags, setTags] = useState([]);
+
+  // --- Resultados ---
   const [page, setPage] = useState(1);
+  const [items, setItems] = useState([]);
+  const [totalPages, setTotalPages] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
 
-  // Cambiar este número fuerza a recargar la página actual
-  // (lo usamos al publicar algo nuevo y en el botón "Reintentar").
+  // Cambiar este número fuerza a recargar (al publicar algo y en "Reintentar").
   const [reloadKey, setReloadKey] = useState(0);
 
-  // Caché de autores { [id]: { username, picture } }.
-  // Es un ref (y no estado) porque solo sirve para no repetir pedidos: no
-  // necesita provocar un render al cambiar. Si el mismo usuario publicó
-  // varias veces, o aparece en otra página, no volvemos a pedirlo.
-  const authorsRef = useRef({});
+  // Caché de usuarios { [id]: { username, picture, biography, streak } }.
+  // Un mismo usuario puede aparecer como autor de una publicación, creador de
+  // una carpeta y perfil en los resultados: con este caché se pide UNA sola vez.
+  // Es un ref porque solo evita pedidos repetidos, no necesita provocar renders.
+  const usersCacheRef = useRef({});
 
-  // El scroll vive en el área de contenido, no en el body (ver el CSS).
-  // Necesitamos la referencia para volver arriba al cambiar de página.
+  // El scroll vive en el área de contenido (ver el CSS); necesitamos la
+  // referencia para volver arriba al cambiar de página.
   const mainRef = useRef(null);
 
+  // Aplica el texto de búsqueda. Si no cambió, no hace nada: así, escribir y
+  // borrar una letra estando en la página 3 no te manda de vuelta a la 1.
+  const applyQuery = useCallback((value) => {
+    const trimmed = value.trim();
+    if (trimmed === appliedQueryRef.current) return;
+    appliedQueryRef.current = trimmed;
+    setQuery(trimmed);
+    setPage(1);
+  }, []);
+
+  // Debounce: la búsqueda se aplica 400ms después de la última tecla. Sin esto
+  // se mandaría un pedido (y hasta 30 pedidos de usuarios) por cada letra.
   useEffect(() => {
-    // Evita aplicar una respuesta vieja si el usuario ya cambió de página
-    // (o el componente se desmontó) mientras la petición seguía en curso.
+    const timeoutId = setTimeout(() => applyQuery(search), SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(timeoutId);
+  }, [search, applyQuery]);
+
+  useEffect(() => {
+    // Evita aplicar una respuesta vieja si el usuario ya cambió de página,
+    // de filtros o de búsqueda mientras la petición seguía en curso.
     let cancelled = false;
 
-    const loadThreads = async () => {
+    const loadContent = async () => {
+      // Sin ningún tipo marcado no hay nada que pedir (el backend respondería 422).
+      if (visibleTypes.length === 0) {
+        setItems([]);
+        setTotalPages(0);
+        setLoadError('');
+        setIsLoading(false);
+        return;
+      }
+
       setIsLoading(true);
       setLoadError('');
 
       try {
-        // Pedimos la página de publicaciones. axios arma el query string a partir
-        // de `params` y lanza error si el servidor responde 4xx/5xx (cae en el catch).
-        // Respuesta esperada con types=threads:
-        // { threads: { data: [...], pagination: { page, limit, total } } }
+        // URLSearchParams permite repetir una clave (tags=a&tags=b). Así las
+        // etiquetas viajan como lista sin depender de cómo axios o Express
+        // interpreten los corchetes, y una etiqueta puede llevar comas.
+        const params = new URLSearchParams();
+        params.append('types', visibleTypes.join(','));
+        params.append('page', page);
+        params.append('limit', PAGE_SIZE);
+        if (query) params.append('query', query);
+        tags.forEach((tag) => params.append('tags', tag));
+
+        // Respuesta esperada: una clave por cada tipo pedido, por ejemplo
+        // { threads: { data, pagination }, folders: {...}, users: {...} }
         const response = await axios.get(COMMUNITY_SEARCH_ENDPOINT, {
-          params: { types: 'threads', page, limit: PAGE_SIZE },
+          params,
           withCredentials: true,
         });
-        const { data, pagination } = response.data.threads;
+        const { threads, folders, users } = response.data;
 
-        // Pedimos los autores que todavía no tenemos, sin repetir ids y en paralelo.
-        const missingIds = [...new Set(data.map((t) => t.author_id))].filter(
-          (authorId) => !(authorId in authorsRef.current)
+        const threadList = threads?.data ?? [];
+        const folderList = folders?.data ?? [];
+        const userList = users?.data ?? [];
+
+        // Usuarios que necesitamos conocer: autores de publicaciones, creadores
+        // de carpetas y los perfiles encontrados. Sin repetir y sin los que ya tenemos.
+        const neededIds = new Set([
+          ...threadList.map((thread) => thread.author_id),
+          ...folderList.map((folder) => folder.author),
+          ...userList.map((user) => user.id),
+        ]);
+        const missingIds = [...neededIds].filter(
+          (userId) => userId != null && !(userId in usersCacheRef.current)
         );
 
-        // allSettled (y no all): si un usuario falla, el resto del feed igual se muestra
-        // y esa card cae en "Usuario desconocido".
+        // allSettled (y no all): si un usuario falla, el resto igual se muestra.
         const results = await Promise.allSettled(
-          missingIds.map((authorId) =>
-            axios.get(`${USER_BY_ID_ENDPOINT}/${authorId}`, {
+          missingIds.map((userId) =>
+            axios.get(`${USER_BY_ID_ENDPOINT}/${userId}`, {
               withCredentials: true,
             })
           )
         );
         results.forEach((result, index) => {
           if (result.status === 'fulfilled') {
-            // Guardamos SOLO username y picture: la card no necesita nada más
-            // y así no dejamos en memoria campos que no hacen falta.
-            const { username, picture } = result.value.data;
-            authorsRef.current[missingIds[index]] = { username, picture };
+            // Guardamos SOLO lo que las tarjetas usan.
+            const { username, picture, biography, streak } = result.value.data;
+            usersCacheRef.current[missingIds[index]] = {
+              username,
+              picture,
+              biography,
+              streak,
+            };
           }
         });
 
         if (cancelled) return;
 
-        // Mostramos publicaciones y autores juntos en un único render,
-        // así no se ve el "Usuario desconocido" parpadeando antes de tiempo.
-        setThreads(
-          data.map((thread) => ({
-            ...thread,
-            author: authorsRef.current[thread.author_id],
-          }))
+        const getUser = (userId) => usersCacheRef.current[userId];
+
+        // Una sola lista con los tres tipos, en el orden del panel.
+        setItems([
+          ...threadList.map((thread) => ({
+            key: `thread:${thread.id}`,
+            type: 'thread',
+            data: { ...thread, author: getUser(thread.author_id) },
+          })),
+          ...folderList.map((folder) => ({
+            key: `folder:${folder.id}`,
+            type: 'folder',
+            data: { ...folder, author: getUser(folder.author) },
+          })),
+          ...userList.map((user) => {
+            const profile = getUser(user.id);
+            return {
+              key: `user:${user.id}`,
+              type: 'user',
+              data: {
+                id: user.id,
+                // Si el pedido del perfil falló, usamos lo que ya trajo la búsqueda.
+                username: profile?.username ?? user.username,
+                picture: profile?.picture ?? user.picture,
+                biography: profile?.biography,
+                streak: profile?.streak,
+              },
+            };
+          }),
+        ]);
+
+        // Cada tipo tiene su propio total. La cantidad de páginas es la del tipo
+        // que más tiene: en las últimas páginas los tipos más cortos ya no traen nada.
+        const pagesPerType = [threads, folders, users].map((result) =>
+          result ? Math.ceil(result.pagination.total / PAGE_SIZE) : 0
         );
-        setTotal(pagination.total);
+        setTotalPages(Math.max(0, ...pagesPerType));
       } catch (error) {
         if (cancelled) return;
-        setThreads([]);
-        setLoadError('No se pudieron cargar las publicaciones.');
+        setItems([]);
+        setTotalPages(0);
+        setLoadError('No se pudo cargar el contenido.');
       } finally {
         if (!cancelled) setIsLoading(false);
       }
     };
 
-    loadThreads();
+    loadContent();
 
     return () => {
       cancelled = true;
     };
-  }, [page, reloadKey]);
+  }, [page, reloadKey, query, visibleTypes, tags]);
 
-  const totalPages = Math.ceil(total / PAGE_SIZE);
+  // Marcar/desmarcar un tipo. Se mantiene siempre el orden del panel
+  // y se vuelve a la primera página (el resultado cambió por completo).
+  const handleToggleType = (type) => {
+    setVisibleTypes((previous) => {
+      const next = previous.includes(type)
+        ? previous.filter((value) => value !== type)
+        : [...previous, type];
+      return CONTENT_TYPES.map((option) => option.value).filter((value) =>
+        next.includes(value)
+      );
+    });
+    setPage(1);
+  };
+
+  const handleTagsChange = (nextTags) => {
+    setTags(nextTags);
+    setPage(1);
+  };
 
   const handlePageChange = (nextPage) => {
     setPage(nextPage);
@@ -126,7 +243,17 @@ export default function Community() {
 
   // Solo en la primera carga (sin nada para mostrar todavía) reemplazamos
   // el feed por un texto; en cargas posteriores atenuamos lo que ya está.
-  const isFirstLoad = isLoading && threads.length === 0;
+  const isFirstLoad = isLoading && items.length === 0;
+
+  const isFiltering = query !== '' || tags.length > 0;
+  let emptyMessage = '';
+  if (visibleTypes.length === 0) {
+    emptyMessage = 'Elegí al menos un tipo de contenido en los filtros.';
+  } else if (!isLoading && !loadError && items.length === 0) {
+    emptyMessage = isFiltering
+      ? 'No se encontraron resultados para tu búsqueda.'
+      : 'Todavía no hay contenido para mostrar.';
+  }
 
   return (
     <div className={styles.page}>
@@ -152,6 +279,10 @@ export default function Community() {
               placeholder="Busca algo..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
+              // Enter busca de inmediato, sin esperar los 400ms
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') applyQuery(search);
+              }}
             />
           </div>
 
@@ -176,10 +307,10 @@ export default function Community() {
         </div>
 
         <div className={styles.columns}>
-          {/* Columna central: publicaciones + paginación */}
+          {/* Columna central: contenido + paginación */}
           <section className={styles.feed} aria-busy={isLoading}>
             {isFirstLoad && (
-              <p className={styles.statusText}>Cargando publicaciones...</p>
+              <p className={styles.statusText}>Cargando...</p>
             )}
 
             {loadError && (
@@ -195,26 +326,30 @@ export default function Community() {
               </div>
             )}
 
-            {!isLoading && !loadError && threads.length === 0 && (
-              <p className={styles.statusText}>
-                Todavía no hay publicaciones. ¡Sé el primero en publicar!
-              </p>
+            {emptyMessage && (
+              <p className={styles.statusText}>{emptyMessage}</p>
             )}
 
-            {threads.length > 0 && (
+            {items.length > 0 && (
               <div
                 className={
                   isLoading ? `${styles.list} ${styles.listLoading}` : styles.list
                 }
               >
-                {threads.map((thread) => (
-                  <PostCard key={thread.id} post={thread} />
-                ))}
+                {items.map((item) => {
+                  if (item.type === 'thread') {
+                    return <PostCard key={item.key} post={item.data} />;
+                  }
+                  if (item.type === 'folder') {
+                    return <FolderCard key={item.key} folder={item.data} />;
+                  }
+                  return <UserCard key={item.key} user={item.data} />;
+                })}
               </div>
             )}
 
-            {/* Solo aparece si hay más de PAGE_SIZE (10) publicaciones */}
-            {!loadError && total > PAGE_SIZE && (
+            {/* Solo aparece si algún tipo tiene más de PAGE_SIZE (10) elementos */}
+            {!loadError && totalPages > 1 && (
               <Pagination
                 currentPage={page}
                 totalPages={totalPages}
@@ -223,14 +358,13 @@ export default function Community() {
             )}
           </section>
 
-          {/*
-            Marcador de posición del selector de filtros (todavía no existe).
-            Reserva su ancho real para que el resto del layout ya quede bien
-            distribuido. Se reemplaza por <FilterSelector /> cuando lo hagamos.
-          */}
-          <aside className={styles.filters}>
-            <h2 className={styles.filtersTitle}>Filtros</h2>
-          </aside>
+          <FilterPanel
+            typeOptions={CONTENT_TYPES}
+            visibleTypes={visibleTypes}
+            onToggleType={handleToggleType}
+            tags={tags}
+            onTagsChange={handleTagsChange}
+          />
         </div>
       </main>
 

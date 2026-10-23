@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import axios from 'axios';
 import styles from './CreatePostModal.module.css';
 
 const TITLE_MAX_LENGTH = 100;
@@ -89,26 +90,20 @@ export default function CreatePostModal({ isOpen, onClose, onPostCreated }) {
     setError('');
 
     try {
-      const response = await fetch('/community/create/thread', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        // Uso credentials: 'include' asumiendo que el token/sesión viaja
-        // en una cookie (por eso pasa por checkToken/isAuth en el backend).
-        // Si en tu proyecto el token va en un header Authorization en vez
-        // de en una cookie, avisame y lo agregamos acá.
-        credentials: 'include',
-        body: JSON.stringify({ title, text, tags }),
-      });
+      // axios convierte el objeto a JSON y pone el Content-Type solo, y
+      // lanza un error automáticamente si el servidor responde 4xx/5xx
+      // (por eso ya no hace falta revisar response.ok como con fetch).
+      // withCredentials equivale al credentials: 'include' de fetch.
+      // Si en tu proyecto tenés una instancia de axios ya configurada
+      // (con baseURL, token, interceptores), reemplazá el import de arriba
+      // por esa instancia y podés borrar el withCredentials.
+      const response = await axios.post(
+        '/community/create/thread',
+        { title, text, tags },
+        { withCredentials: true }
+      );
 
-      if (!response.ok) {
-        throw new Error('No se pudo crear la publicación.');
-      }
-
-      const data = await response.json();
-
-      onPostCreated?.(data); // por si la página padre quiere refrescar el feed
+      onPostCreated?.(response.data); // por si la página padre quiere refrescar el feed
       resetForm();
       onClose();
     } catch (err) {

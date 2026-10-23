@@ -158,29 +158,6 @@
   pointer-events: none;
 }
 
-/*
-  Selector de filtros: 228 / 1024 = 22.27vw, con tope en 14.25rem (228 / 16)
-  para que no crezca en pantallas grandes. flex-shrink: 0 impide que la
-  columna de posts lo aplaste.
-*/
-.filters {
-  flex-shrink: 0;
-  width: 22.27vw;
-  max-width: 14.25rem;
-  box-sizing: border-box;
-  padding: 1rem;
-  background-color: #1e293b;
-  border: 0.0625rem solid #334155;
-  border-radius: 0.6rem;
-  color: #ffffff;
-}
-
-.filtersTitle {
-  margin: 0;
-  font-size: 1.1rem;
-  font-weight: 700;
-}
-
 /* Estados de la lista: cargando / vacío / error */
 .statusBox {
   display: flex;
