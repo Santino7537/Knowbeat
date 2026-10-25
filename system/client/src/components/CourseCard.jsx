@@ -22,10 +22,11 @@ const CourseCard = ({
   onContinue
 }) => {
   const totalLessons = Number(course.total_lessons) || 0;
-  const currentLesson = Number(course.current_lesson) || 0;
-  const remainingLessons = totalLessons - currentLesson;
+  const currentLesson = Math.max(1, Number(course.current_lesson) || 0);
+  const completedLessons = Math.min(totalLessons, Math.max(0, currentLesson - 1));
+  const remainingLessons = totalLessons - completedLessons;
   const percent = totalLessons
-    ? Math.min(100, Math.max(0, Math.round((currentLesson / totalLessons) * 100)))
+    ? Math.min(100, Math.max(0, Math.round((completedLessons / totalLessons) * 100)))
     : 0;
 
   return (
@@ -49,8 +50,10 @@ const CourseCard = ({
           <div className={styles.course_card_footer}>
             <div className={styles.course_progress}>
               <div className={styles.progress_info}>
-                <span className={styles.course_status}>En progreso</span>
-                <span>{currentLesson} / {totalLessons} lecciones</span>
+                <span className={styles.course_status}>
+                  {totalLessons > 0 && completedLessons === totalLessons ? "Completado" : "En progreso"}
+                </span>
+                <span>{completedLessons} / {totalLessons} lecciones</span>
                 <span>{remainingLessons} restantes</span>
                 <strong className={styles.course_percent}>{percent}%</strong>
               </div>

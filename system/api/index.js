@@ -5,7 +5,7 @@ const cors = require('cors');
 const { login, register, getUserById, getUserByUsername, getUserByToken, getUsers, getConfig, changeConfig, changeProfile, reportUser } = require('./controllers/userController');
 const { changeRole, deleteUser, getReports, getReportDetail, resolveReport } = require('./controllers/adminController');
 
-const { getCourses, getUserProgress, registerCourse, } = require('./controllers/coursesController');
+const { getCourses, getUserProgress, registerCourse, updateUserProgress } = require('./controllers/coursesController');
 const { getUserStats, changeGoal } = require('./controllers/streakController');
 const { createFolder, updateFolder, deleteFolder, getFolderFiles } = require('./controllers/folderController');
 const { uploadFileInFolder, deleteFileFromFolder, getFileUrlFromFolder } = require('./controllers/fileController');
@@ -35,7 +35,7 @@ server.use(express.urlencoded({ limit: '100kb', extended: true })); // Limita el
 
 server.use(cors({ // No permite solicitudes de otros orígenes que no estén en la lista de allowedOrigins
   origin: function (origin, callback) {
-    if (allowedOrigins.includes(origin)) { // Se puede agregar "!origin ||" para testeos 
+    if (allowedOrigins.includes(origin)) { // Se puede agregar "!origin ||" para testeos
       callback(null, true);
     } else {
       callback(new Error('No permitido por CORS'));
@@ -88,6 +88,7 @@ server.patch('/admin/reports/:id', postResponseLog, checkToken, isAuth, resolveR
 server.get('/course/get/courses', checkToken, isAuth, getCourses);
 server.get('/user/get/progress', checkToken, isAuth, getUserProgress);
 server.post('/user/register/course/:id', postResponseLog, checkToken, isAuth, registerCourse);
+server.patch('/user/update/progress/:id', postResponseLog, checkToken, isAuth, updateUserProgress);
 
 // Streak & Score
 server.get('/user/get/stats', checkToken, isAuth, getUserStats)

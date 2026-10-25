@@ -2,14 +2,15 @@ import styles from "./CourseLessonMap.module.css";
 
 const statusLabels = {
   completed: "Completada",
-  available: "Disponible",
+  available: "Actual",
   locked: "Bloqueada"
 };
 
-const LessonDetailsSidebar = ({ lesson, lessonNumber, onClose }) => {
+const LessonDetailsSidebar = ({ lesson, lessonNumber, onClose, onStartLesson, startingLesson }) => {
   if (!lesson) return null;
 
   const isLocked = lesson.status === "locked";
+  const isAvailable = lesson.status === "available";
 
   return (
     <>
@@ -45,8 +46,19 @@ const LessonDetailsSidebar = ({ lesson, lessonNumber, onClose }) => {
         {isLocked && (
           <p className={styles.lockedHint}>Completá las lecciones anteriores para continuar.</p>
         )}
-        <button className={styles.startButton} type="button" disabled={isLocked}>
-          {isLocked ? "Lección bloqueada" : lesson.status === "completed" ? "Volver a la lección" : "Empezar lección"}
+        <button
+          className={styles.startButton}
+          type="button"
+          disabled={!isAvailable || startingLesson}
+          onClick={onStartLesson}
+        >
+          {startingLesson
+            ? "Iniciando..."
+            : isAvailable
+              ? "Iniciar lección"
+              : isLocked
+                ? "Lección bloqueada"
+                : "Lección completada"}
         </button>
       </aside>
     </>

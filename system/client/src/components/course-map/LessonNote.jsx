@@ -69,7 +69,6 @@ const LessonNote = ({ lesson, x, y, index, selected, onSelect }) => {
     >
       <circle className={styles.noteHitTarget} cx={x - 22} cy={y} r="45" />
       <svg
-        className={styles.noteGlyph}
         x={x - 56}
         y={y - 112 * noteVariant.headAnchor}
         width="112"
@@ -78,7 +77,9 @@ const LessonNote = ({ lesson, x, y, index, selected, onSelect }) => {
         aria-hidden="true"
         data-figure={noteVariant.name}
       >
-        <path fill="currentColor" fillRule="evenodd" d={noteVariant.d} />
+        <g className={styles.noteGlyph}>
+          <path fill="currentColor" fillRule="evenodd" d={noteVariant.d} />
+        </g>
       </svg>
     </g>
   );

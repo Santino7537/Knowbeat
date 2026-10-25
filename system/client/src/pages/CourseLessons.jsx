@@ -1,9 +1,9 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import axios from "axios";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 
 import Sidebar from "../components/Sidebar";
 import CourseLessonMap from "../components/course-map/CourseLessonMap";
-import { mockLessons } from "../components/course-map/lessonMockData";
 import styles from "./CSS/CourseLessonMapPage.module.css";
 
 const pianoIcon = (
@@ -33,10 +33,14 @@ const CourseLessonMapPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { courseId } = useParams();
-  const courseName = location.state?.courseName
-    || window.history.state?.usr?.courseName
-    || `Curso ${courseId}`;
+  const [course, setCourse] = useState(null);
+  const [currentLesson, setCurrentLesson] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [startingLesson, setStartingLesson] = useState(false);
+  const [error, setError] = useState("");
+  const courseName = course?.name || location.state?.courseName || `Curso ${courseId}`;
   const courseIcon = getCourseIcon(courseName);
+  const token = localStorage.getItem("token");
 
   let user = null;
   try {
@@ -55,6 +59,111 @@ const CourseLessonMapPage = () => {
     }
     return () => document.body.classList.remove("light-mode");
   }, [isLightMode]);
+
+  useEffect(() => {
+    let active = true;
+
+    const fetchCourseProgress = async () => {
+      setLoading(true);
+      setError("");
+      setCourse(null);
+      setCurrentLesson(null);
+
+      const requestedCourseId = Number(courseId);
+      if (!Number.isSafeInteger(requestedCourseId) || requestedCourseId <= 0) {
+        setError("El curso solicitado no es válido.");
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const response = await axios.get(
+          "http://localhost:3000/user/get/progress",
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        if (!Array.isArray(response.data)) {
+          throw new Error("La respuesta de progreso del servidor no es válida.");
+        }
+
+        const courseProgress = response.data.find(
+          (item) => Number(item.course_id) === requestedCourseId
+        );
+        if (!courseProgress) {
+          throw new Error("No estás anotado a este curso.");
+        }
+
+        const totalLessons = Number(courseProgress.total_lessons);
+        const storedLesson = Number(courseProgress.current_lesson);
+        if (!Number.isSafeInteger(totalLessons) || totalLessons < 0
+          || !Number.isSafeInteger(storedLesson) || storedLesson < 0) {
+          throw new Error("Los datos de progreso del curso no son válidos.");
+        }
+
+        if (active) {
+          setCourse({ ...courseProgress, total_lessons: totalLessons });
+          setCurrentLesson(Math.max(1, storedLesson));
+        }
+      } catch (requestError) {
+        if (active) {
+          setError(requestError.response?.data?.error || requestError.message || "No se pudo cargar el progreso del curso.");
+        }
+      } finally {
+        if (active) setLoading(false);
+      }
+    };
+
+    fetchCourseProgress();
+    return () => { active = false; };
+  }, [courseId, token]);
+
+  const startLesson = async () => {
+    if (!course || currentLesson === null || currentLesson > Number(course.total_lessons) || startingLesson) {
+      return;
+    }
+
+    setStartingLesson(true);
+    setError("");
+    try {
+      const response = await axios.patch(
+        `http://localhost:3000/user/update/progress/${course.course_id}`,
+        { current_lesson: currentLesson },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      const nextLesson = Number(response.data?.current_lesson);
+      if (!Number.isSafeInteger(nextLesson) || nextLesson !== currentLesson + 1) {
+        throw new Error("La respuesta de actualización del progreso no es válida.");
+      }
+      setCurrentLesson(nextLesson);
+    } catch (requestError) {
+      const updatedLesson = Number(requestError.response?.data?.current_lesson);
+      if (Number.isSafeInteger(updatedLesson) && updatedLesson >= 1) {
+        setCurrentLesson(updatedLesson);
+      }
+      setError(requestError.response?.data?.error || requestError.message || "No se pudo actualizar el progreso.");
+    } finally {
+      setStartingLesson(false);
+    }
+  };
+
+  const totalLessons = Number(course?.total_lessons) || 0;
+  const lessons = course && currentLesson !== null
+    ? Array.from({ length: totalLessons }, (_, index) => {
+      const lessonNumber = index + 1;
+      const status = lessonNumber < currentLesson
+        ? "completed"
+        : lessonNumber === currentLesson
+          ? "available"
+          : "locked";
+
+      return {
+        id: lessonNumber,
+        title: `Lección ${lessonNumber}`,
+        description: "El contenido de esta lección estará disponible próximamente.",
+        type: "Lección",
+        status
+      };
+    })
+    : [];
 
   return (
     <div className={`${styles.coursePage} ${isLightMode ? styles.lightMode : ""}`}>
@@ -75,7 +184,23 @@ const CourseLessonMapPage = () => {
         </header>
 
         <section className={styles.mapSection} aria-label="Recorrido de lecciones">
-          <CourseLessonMap lessons={mockLessons} />
+          {loading ? (
+            <p role="status">Cargando el progreso del curso...</p>
+          ) : error && !course ? (
+            <p role="alert">{error}</p>
+          ) : (
+            <>
+              {error && <p role="alert">{error}</p>}
+              {currentLesson > totalLessons && (
+                <p role="status">Completaste todas las lecciones de este curso.</p>
+              )}
+              <CourseLessonMap
+                lessons={lessons}
+                onStartLesson={startLesson}
+                startingLesson={startingLesson}
+              />
+            </>
+          )}
         </section>
       </main>
     </div>

@@ -44,8 +44,11 @@
   pointer-events: all;
 }
 
-.noteGlyph {
+.lessonNote > svg {
   overflow: visible;
+}
+
+.noteGlyph {
   color: inherit;
   transform-box: fill-box;
   transform-origin: center;
@@ -72,7 +75,7 @@
 .lessonNote:focus-visible .noteGlyph,
 .selected .noteGlyph {
   color: #ffffff;
-  transform: scale(1.04);
+  transform: scale(1.03);
 }
 
 .locked:hover .noteGlyph,

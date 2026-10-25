@@ -7,27 +7,17 @@ import styles from "./CourseLessonMap.module.css";
 const noteSpacing = 220;
 
 const getPositions = (lessons, lineYPositions) => {
-  let seed = (lessons.length * 7919 + 37) >>> 0;
-  let previousLine = -1;
-  let previousX = 120;
-
   return lessons.map((lesson, index) => {
-    seed = (seed * 1664525 + 1013904223) >>> 0;
-    let lineIndex = seed % 3;
-    if (lineIndex === previousLine) lineIndex = (lineIndex + 1 + (seed % 2)) % 3;
-    previousLine = lineIndex;
-    if (index > 0) previousX += noteSpacing + (seed % 49) - 24;
-
     return {
       lesson,
-      x: previousX,
-      y: lineYPositions[lineIndex + 1]
+      x: 120 + index * noteSpacing,
+      y: lineYPositions[(index % 3) + 1]
     };
   });
 };
 
-const CourseLessonMap = ({ lessons }) => {
-  const [selectedLesson, setSelectedLesson] = useState(null);
+const CourseLessonMap = ({ lessons, onStartLesson, startingLesson }) => {
+  const [selectedLessonId, setSelectedLessonId] = useState(null);
   const [viewportSize, setViewportSize] = useState({ width: 0, height: 0 });
   const viewportRef = useRef(null);
   const svgHeight = Math.max(viewportSize.height, 1);
@@ -35,6 +25,7 @@ const CourseLessonMap = ({ lessons }) => {
   const positions = getPositions(lessons, lineYPositions);
   const finalNoteX = positions.at(-1)?.x ?? 120;
   const svgWidth = Math.max(viewportSize.width || 1080, finalNoteX + 120);
+  const selectedLesson = lessons.find((lesson) => lesson.id === selectedLessonId) ?? null;
   const selectedIndex = positions.findIndex(({ lesson }) => lesson.id === selectedLesson?.id);
 
   useLayoutEffect(() => {
@@ -85,7 +76,7 @@ const CourseLessonMap = ({ lessons }) => {
               y={y}
               index={index}
               selected={selectedLesson?.id === lesson.id}
-              onSelect={setSelectedLesson}
+              onSelect={(lesson) => setSelectedLessonId(lesson.id)}
             />
           ))}
         </svg>
@@ -93,7 +84,9 @@ const CourseLessonMap = ({ lessons }) => {
       <LessonDetailsSidebar
         lesson={selectedLesson}
         lessonNumber={selectedIndex + 1}
-        onClose={() => setSelectedLesson(null)}
+        onClose={() => setSelectedLessonId(null)}
+        onStartLesson={onStartLesson}
+        startingLesson={startingLesson}
       />
     </section>
   );

@@ -113,7 +113,7 @@ const registerCourse = async(req,res) => {
     }
 
     const [result] = await connection.query(
-      'INSERT INTO Progress (user_id, course_id, current_lesson) VALUES (?, ?, 0)',
+      'INSERT INTO Progress (user_id, course_id, current_lesson) VALUES (?, ?, 1)',
       [userId, courseId]
     );
 
@@ -136,9 +136,86 @@ const registerCourse = async(req,res) => {
   }
 }
 
+const updateUserProgress = async (req, res) => {
+  const userId = req.user.user_id;
+  const courseId = Number(req.params.id);
+  const expectedLesson = Number(req.body?.current_lesson);
+
+  if (!Number.isSafeInteger(courseId) || courseId <= 0) {
+    return res.status(400).json({ error: 'El ID del curso no es válido' });
+  }
+
+  if (!Number.isSafeInteger(expectedLesson) || expectedLesson <= 0) {
+    return res.status(400).json({ error: 'La lección actual no es válida' });
+  }
+
+  let connection;
+  try {
+    connection = await db.getConnection();
+    await connection.beginTransaction();
+
+    const [progressRows] = await connection.query(`
+      SELECT p.current_lesson, c.total_lessons
+      FROM Progress p
+      JOIN Course c ON c.id = p.course_id
+      WHERE p.user_id = ? AND p.course_id = ?
+      FOR UPDATE
+    `, [userId, courseId]);
+
+    if (progressRows.length === 0) {
+      await connection.rollback();
+      return res.status(404).json({ error: 'No estás anotado a este curso' });
+    }
+
+    const storedLesson = Number(progressRows[0].current_lesson);
+    const currentLesson = Math.max(1, storedLesson);
+    const totalLessons = Number(progressRows[0].total_lessons);
+
+    if (currentLesson !== expectedLesson) {
+      await connection.rollback();
+      return res.status(409).json({
+        error: 'El progreso del curso cambió. Actualizá la página e intentá nuevamente.',
+        current_lesson: currentLesson
+      });
+    }
+
+    if (currentLesson > totalLessons) {
+      await connection.rollback();
+      return res.status(409).json({
+        error: 'Ya completaste todas las lecciones de este curso.',
+        current_lesson: currentLesson
+      });
+    }
+
+    const nextLesson = currentLesson + 1;
+    await connection.query(
+      'UPDATE Progress SET current_lesson = ? WHERE user_id = ? AND course_id = ?',
+      [nextLesson, userId, courseId]
+    );
+
+    await connection.commit();
+    req.actions_data = {
+      'user-update-progress': {
+        entity: 'Progress',
+        record_id: `${userId}:${courseId}`,
+        action: 'update'
+      }
+    };
+
+    return res.status(200).json({ current_lesson: nextLesson });
+  } catch (error) {
+    if (connection) await connection.rollback();
+    console.error(error);
+    return res.status(500).json({ error: 'Error al actualizar el progreso del curso' });
+  } finally {
+    connection?.release();
+  }
+};
+
 module.exports = {
     getCourses,
     getCoursesRegistered,
     getUserProgress,
     registerCourse,
+    updateUserProgress,
 };
