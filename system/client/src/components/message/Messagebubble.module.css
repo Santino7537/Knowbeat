@@ -1,0 +1,65 @@
+.bubble {
+  position: relative;           /* referencia para la cola y la hora (absolutas) */
+  box-sizing: border-box;
+  /* 90x50px → rem (÷16). El mínimo evita que "OK" quede como un cuadradito. */
+  min-width: 5.625rem;
+  min-height: 3.125rem;
+  /* 330px de 484px (ancho de la columna central) = 68%. Con porcentaje el límite
+     escala con la columna en vez de quedar fijo. */
+  max-width: 68%;
+  /* Abajo queda más espacio (1.25rem) reservado para la hora, así nunca pisa el texto. */
+  padding: 0.5rem 0.75rem 1.25rem;
+  background: #7b9ccc;
+  border-radius: 0.375rem;      /* "levemente circular" */
+}
+
+.text {
+  margin: 0;
+  color: #ffffff;
+  font-size: 1.125rem;
+  font-weight: 700;
+  line-height: 1.5rem;
+  white-space: pre-wrap;        /* respeta los saltos de línea que escribió el usuario */
+  overflow-wrap: anywhere;      /* una palabra larguísima no rompe el ancho máximo */
+}
+
+.time {
+  position: absolute;
+  bottom: 0.25rem;
+  font-size: 0.625rem;
+  font-weight: 700;
+  color: #dad7d7;
+}
+
+/* La cola es un triángulo hecho con bordes CSS (ancho y alto 0): no necesita
+   imágenes ni SVG y toma el mismo color del fondo. */
+.bubble::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  width: 0;
+  height: 0;
+  border-top: 0.5rem solid #7b9ccc;
+}
+
+/* Mensaje del otro usuario → todo a la izquierda */
+.other {
+  align-self: flex-start;
+  border-top-left-radius: 0;    /* la esquina de la cola queda recta para que empalme */
+}
+.other::before {
+  left: -0.5rem;
+  border-left: 0.5rem solid transparent;
+}
+.other .time { left: 0.75rem; }
+
+/* Mensaje propio → espejado a la derecha */
+.own {
+  align-self: flex-end;
+  border-top-right-radius: 0;
+}
+.own::before {
+  right: -0.5rem;
+  border-right: 0.5rem solid transparent;
+}
+.own .time { right: 0.75rem; }

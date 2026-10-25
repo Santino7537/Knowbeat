@@ -7,6 +7,7 @@ import CourseLessonMapPage from './pages/CourseLessons.jsx';
 import UserProfile from './pages/UserProfile.jsx'
 import Exercises from './pages/Exercises.jsx';
 import SeventhChordsExercise from './exercises-pages/seventh-chords.jsx'
+import Messages from './pages/Messages.jsx';
 
 import Login_register from './pages/login_register.jsx'
 import { AuthProvider } from './context/AuthContext.jsx'
@@ -59,6 +60,7 @@ function App() {
           <Route path="/courses/:courseId/lessons" element={<CourseLessonMapPage />} />
           <Route path="/exercises" element={<Exercises />}/>
           <Route path="/exercises/seventh-chords" element={<SeventhChordsExercise />} />
+          <Route path="/messages" element={<Messages/>} />
           
           {/* PERFIL — :userId permite ver el perfil de cualquier usuario */}
           <Route path="/user/:username" element={<UserProfile />} />

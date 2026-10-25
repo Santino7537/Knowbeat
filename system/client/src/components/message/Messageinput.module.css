@@ -1,0 +1,30 @@
+.input {
+  --line: 1.5rem;                 /* alto de una línea de texto */
+  --pad-y: 0.8125rem;             /* (50px - 24px de línea) / 2 → 1 línea = 50px de alto total */
+  --border: 2px;                  /* los bordes finos quedan en px a propósito: en rem pueden verse borrosos */
+
+  display: block;                 /* quita el hueco inferior que los textarea inline dejan por defecto */
+  box-sizing: border-box;
+  width: 100%;                    /* el ancho (390px) lo define el contenedor en Messages.module.css */
+  padding: var(--pad-y) 1.5rem;
+  font: inherit;
+  font-size: 1rem;
+  line-height: var(--line);
+  color: #ffffff;
+  background: #1e293b;
+  border: var(--border) solid #334155;
+  /* Se pidió 100%, pero 100% produce una elipse. 9999px da la píldora del diseño
+     y se mantiene como píldora al crecer a 2 o 3 líneas. */
+  border-radius: 9999px;
+  resize: none;                   /* el tamaño lo controla el código, no el usuario */
+  outline: none;                  /* se reemplaza por el borde azul, que sigue siendo un foco visible */
+  overflow-y: auto;
+  /* Máximo 3 líneas: 3 líneas + padding vertical + bordes */
+  max-height: calc(3 * var(--line) + 2 * var(--pad-y) + 2 * var(--border));
+  scrollbar-width: thin;
+  scrollbar-color: #334155 transparent;
+  transition: border-color 0.15s;
+}
+
+.input::placeholder { color: #94a3b8; }
+.input:focus { border-color: #7b9ccc; }
