@@ -5,7 +5,7 @@ const USER_ROLE = "User";
 const USER_PERMISSIONS = ['user-get-user-by-id', 'user-get-user-username', 'user-get-users', 'user-get-config', 
   'user-update-config', 'user-update-profile', 'user-create-folder', 
   'user-update-folder', 'user-delete-folder', 'user-get-folder-files', 'user-upload-file', 'user-delete-file', 
-  'user-get-file', 'course-get-courses', 'user-get-progress', 'user-register-course',
+  'user-get-file', 'course-get-courses', 'user-get-progress', 'user-register-course', 'user-update-progress',
   'user-get-stats', 'user-update-goal', 'user-report', 'community-search', 'community-search-thread', 
   'community-create-thread', 'community-create-response', 'community-like-thread', 'community-like-response', 'community-search-responses'];
 

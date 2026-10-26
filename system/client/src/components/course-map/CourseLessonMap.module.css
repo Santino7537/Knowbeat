@@ -1,0 +1,386 @@
+.mapShell {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.mapViewport {
+  flex: 1 1 auto;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  scrollbar-color: #475569 transparent;
+  scrollbar-width: thin;
+  outline: none;
+}
+
+.mapViewport:focus-visible {
+  box-shadow: inset 0 0 0 2px rgba(96, 165, 250, 0.75);
+}
+
+.lessonSvg {
+  display: block;
+  max-width: none;
+}
+
+.staffLines line {
+  stroke: #64748b;
+  stroke-width: 2;
+  opacity: 0.72;
+}
+
+.lessonNote {
+  cursor: pointer;
+  outline: none;
+}
+
+.noteHitTarget {
+  fill: transparent;
+  pointer-events: all;
+}
+
+.lessonNote > svg {
+  overflow: visible;
+}
+
+.noteGlyph {
+  color: inherit;
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: color 180ms ease, filter 180ms ease, transform 180ms ease;
+}
+
+.completed {
+  color: #cbd5e1;
+}
+
+.completed .noteGlyph {
+  animation: completedNotePulse 2.8s ease-in-out infinite alternate;
+}
+
+.available {
+  color: #dbeafe;
+}
+
+.available .noteGlyph {
+  filter: drop-shadow(0 0 5px rgba(96, 165, 250, 0.92)) drop-shadow(0 0 13px rgba(59, 130, 246, 0.58));
+}
+
+.lessonNote:hover .noteGlyph,
+.lessonNote:focus-visible .noteGlyph,
+.selected .noteGlyph {
+  color: #ffffff;
+  transform: scale(1.03);
+}
+
+.locked:hover .noteGlyph,
+.locked:focus-visible .noteGlyph {
+  filter: brightness(1.3);
+}
+
+.completed:hover .noteGlyph,
+.completed:focus-visible .noteGlyph {
+  animation-duration: 1.4s;
+}
+
+.locked {
+  color: #64748b;
+  opacity: 0.68;
+}
+
+.available:hover .noteGlyph {
+  filter: drop-shadow(0 0 8px rgba(96, 165, 250, 0.98)) drop-shadow(0 0 17px rgba(59, 130, 246, 0.72));
+}
+
+.locked:hover {
+  opacity: 1;
+}
+
+.selected.available .noteGlyph {
+  filter: drop-shadow(0 0 8px rgba(96, 165, 250, 0.98)) drop-shadow(0 0 17px rgba(59, 130, 246, 0.72));
+}
+
+.panelBackdrop {
+  position: fixed;
+  z-index: 1090;
+  inset: 0 0 0 260px;
+  border: 0;
+  background: rgba(2, 6, 23, 0.42);
+  cursor: default;
+  animation: backdropEnter 220ms ease-out both;
+}
+
+.detailsPanel {
+  position: fixed;
+  z-index: 1091;
+  top: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  width: min(380px, calc(100vw - 24px));
+  height: 100vh;
+  box-sizing: border-box;
+  padding: 28px;
+  overflow-y: auto;
+  border-left: 1px solid #334155;
+  background: #1e293b;
+  box-shadow: -16px 0 42px rgba(0, 0, 0, 0.24);
+  color: #e2e8f0;
+  animation: panelEnter 260ms cubic-bezier(0.22, 0.8, 0.25, 1) both;
+}
+
+.panelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.panelEyebrow {
+  color: #93c5fd;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.closeButton {
+  padding: 8px 12px;
+  border: 1px solid #475569;
+  border-radius: 8px;
+  background: transparent;
+  color: #e2e8f0;
+  cursor: pointer;
+}
+
+.detailsPanel h2 {
+  margin: 0 0 14px;
+  color: #ffffff;
+  font-size: 1.6rem;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.lessonDescription {
+  margin: 0;
+  color: #cbd5e1;
+  font-size: 0.98rem;
+  line-height: 1.65;
+}
+
+.lessonMetadata {
+  display: grid;
+  gap: 0;
+  margin: 30px 0 0;
+  border-top: 1px solid #334155;
+}
+
+.lessonMetadata div {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 0;
+  border-bottom: 1px solid #334155;
+}
+
+.lessonMetadata dt {
+  color: #94a3b8;
+}
+
+.lessonMetadata dd {
+  margin: 0;
+  color: #f1f5f9;
+  font-weight: 600;
+  text-align: right;
+}
+
+.statusValue.completed {
+  color: #e2e8f0;
+}
+
+.statusValue.available {
+  color: #93c5fd;
+}
+
+.statusValue.locked {
+  color: #94a3b8;
+}
+
+.lockedHint {
+  margin: 22px 0 0;
+  color: #94a3b8;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.startButton {
+  width: 100%;
+  margin-top: auto;
+  padding: 13px 16px;
+  border: 0;
+  border-radius: 8px;
+  background: #2563eb;
+  color: #ffffff;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.startButton:hover:not(:disabled) {
+  background: #1d4ed8;
+}
+
+.startButton:disabled {
+  background: #334155;
+  color: #94a3b8;
+  cursor: not-allowed;
+}
+
+@keyframes panelEnter {
+  from { opacity: 0; transform: translateX(24px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes backdropEnter {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes completedNotePulse {
+  from {
+    filter: drop-shadow(0 0 2px rgba(191, 219, 254, 0.3)) drop-shadow(0 0 7px rgba(96, 165, 250, 0.14));
+  }
+  to {
+    filter: drop-shadow(0 0 5px rgba(191, 219, 254, 0.72)) drop-shadow(0 0 12px rgba(96, 165, 250, 0.38)) brightness(1.08);
+  }
+}
+
+@keyframes completedNotePulseLight {
+  from {
+    filter: drop-shadow(0 0 2px rgba(37, 99, 235, 0.18)) drop-shadow(0 0 7px rgba(37, 99, 235, 0.08));
+  }
+  to {
+    filter: drop-shadow(0 0 5px rgba(37, 99, 235, 0.42)) drop-shadow(0 0 12px rgba(37, 99, 235, 0.2)) brightness(1.08);
+  }
+}
+
+.lightMode .staffLines line {
+  stroke: #94a3b8;
+}
+
+.lightMode .completed,
+:global(body.light-mode) .completed {
+  color: #475569;
+}
+
+.lightMode .completed .noteGlyph,
+:global(body.light-mode) .completed .noteGlyph {
+  animation-name: completedNotePulseLight;
+}
+
+.lightMode .available,
+:global(body.light-mode) .available {
+  color: #2563eb;
+}
+
+.lightMode .available .noteGlyph,
+:global(body.light-mode) .available .noteGlyph {
+  filter: drop-shadow(0 0 5px rgba(37, 99, 235, 0.78)) drop-shadow(0 0 13px rgba(59, 130, 246, 0.48));
+}
+
+.lightMode .available:hover .noteGlyph,
+.lightMode .selected.available .noteGlyph,
+:global(body.light-mode) .available:hover .noteGlyph,
+:global(body.light-mode) .selected.available .noteGlyph {
+  filter: drop-shadow(0 0 8px rgba(37, 99, 235, 0.88)) drop-shadow(0 0 17px rgba(59, 130, 246, 0.62));
+}
+
+.lightMode .lessonNote:hover .noteGlyph,
+.lightMode .lessonNote:focus-visible .noteGlyph,
+:global(body.light-mode) .lessonNote:hover .noteGlyph,
+:global(body.light-mode) .lessonNote:focus-visible .noteGlyph,
+:global(body.light-mode) .selected .noteGlyph {
+  color: #1d4ed8;
+}
+
+:global(body.light-mode) .locked {
+  color: #475569;
+  opacity: 0.82;
+}
+
+.lightMode .detailsPanel {
+  border-color: #e2e8f0;
+  background: #ffffff;
+  color: #0f172a;
+}
+
+.lightMode .closeButton {
+  border-color: #cbd5e1;
+  color: #334155;
+}
+
+.lightMode .detailsPanel h2 {
+  color: #0f172a;
+}
+
+.lightMode .lessonDescription {
+  color: #475569;
+}
+
+.lightMode .lessonMetadata,
+.lightMode .lessonMetadata div {
+  border-color: #e2e8f0;
+}
+
+.lightMode .lessonMetadata dt,
+.lightMode .lockedHint {
+  color: #64748b;
+}
+
+.lightMode .lessonMetadata dd {
+  color: #1e293b;
+}
+
+.lightMode .statusValue.completed {
+  color: #334155;
+}
+
+.lightMode .statusValue.available {
+  color: #1d4ed8;
+}
+
+.lightMode .statusValue.locked {
+  color: #64748b;
+}
+
+.lightMode .startButton:disabled {
+  background: #e2e8f0;
+  color: #64748b;
+}
+
+@media (max-width: 1024px) {
+  .panelBackdrop {
+    left: 220px;
+  }
+}
+
+@media (max-width: 768px) {
+  .panelBackdrop {
+    left: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .detailsPanel,
+  .panelBackdrop,
+  .noteGlyph,
+  .completed .noteGlyph {
+    animation: none;
+    transition: none;
+  }
+}

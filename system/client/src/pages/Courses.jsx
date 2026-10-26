@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 import Sidebar from "../components/Sidebar";
+import CourseCard from "../components/CourseCard";
 import styles from "./CSS/Courses.module.css";
 
 const Courses = () => {
+  const navigate = useNavigate();
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -26,60 +29,31 @@ const Courses = () => {
     return () => document.body.classList.remove("light-mode");
   }, [settings?.appearance?.dark_mode]);
 
-  const authHeaders = {
-    headers: {
-      Authorization: `Bearer ${token}`
-    }
-  };
-
-  /* ==========================================
-      FETCH COURSES
-  ========================================== */
-
-  const fetchCourses = async () => {
-    try {
-      const res = await axios.get(
-        "http://localhost:3000/user/get/progress",
-        authHeaders
-      );
-
-      setCourses(res.data);
-    } catch (error) {
-      console.error(
-        "Error obteniendo cursos:",
-        error
-      );
-    }
-  };
-
   /* ==========================================
       INIT
   ========================================== */
 
   useEffect(() => {
+    let active = true;
+
     const init = async () => {
       setLoading(true);
-      await fetchCourses();
-      setLoading(false);
+      try {
+        const response = await axios.get(
+          "http://localhost:3000/user/get/progress",
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        if (active) setCourses(response.data);
+      } catch (error) {
+        console.error("Error obteniendo cursos:", error);
+      } finally {
+        if (active) setLoading(false);
+      }
     };
 
     init();
-  }, []);
-
-  /* ==========================================
-      HELPERS
-  ========================================== */
-
-  const calculatePercent = (
-    current,
-    total
-  ) => {
-    if (!total) return 0;
-
-    return Math.round(
-      (current / total) * 100
-    );
-  };
+    return () => { active = false; };
+  }, [token]);
 
   /* ==========================================
       LOADING
@@ -110,8 +84,16 @@ const Courses = () => {
               lo dejaste.
             </p>
           </div>
-          <div className={styles.user_info}>
-            <span>{user?.username}</span>
+          <div className={styles.catalog_header_actions}>
+            <div className={styles.user_info}>
+              <span>{user?.username}</span>
+            </div>
+            <button
+              className={styles.catalog_back_btn}
+              onClick={() => navigate("/courses/catalog")}
+            >
+              Explorar catálogo
+            </button>
           </div>
 
         </div>
@@ -135,72 +117,16 @@ const Courses = () => {
 
         {/* GRID */}
         <div className={styles.courses_grid}>
-          {
-            courses.map((course) => {
-
-              const currentLesson =
-                course.current_lesson || 0;
-
-              const totalLessons =
-                course.total_lessons || 0;
-
-              const percent =
-                calculatePercent(
-                  currentLesson,
-                  totalLessons
-                );
-
-              const remaining =
-                totalLessons -
-                currentLesson;
-
-              return (
-
-                <div
-                  key={course.course_id}
-                  className={styles.course_card}
-                >
-
-                  <div className={styles.course_top}>
-
-                    <h2>
-                      {course.name}
-                    </h2>
-
-                    <span className={styles.course_percent}>
-                      {percent}%
-                    </span>
-
-                  </div>
-
-                  <span className={styles.course_status}>
-                    En progreso
-                  </span>
-
-                  <div className={styles.progress_info}>
-                    <span>
-                      {currentLesson} /{" "}
-                      {totalLessons} lecciones
-                    </span>
-                    <span>
-                      {remaining} restantes
-                    </span>
-                  </div>
-                  <div className={styles.progress_bar}>
-                    <div
-                      className={styles.progress_fill}
-                      style={{
-                        width: `${percent}%`
-                      }}/>
-                  </div>
-
-                  <button className={styles.continue_btn}>
-                    Continuar
-                  </button>
-                </div>
-              );
-            })
-          }
+          {courses.map((course) => (
+            <CourseCard
+              key={course.course_id}
+              course={course}
+              showProgress
+              onContinue={() => navigate(`/courses/${course.course_id}/lessons`, {
+                state: { courseName: course.name }
+              })}
+            />
+          ))}
         </div>
       </main>
     </div>

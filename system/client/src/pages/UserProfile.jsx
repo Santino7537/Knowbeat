@@ -11,7 +11,7 @@ function ProfileHeader({ user, isOwner, isMenuOpen, onMenuToggle, onEditClick })
   const initial = user.username?.[0]?.toUpperCase() ?? "U";
   const courses = user.courses ?? [];
   const completedCourses = courses.filter((course) => {
-    return course.total_lessons > 0 && course.current_lesson >= course.total_lessons;
+    return course.total_lessons > 0 && course.current_lesson > course.total_lessons;
   }).length;
 
   return (
@@ -244,10 +244,11 @@ export default function UserProfile() {
           ) : profileUser.courses?.length ? (
             <div className={styles.courseList}>
               {profileUser.courses.map((course) => {
-                const current = course.current_lesson ?? 0;
-                const total = course.total_lessons ?? 0;
-                const percent = total ? Math.min(100, Math.round((current / total) * 100)) : 0;
-                const completed = percent >= 100;
+                const currentLesson = Math.max(1, Number(course.current_lesson) || 0);
+                const total = Number(course.total_lessons) || 0;
+                const completedLessons = Math.min(total, Math.max(0, currentLesson - 1));
+                const percent = total ? Math.round((completedLessons / total) * 100) : 0;
+                const completed = total > 0 && currentLesson > total;
 
                 return (
                   <article className={styles.courseCard} key={course.course_id}>
@@ -260,7 +261,7 @@ export default function UserProfile() {
                         </span>
                       </div>
                       <div className={styles.progressMeta}>
-                        <span>{current} de {total} lecciones</span>
+                        <span>{completedLessons} de {total} lecciones</span>
                         <strong>{percent}%</strong>
                       </div>
                       <div className={styles.progressTrack} role="progressbar" aria-valuenow={percent} aria-valuemin="0" aria-valuemax="100">

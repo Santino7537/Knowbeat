@@ -46,16 +46,38 @@
   font-weight: 500;
 }
 
+.catalog_header_actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.catalog_back_btn,
+.catalog_content_btn {
+  border: 1px solid #475569;
+  border-radius: 8px;
+  padding: 11px 16px;
+  background: transparent;
+  color: #e2e8f0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.catalog_back_btn:hover,
+.catalog_content_btn:hover:not(:disabled) {
+  border-color: #3b82f6;
+  color: #93c5fd;
+}
+
 /* ==================================================
    GRID
 ================================================== */
 
 .courses_grid {
   display: grid;
-  grid-template-columns: repeat(
-    auto-fill,
-    minmax(320px, 1fr)
-  );
+  grid-template-columns: minmax(0, 1fr);
   gap: 24px;
 }
 
@@ -64,10 +86,10 @@
 ================================================== */
 
 .course_card {
+  overflow: hidden;
   background: #1e293b;
   border: 1px solid #334155;
-  border-radius: 18px;
-  padding: 28px;
+  border-radius: 12px;
   transition: 0.25s ease;
 }
 
@@ -79,20 +101,53 @@
 .course_top {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 16px;
+  align-items: baseline;
+  gap: 16px;
 }
 
 .course_top h2 {
+  min-width: 0;
+  margin: 0;
   color: white;
-  font-size: 1.3rem;
+  font-size: 1.15rem;
   font-weight: 600;
+  overflow-wrap: anywhere;
 }
 
 .course_percent {
   color: #3b82f6;
-  font-size: 1.5rem;
+  font-size: 0.9rem;
   font-weight: 700;
+  white-space: nowrap;
+}
+
+.course_banner {
+  display: block;
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  object-position: center;
+}
+
+.course_card_content {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+  padding: 16px 20px 18px;
+}
+
+.course_lesson_count {
+  color: #94a3b8;
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+.course_card_footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  min-width: 0;
 }
 
 /* ==================================================
@@ -128,21 +183,32 @@
 
 .progress_info {
   display: flex;
-  flex-direction: column;
-  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 14px;
 
   color: #cbd5e1;
 
-  font-size: 0.95rem;
+  font-size: 0.85rem;
+}
 
-  margin-bottom: 14px;
+.progress_info .course_status {
+  margin-bottom: 0;
 }
 
 .progress_bar {
+  width: 100%;
   height: 8px;
   background: #334155;
   border-radius: 999px;
   overflow: hidden;
+}
+
+.course_progress {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+  gap: 8px;
 }
 
 .progress_fill {
@@ -157,13 +223,12 @@
 ================================================== */
 
 .continue_btn {
-  width: 100%;
-  margin-top: 24px;
-
-  padding: 14px;
+  flex: 0 0 auto;
+  min-width: 126px;
+  padding: 11px 16px;
 
   border: none;
-  border-radius: 12px;
+  border-radius: 8px;
 
   background: #2563eb;
   color: white;
@@ -202,6 +267,57 @@
 
 .empty_state p {
   color: #94a3b8;
+}
+
+.catalog_list {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+}
+
+.catalog_status {
+  padding: 5px 9px;
+  border: 1px solid rgba(96, 165, 250, 0.28);
+  border-radius: 999px;
+  color: #93c5fd;
+  font-size: 0.9rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.catalog_actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.catalog_actions .continue_btn {
+  min-width: 126px;
+}
+
+.catalog_content_btn:disabled {
+  color: #94a3b8;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.catalog_message_error,
+.catalog_message_success {
+  margin: 0 0 18px;
+  padding: 12px 16px;
+  border-radius: 8px;
+}
+
+.catalog_message_error {
+  border: 1px solid #7f1d1d;
+  background: rgba(127, 29, 29, 0.2);
+  color: #fecaca;
+}
+
+.catalog_message_success {
+  border: 1px solid #166534;
+  background: rgba(22, 101, 52, 0.2);
+  color: #bbf7d0;
 }
 
 /* ==================================================
@@ -246,11 +362,7 @@
   }
 
   .courses_grid {
-    grid-template-columns:
-      repeat(
-        auto-fill,
-        minmax(280px, 1fr)
-      );
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
@@ -270,8 +382,40 @@
     gap: 16px;
   }
 
+  .catalog_header_actions {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
   .courses_grid {
     grid-template-columns: 1fr;
+  }
+
+  .course_banner {
+    height: 150px;
+  }
+
+  .course_card_content {
+    padding: 15px 16px 16px;
+  }
+
+  .course_card_footer {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .catalog_actions {
+    width: 100%;
+  }
+
+  .catalog_actions button {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .course_card_footer > .continue_btn {
+    width: 100%;
   }
 }
 
@@ -297,6 +441,18 @@
   color: #0f172a;
 }
 
+.light_mode .catalog_back_btn,
+.light_mode .catalog_content_btn {
+  border-color: #cbd5e1;
+  color: #334155;
+}
+
+.light_mode .catalog_back_btn:hover,
+.light_mode .catalog_content_btn:hover:not(:disabled) {
+  border-color: #2563eb;
+  color: #1d4ed8;
+}
+
 .light_mode .course_card {
   background: white;
   border: 1px solid #e2e8f0;
@@ -308,6 +464,10 @@
 
 .light_mode .course_top h2 {
   color: #0f172a;
+}
+
+.light_mode .course_lesson_count {
+  color: #64748b;
 }
 
 .light_mode .progress_info {
@@ -329,6 +489,23 @@
 
 .light_mode .empty_state p {
   color: #64748b;
+}
+
+.light_mode .catalog_status {
+  border-color: #bfdbfe;
+  color: #1d4ed8;
+}
+
+.light_mode .catalog_message_error {
+  border-color: #fecaca;
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+.light_mode .catalog_message_success {
+  border-color: #bbf7d0;
+  background: #f0fdf4;
+  color: #166534;
 }
 
 .light_mode .courses_loading {
