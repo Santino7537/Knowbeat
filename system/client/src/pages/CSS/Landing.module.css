@@ -8,12 +8,12 @@
   --accent:#6BB8FF;
   --accent2:#4A90E2;
 }
-
+/* 
 *{
   margin:0;
   padding:0;
   box-sizing:border-box;
-}
+} */
 
 html{
   scroll-behavior:smooth;

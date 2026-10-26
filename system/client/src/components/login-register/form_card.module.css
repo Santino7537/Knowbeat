@@ -2,7 +2,7 @@
     width: 100%;
     height: 100%;
     border-radius: 10px;
-    background-color: rgb(230, 230, 230);
+    background: #334155;
     overflow: hidden;
     display: flex;
     flex-direction: row;
@@ -21,8 +21,19 @@
 }
 
 #change_section{
-    background-color: #234C6A;
-    color: white;
+    background: #1e293b;
+}
+
+section h2{
+  color: white;
+}
+
+section p{
+  color: #94a3b8;
+}
+
+section label{
+  color: #94a3b8;
 }
 
 .form {
@@ -41,7 +52,7 @@
 
 .button {
     padding: 0.7rem 1.5rem;
-    background-color: #3498db;
+    background-color: #3b82f6;
     color: white;
     border: none;
     border-radius: 4px;

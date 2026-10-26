@@ -3,8 +3,10 @@ import styles from './form_card.module.css'
 import axios from 'axios'
 import { useFieldErrors } from "../general/use_field_error.jsx";
 import { FieldError } from "../general/field_error.jsx";
+import { useNavigate } from 'react-router-dom';
 
 function Login_card({ onLoginSuccess ,  switchToRegister }){
+    const navigate = useNavigate();
     const [password, setPassword] = useState("");
     const [username, setUsername] = useState("");
     const { errors, setError, setErrors, clearError } = useFieldErrors();
@@ -28,6 +30,7 @@ function Login_card({ onLoginSuccess ,  switchToRegister }){
                 password
             });
             onLoginSuccess(response.data.token); // redirige
+            navigate("/courses")
         } catch (err) {
             const status = err.response?.status;
             if (status === 400 || status === 401) {
@@ -44,7 +47,7 @@ function Login_card({ onLoginSuccess ,  switchToRegister }){
     return(
         <>
             <div className={styles.card}>
-                <section className={styles.section} id={styles.main_section}>
+                <section className={styles.section}>
                     <h2>Iniciar Sesión</h2>
                     <form action="" className={styles.form} onSubmit={ fetchLogin }>
                         <label htmlFor="username">Nombre de usuario</label>
