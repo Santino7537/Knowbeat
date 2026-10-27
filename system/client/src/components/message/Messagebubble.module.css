@@ -1,6 +1,10 @@
 .bubble {
   position: relative;           /* referencia para la cola y la hora (absolutas) */
   box-sizing: border-box;
+  /* Sin esto, al haber muchos mensajes la lista (columna flex con scroll) los achica hasta
+     el min-height y el texto se desborda por encima de las burbujas de abajo. Con 0 la
+     burbuja siempre mide lo que necesita su contenido. */
+  flex-shrink: 0;
   /* 90x50px → rem (÷16). El mínimo evita que "OK" quede como un cuadradito. */
   min-width: 5.625rem;
   min-height: 3.125rem;

@@ -1,0 +1,20 @@
+.panel {
+   /* Mismo ancho proporcional que ya tenía el panel (340 de 1024). */
+   flex: 340 1 0;
+   min-width: 0;
+   box-sizing: border-box;
+   display: flex;
+   flex-direction: column;
+   gap: 1.5rem;
+   /* Solo padding vertical. Las cards se centran con align-items y se dimensionan en
+      ContactCard (91.2% del panel). */
+   align-items: center;
+   padding: 1.5rem 0;
+   background: #182130;
+   /* El scroll vive SOLO acá. Funciona porque la página mide 100dvh con overflow: hidden:
+      el panel queda con altura limitada, y cuando las cards la superan aparece la
+      scrollbar de este panel sin mover el resto de la página. */
+   overflow-y: auto;
+   scrollbar-width: thin;
+   scrollbar-color: #334155 transparent;
+ }

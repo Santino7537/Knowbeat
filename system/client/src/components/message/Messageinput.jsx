@@ -13,11 +13,10 @@ export default function MessageInput({ onSend }) {
   useLayoutEffect(() => {
     const el = ref.current
     el.style.height = 'auto' // primero se resetea para poder medir también cuando se borra texto
-    // offsetHeight - clientHeight = grosor de los bordes; hay que sumarlo porque
-    // usamos box-sizing: border-box y si no, siempre sobraría un scroll de 4px.
-    el.style.height = `${el.scrollHeight + (el.offsetHeight - el.clientHeight)}px`
-    // El tope de 3 líneas lo pone `max-height` en el CSS; pasado ese punto,
-    // overflow-y: auto muestra la scrollbar solo.
+    // El textarea ya no tiene padding ni borde propios (los tiene el contenedor), por eso
+    // scrollHeight es exactamente la altura del texto. El tope de 3 líneas lo pone
+    // `max-height` en el CSS; pasado ese punto aparece la scrollbar.
+    el.style.height = `${el.scrollHeight}px`
   }, [value])
 
   const submit = async () => {
@@ -44,16 +43,20 @@ export default function MessageInput({ onSend }) {
     }
   }
 
+  // El <label> envuelve al textarea a propósito: al hacer clic en cualquier parte de la
+  // píldora (también en su padding) el navegador enfoca el textarea, sin código extra.
   return (
-    <textarea
-      ref={ref}
-      className={styles.input}
-      rows={1}
-      value={value}
-      placeholder="Escribe un mensaje..."
-      aria-label="Escribe un mensaje"
-      onChange={(e) => setValue(e.target.value)}
-      onKeyDown={handleKeyDown}
-    />
+    <label className={styles.field}>
+      <textarea
+        ref={ref}
+        className={styles.input}
+        rows={1}
+        value={value}
+        placeholder="Escribe un mensaje..."
+        aria-label="Escribe un mensaje"
+        onChange={(e) => setValue(e.target.value)}
+        onKeyDown={handleKeyDown}
+      />
+    </label>
   )
 }

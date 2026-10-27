@@ -5,95 +5,92 @@
    las medidas del diseño y en otras pantallas escalan juntos.
    (Supuesto: la Sidebar ocupa su lugar en el flujo. Si es position: fixed,
    agregá margin-left: 200px a .chat.) */
-.page {
-  display: flex;
-  height: 100vh;
-  height: 100dvh;      /* dvh evita el salto de la barra del navegador en celulares */
-  overflow: hidden;    /* la página no scrollea; solo lo hace la lista de mensajes */
-  background: #0f172a;
-}
-
-/* ── Columna central ── */
-.chat {
-  position: relative;  /* el input se posiciona respecto a esta columna */
-  display: flex;
-  flex-direction: column;
-  flex: 484 1 0;
-  min-width: 0;        /* permite que la columna se achique en vez de desbordar */
-  background: #0f172a;
-}
-
-/* Cabecera: 390px / 484px = 80.6% de ancho; 100px = 6.25rem de alto; centrada con auto */
-.header {
-  flex-shrink: 0;
-  box-sizing: border-box;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  width: 80.6%;
-  height: 6.25rem;
-  margin: 1rem auto 0;
-  padding: 0 0.625rem; /* (100px - 80px de avatar) / 2 = 10px: el avatar queda centrado en vertical */
-  background: #1e293b;
-  border-radius: 0.5rem;
-}
-
-.avatar {
-  flex-shrink: 0;      /* nunca se aplasta si el nombre es largo */
-  width: 5rem;         /* 80px */
-  height: 5rem;
-  border-radius: 50%;
-  object-fit: cover;   /* la foto se recorta en vez de deformarse */
-  background: #d9d9d9; /* color de relleno mientras no hay foto */
-}
-
-.name {
-  margin: 0;
-  min-width: 0;
-  font-size: 1.5rem;
-  font-weight: 700;
-  line-height: 1.2;
-  color: #ffffff;
-  overflow-wrap: anywhere;
-}
-
-.error {
-  margin: 0.5rem auto 0;
-  width: 80.6%;
-  font-size: 0.875rem;
-  color: #f87171;
-}
-
-/* Lista de mensajes: ocupa todo el espacio que queda y es lo único que scrollea */
-.list {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 0.875rem;
-  overflow-y: auto;
-  /* Padding lateral en % para que la cola (0.5rem) nunca quede cortada.
-     Padding inferior de 8.5rem = 1rem de margen + 6.1rem del input a 3 líneas + aire:
-     como el input flota encima, sin esto el último mensaje quedaría tapado. */
-  padding: 1.25rem 4% 8.5rem;
-  scrollbar-width: thin;
-  scrollbar-color: #334155 transparent;
-}
-
-/* Input flotante: absoluto respecto a .chat, anclado abajo. Al crecer, lo hace hacia
-   arriba y se sobrepone a los mensajes, como pediste. left 9.7% + width 80.6% lo centra
-   (mismas proporciones que la cabecera, 390 de 484). El wrapper solo mide lo que mide
-   el input, así que no bloquea el scroll ni los clics sobre los mensajes de atrás. */
-.composer {
-  position: absolute;
-  bottom: 1rem;
-  left: 9.7%;
-  width: 80.6%;
-}
-
-/* ── Panel derecho (340px, por ahora vacío) ── */
-.conversations {
-  flex: 340 1 0;
-  min-width: 0;
-  overflow-y: auto;    /* cuando haya muchas conversaciones, scrollea solo este panel */
-  background: #182130;
-}
+   .page {
+    /* Ancho de la Sidebar en UN solo lugar. Si cambia, se cambia acá. */
+    --sidebar-width: 260px;
+    display: flex;
+    /* La Sidebar está fuera del flujo (position fixed), así que no ocupa lugar y el contenido
+       se dibujaba debajo de ella, tapándola. Este padding deja libre su franja a la izquierda. */
+    padding-left: var(--sidebar-width);
+    height: 100vh;
+    height: 100dvh;      /* dvh evita el salto de la barra del navegador en celulares */
+    overflow: hidden;    /* la página no scrollea; solo lo hace la lista de mensajes */
+    background: #0f172a;
+  }
+  
+  /* ── Columna central ── */
+  .chat {
+    position: relative;  /* el input se posiciona respecto a esta columna */
+    display: flex;
+    flex-direction: column;
+    flex: 484 1 0;
+    min-width: 0;        /* permite que la columna se achique en vez de desbordar */
+    background: #0f172a;
+  }
+  
+  /* Cabecera: 390px / 484px = 80.6% de ancho; 100px = 6.25rem de alto; centrada con auto */
+  .header {
+    flex-shrink: 0;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    width: 80.6%;
+    height: 6.25rem;
+    margin: 1rem auto 0;
+    padding: 0 0.625rem; /* (100px - 80px de avatar) / 2 = 10px: el avatar queda centrado en vertical */
+    background: #1e293b;
+    border-radius: 0.5rem;
+  }
+  
+  .avatar {
+    flex-shrink: 0;      /* nunca se aplasta si el nombre es largo */
+    width: 5rem;         /* 80px */
+    height: 5rem;
+    border-radius: 50%;
+    object-fit: cover;   /* la foto se recorta en vez de deformarse */
+    background: #d9d9d9; /* color de relleno mientras no hay foto */
+  }
+  
+  .name {
+    margin: 0;
+    min-width: 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1.2;
+    color: #ffffff;
+    overflow-wrap: anywhere;
+  }
+  
+  .error {
+    margin: 0.5rem auto 0;
+    width: 80.6%;
+    font-size: 0.875rem;
+    color: #f87171;
+  }
+  
+  /* Lista de mensajes: ocupa todo el espacio que queda y es lo único que scrollea */
+  .list {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.875rem;
+    overflow-y: auto;
+    /* Padding lateral en % para que la cola (0.5rem) nunca quede cortada.
+       Padding inferior de 8.5rem = 1rem de margen + 6.1rem del input a 3 líneas + aire:
+       como el input flota encima, sin esto el último mensaje quedaría tapado. */
+    padding: 1.25rem 4% 8.5rem;
+    scrollbar-width: thin;
+    scrollbar-color: #334155 transparent;
+  }
+  
+  /* Input flotante: absoluto respecto a .chat, anclado abajo. Al crecer, lo hace hacia
+     arriba y se sobrepone a los mensajes, como pediste. left 9.7% + width 80.6% lo centra
+     (mismas proporciones que la cabecera, 390 de 484). El wrapper solo mide lo que mide
+     el input, así que no bloquea el scroll ni los clics sobre los mensajes de atrás. */
+  .composer {
+    position: absolute;
+    bottom: 1rem;
+    left: 9.7%;
+    width: 80.6%;
+  }

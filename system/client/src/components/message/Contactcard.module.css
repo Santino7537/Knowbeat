@@ -1,0 +1,69 @@
+.card {
+    /* Ancho: 310px de 340px (el panel) = 91.2% del panel. */
+    width: 91.2%;
+    height: 6.25rem;               /* 100px */
+    /* Imprescindible: el panel es una columna flex con scroll. Sin esto, cuando hay muchas
+       cards el navegador las achicaría para que entren todas en vez de dejar que scrolleen. */
+    flex-shrink: 0;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0 0.75rem;
+    background: #1e293b;
+    border: 2px solid #334155;
+    border-radius: 0.25rem;
+    /* Reseteo de estilos nativos de <button> para que herede la tipografía del sitio */
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+  
+  /* Conversación abierta: solo cambia el color del borde (el grosor no cambia,
+     así que la card no "salta" de tamaño al seleccionarla). */
+  .active { border-color: #7b9ccc; }
+  
+  .avatar {
+    flex-shrink: 0;                /* el avatar nunca se aplasta por un nombre largo */
+    display: block;                /* un <span> es inline y no respeta width/height */
+    width: 3rem;                   /* 48px (no lo indicaste: estimado de la imagen) */
+    height: 3rem;
+    border-radius: 50%;
+    object-fit: cover;
+    background: #d9d9d9;           /* relleno mientras no hay foto */
+  }
+  
+  /* min-width: 0 es la clave del truncado: por defecto un hijo flex no puede ser más
+     angosto que su contenido, así que sin esto el texto largo ensancharía la card
+     en vez de cortarse con "...". */
+  .info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+  }
+  
+  /* Las 3 propiedades juntas hacen el "..." : una sola línea + ocultar el exceso +
+     puntos suspensivos. Se usan en el nombre también, por si alguien tiene uno larguísimo. */
+  .name,
+  .lastMessage {
+    display: block;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  
+  .name {
+    font-size: 1.25rem;
+    font-weight: 700;
+    line-height: 1.5rem;
+    color: #ffffff;
+  }
+  
+  .lastMessage {
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1.25rem;
+    color: #94a3b8;
+  }
