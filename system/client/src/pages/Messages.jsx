@@ -2,8 +2,15 @@ import { useEffect, useRef, useState } from 'react'
 import Sidebar from '../components/Sidebar'
 import MessageBubble from '../components/message/Messagebubble'
 import MessageInput from '../components/message/Messageinput'
-import ContactList from '../components/message/ContactList'
-import { getConversations, getMessages, sendMessage, MOCK_CURRENT_USER_ID } from './Messagesapi'
+import ContactList from '../components/message/Contactlist'
+import {
+  getConversations,
+  getMessages,
+  sendMessage,
+  markAsRead,
+  subscribeToMessages,
+  MOCK_CURRENT_USER_ID,
+} from './Messagesapi'
 import styles from './CSS/Message.module.css'
 
 // TODO: el usuario logueado vendrá de tu contexto de autenticación.
@@ -19,6 +26,14 @@ export default function Messages() {
   const listRef = useRef(null)
 
   const friend = contacts.find((c) => c.id === activeId) ?? null
+
+  // La suscripción a mensajes nuevos se crea UNA vez, pero necesita saber cuál es la conversación
+  // abierta "ahora". Si leyera `activeId` directo, se quedaría con el valor de cuando se creó
+  // (closure viejo). Por eso se guarda en una ref que se mantiene al día.
+  const activeIdRef = useRef(null)
+  useEffect(() => {
+    activeIdRef.current = activeId
+  }, [activeId])
 
   // Carga la lista de contactos una sola vez y deja abierta la primera conversación.
   useEffect(() => {
@@ -46,6 +61,44 @@ export default function Messages() {
       .catch(() => !cancelled && setError('No se pudieron cargar los mensajes.'))
     return () => { cancelled = true }
   }, [activeId])
+
+  // Entrar a una conversación = leerla: se borra el contador en pantalla y se avisa al backend.
+  // Está en un efecto sobre `activeId` (y no en el onClick) para cubrir también la conversación
+  // que se abre sola al cargar la página. El contador se borra primero en pantalla para que
+  // la respuesta sea inmediata; si el aviso al backend falla, no se interrumpe al usuario
+  // (el contador volvería a aparecer en la próxima carga).
+  useEffect(() => {
+    if (activeId === null) return
+    setContacts((prev) => prev.map((c) => (c.id === activeId && c.unreadCount ? { ...c, unreadCount: 0 } : c)))
+    markAsRead(activeId).catch(() => {})
+  }, [activeId])
+
+  // Mensajes recibidos. Dos casos, según dónde esté el usuario en ese momento:
+  //  - Es la conversación abierta: el mensaje se agrega al chat, NO suma contador (el usuario
+  //    lo está viendo) y se marca como leído.
+  //  - Es otra conversación: suma 1 al contador de esa card.
+  // En ambos casos la card actualiza su último mensaje.
+  // El remitente es el amigo, por eso senderId identifica la conversación.
+  useEffect(() => {
+    return subscribeToMessages((message) => {
+      const isOpen = message.senderId === activeIdRef.current
+
+      setContacts((prev) =>
+        prev.map((c) =>
+          c.id === message.senderId
+            ? { ...c, lastMessage: message.text, unreadCount: isOpen ? 0 : (c.unreadCount ?? 0) + 1 }
+            : c
+        )
+      )
+
+      if (isOpen) {
+        setMessages((prev) => [...prev, message])
+        markAsRead(message.senderId).catch(() => {})
+      }
+      // TODO: si llega un mensaje de alguien que todavía no está en `contacts`
+      // (un amigo nuevo), habrá que pedir la lista de nuevo. Por ahora se ignora.
+    })
+  }, [])
 
   // Cada vez que cambia la lista, bajamos al último mensaje.
   useEffect(() => {

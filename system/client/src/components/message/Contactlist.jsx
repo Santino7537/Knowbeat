@@ -12,6 +12,7 @@ export default function ContactList({ contacts, activeId, onSelect }) {
           name={c.name}
           avatar={c.avatar}
           lastMessage={c.lastMessage}
+          unreadCount={c.unreadCount}
           isActive={c.id === activeId}
           onClick={() => onSelect(c.id)}
         />
