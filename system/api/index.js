@@ -11,7 +11,9 @@ const { createFolder, updateFolder, deleteFolder, getFolderFiles } = require('./
 const { uploadFileInFolder, deleteFileFromFolder, getFileUrlFromFolder } = require('./controllers/fileController');
 const { searchCommunity, searchThread, createThread, createResponse, searchResponses, likePublication } = require('./controllers/communityController');
 
+const { createServer } = require('http');
 const { connectMongo } = require('./config/mongodb');
+const { initSocket } = require('./config/socket');
 
 const { postResponseLog } = require('./middlewares/binnacleHelper');
 const { checkFilesUpload } = require('./middlewares/checkFiles');
@@ -19,7 +21,11 @@ const { checkRequestDataSize } = require('./middlewares/checkReq');
 const isAuth = require('./middlewares/isAuth');
 const checkToken = require('./middlewares/checkToken');
 
+const { getFriendshipRequests, getFriends, sendFriendRequest, acceptFriendRequest, rejectFriendRequest, cancelFriendRequest, deleteFriendship } = require('./controllers/friendshipController');
+const { getMessages, sendMessage, markMessagesAsRead } = require('./controllers/chatController');
+
 const server = express();
+const httpServer = createServer(server);
 const PORT = process.env.PORT || 3000;
 
 const allowedOrigins = [
@@ -33,9 +39,9 @@ server.use(checkRequestDataSize()); // Verifica el tamaño de los datos del requ
 server.use(express.json({ limit: '100kb' })); // Limita el tamaño del body a 100kb
 server.use(express.urlencoded({ limit: '100kb', extended: true })); // Limita el tamaño del body a 100kb para datos codificados en URL
 
-server.use(cors({ // No permite solicitudes de otros orígenes que no estén en la lista de allowedOrigins
+server.use(cors({
   origin: function (origin, callback) {
-    if (allowedOrigins.includes(origin)) { // Se puede agregar "!origin ||" para testeos
+    if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
       callback(new Error('No permitido por CORS'));
@@ -79,6 +85,18 @@ server.patch('/community/like/thread/:publication_id', postResponseLog, checkTok
 server.patch('/community/like/response/:publication_id', postResponseLog, checkToken, isAuth, likePublication('response'));
 server.get('/community/search/thread/:thread_id/responses', checkToken, isAuth, searchResponses);
 
+// Friends & chat
+server.get('/friend/requests', postResponseLog, checkToken, isAuth, getFriendshipRequests);
+server.get('/friend/list', postResponseLog, checkToken, isAuth, getFriends);
+server.post('/friend/request/:user_id', postResponseLog, checkToken, isAuth, sendFriendRequest);
+server.patch('/friend/request/:request_id/accept', postResponseLog, checkToken, isAuth, acceptFriendRequest);
+server.patch('/friend/request/:request_id/reject', postResponseLog, checkToken, isAuth, rejectFriendRequest);
+server.patch('/friend/request/:request_id/cancel', postResponseLog, checkToken, isAuth, cancelFriendRequest);
+server.delete('/friend/:friendship_id', postResponseLog, checkToken, isAuth, deleteFriendship);
+server.post('/chat/send', postResponseLog, checkToken, isAuth, sendMessage);
+server.get('/chat/:friendship_id/messages', checkToken, isAuth, getMessages);
+server.patch('/chat/:friendship_id/read', postResponseLog, checkToken, isAuth, markMessagesAsRead);
+
 // Admins
 server.patch('/user/update/role/:id', postResponseLog, checkToken, isAuth, changeRole);
 server.patch('/user/delete/user/:id', postResponseLog, checkToken, isAuth, deleteUser);
@@ -99,8 +117,10 @@ server.patch('/user/update/goal', postResponseLog, checkToken, isAuth, changeGoa
 // Token
 server.get('/token/get/user', checkToken, getUserByToken)
 
-server.listen(PORT, async () => {
+httpServer.listen(PORT, async () => {
   console.log('La API está corriendo en el puerto ', PORT);
+  initSocket(httpServer, allowedOrigins);
+
   try {
     await connectMongo();
   } catch (err) { console.error("Failed to start MongoDB:", err); }
