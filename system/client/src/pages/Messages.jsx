@@ -3,20 +3,12 @@ import Sidebar from '../components/Sidebar'
 import MessageBubble from '../components/message/Messagebubble'
 import MessageInput from '../components/message/Messageinput'
 import ContactList from '../components/message/Contactlist'
-import {
-  getConversations,
-  getMessages,
-  sendMessage,
-  markAsRead,
-  subscribeToMessages,
-  MOCK_CURRENT_USER_ID,
-} from './Messagesapi'
 import styles from './CSS/Message.module.css'
 
-// TODO: el usuario logueado vendrá de tu contexto de autenticación.
-const CURRENT_USER_ID = MOCK_CURRENT_USER_ID
-
-export default function Messages() {
+// `currentUserId` es el id del usuario logueado. Se recibe por props porque la página no
+// debe inventarlo ni leerlo de un valor fijo; se usa para decidir de qué lado va cada mensaje.
+// TODO: cuando exista el contexto de autenticación, reemplazar la prop por ese hook.
+export default function Messages({ currentUserId }) {
   const [contacts, setContacts] = useState([])
   // Se guarda solo el id (no el objeto contacto): así hay una única fuente de verdad.
   // Si el contacto se actualiza en `contacts` (ej. su último mensaje), `friend` se actualiza solo.
@@ -148,7 +140,7 @@ export default function Messages() {
               key={m.id}
               text={m.text}
               createdAt={m.createdAt}
-              isOwn={m.senderId === CURRENT_USER_ID}
+              isOwn={m.senderId === currentUserId}
             />
           ))}
         </div>
