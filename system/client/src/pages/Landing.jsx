@@ -169,9 +169,7 @@ const Landing = () => {
           Música · Comunidad · Aprendizaje
         </p>
 
-        <h1 className={styles.title}>
-          KNOWBEAT
-        </h1>
+        <img src="./Logo.png" alt="Knowbeat" />
 
         <p className={styles.slogan}>
           Descubrí una nueva forma de aprender,
@@ -209,7 +207,6 @@ const Landing = () => {
             : ''
         }`}>
 
-        <div className={styles.features_transition}></div>
         <div className={styles.features_header}>
 
           <p className={styles.features_mini}>
