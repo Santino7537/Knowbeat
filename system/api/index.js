@@ -131,4 +131,5 @@ httpServer.listen(PORT, async () => {
   await require('./config/createRoles')();
   await require('./config/createPermissions')();
   await require('./config/createAdmin')();
+  await require('./config/createCourses')();
 });
