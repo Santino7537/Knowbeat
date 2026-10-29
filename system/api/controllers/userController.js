@@ -184,7 +184,6 @@ const getUserByUsername = async (req, res) => {
       }
 
       user.picture = getPublicFileUrl("profiles", user.picture);
-      delete user.id;
       delete user.configuration;
       if (!isOwner) delete user.email;
       return res.status(200).json({
