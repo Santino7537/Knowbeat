@@ -4,6 +4,8 @@ import { useLocation, useNavigate, useParams } from "react-router-dom";
 
 import Sidebar from "../components/Sidebar";
 import CourseLessonMap from "../components/course-map/CourseLessonMap";
+import LessonPlayer from "../components/lesson-player/LessonPlayer.jsx";
+import { getLessonForCourse } from "../components/lesson-player/lessonCatalog.js";
 import styles from "./CSS/CourseLessonMapPage.module.css";
 
 const pianoIcon = (
@@ -35,6 +37,7 @@ const CourseLessonMapPage = () => {
   const { courseId } = useParams();
   const [course, setCourse] = useState(null);
   const [currentLesson, setCurrentLesson] = useState(null);
+  const [activeLesson, setActiveLesson] = useState(null);
   const [loading, setLoading] = useState(true);
   const [startingLesson, setStartingLesson] = useState(false);
   const [error, setError] = useState("");
@@ -68,6 +71,7 @@ const CourseLessonMapPage = () => {
       setError("");
       setCourse(null);
       setCurrentLesson(null);
+      setActiveLesson(null);
 
       const requestedCourseId = Number(courseId);
       if (!Number.isSafeInteger(requestedCourseId) || requestedCourseId <= 0) {
@@ -116,39 +120,75 @@ const CourseLessonMapPage = () => {
     return () => { active = false; };
   }, [courseId, token]);
 
-  const startLesson = async () => {
-    if (!course || currentLesson === null || currentLesson > Number(course.total_lessons) || startingLesson) {
-      return;
+  const completeLesson = async (lessonNumber) => {
+    if (!course || lessonNumber !== currentLesson || startingLesson) {
+      throw new Error("El progreso del curso cambió. Volvé al curso y actualizá el mapa.");
     }
 
     setStartingLesson(true);
-    setError("");
     try {
       const response = await axios.patch(
         `http://localhost:3000/user/update/progress/${course.course_id}`,
-        { current_lesson: currentLesson },
+        { current_lesson: lessonNumber },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       const nextLesson = Number(response.data?.current_lesson);
-      if (!Number.isSafeInteger(nextLesson) || nextLesson !== currentLesson + 1) {
+      if (!Number.isSafeInteger(nextLesson) || nextLesson !== lessonNumber + 1) {
         throw new Error("La respuesta de actualización del progreso no es válida.");
       }
       setCurrentLesson(nextLesson);
     } catch (requestError) {
       const updatedLesson = Number(requestError.response?.data?.current_lesson);
-      if (Number.isSafeInteger(updatedLesson) && updatedLesson >= 1) {
+      if (requestError.response?.status === 409 && updatedLesson === lessonNumber + 1) {
         setCurrentLesson(updatedLesson);
+        return;
       }
-      setError(requestError.response?.data?.error || requestError.message || "No se pudo actualizar el progreso.");
+      throw new Error(
+        requestError.response?.data?.error
+        || requestError.message
+        || "No se pudo guardar el progreso. Intentá nuevamente."
+      );
     } finally {
       setStartingLesson(false);
     }
   };
 
+  const startLesson = (selectedLesson) => {
+    if (!course || currentLesson === null || !selectedLesson || selectedLesson.status === "locked") return;
+    const lessonNumber = Number(selectedLesson.id);
+    const lessonContent = getLessonForCourse(course.name, lessonNumber);
+    if (!lessonContent?.lesson) {
+      setError(lessonContent?.error || "El contenido de esta lección todavía no está disponible.");
+      return;
+    }
+
+    setError("");
+    setActiveLesson({
+      lesson: lessonContent.lesson,
+      number: lessonNumber,
+      isReplay: selectedLesson.status === "completed"
+    });
+  };
+
+  if (activeLesson) {
+    return (
+      <LessonPlayer
+        lesson={activeLesson.lesson}
+        lessonNumber={activeLesson.number}
+        isReplay={activeLesson.isReplay}
+        onExit={() => setActiveLesson(null)}
+        onComplete={completeLesson}
+      />
+    );
+  }
+
   const totalLessons = Number(course?.total_lessons) || 0;
   const lessons = course && currentLesson !== null
     ? Array.from({ length: totalLessons }, (_, index) => {
       const lessonNumber = index + 1;
+      const lessonContent = getLessonForCourse(course.name, lessonNumber);
+      const lessonData = lessonContent?.lesson;
+      const hasContent = Boolean(lessonData);
       const status = lessonNumber < currentLesson
         ? "completed"
         : lessonNumber === currentLesson
@@ -157,10 +197,19 @@ const CourseLessonMapPage = () => {
 
       return {
         id: lessonNumber,
-        title: `Lección ${lessonNumber}`,
-        description: "El contenido de esta lección estará disponible próximamente.",
+        title: hasContent
+          ? lessonData.title
+          : `Lección ${lessonNumber}`,
+        description: hasContent
+          ? lessonData.description
+          : "El contenido de esta lección estará disponible próximamente.",
         type: "Lección",
-        status
+        status,
+        sectionId: lessonData?.sectionId,
+        level: lessonData?.level,
+        estimatedMinutes: lessonData?.estimatedMinutes,
+        hasContent,
+        contentError: lessonContent?.error
       };
     })
     : [];

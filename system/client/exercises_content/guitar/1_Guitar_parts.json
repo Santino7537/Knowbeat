@@ -1,0 +1,311 @@
+{
+  "id": "guitar-intro-parts-001",
+  "courseId": "guitar",
+  "sectionId": "beginning",
+  "title": "Introducción a la guitarra: sus partes",
+  "description": "Conoce las piezas principales de la guitarra y descubre para qué sirve cada una.",
+  "level": "beginner",
+  "estimatedMinutes": 5,
+  "slides": [
+    {
+      "id": "slide-01",
+      "type": "info",
+      "title": "Conociendo la guitarra",
+      "blocks": [
+        {
+          "type": "text",
+          "text": "La guitarra es un instrumento de cuerda presente en muchísimos estilos musicales. Puede acompañar una canción con acordes, tocar melodías o llevar solos."
+        },
+        {
+          "type": "text",
+          "text": "Existen distintos tipos, como la guitarra clásica, la acústica y la eléctrica. Su forma y algunos de sus componentes cambian, pero comparten varias partes y principios de funcionamiento."
+        },
+        {
+          "type": "text",
+          "text": "En esta lección vamos a reconocer las partes principales. No hace falta memorizarlas todas de golpe: por ahora, intenta relacionar cada nombre con la pieza correspondiente."
+        }
+      ],
+      "image": {
+        "src": "/exercises/guitar/guitar-parts/guitarra.png",
+        "alt": "Vista general de una guitarra con sus partes principales",
+        "orientation": "vertical"
+      }
+    },
+    {
+      "id": "slide-02",
+      "type": "info",
+      "title": "¿De qué está hecha?",
+      "blocks": [
+        {
+          "type": "text",
+          "text": "La guitarra está formada por varias piezas que trabajan juntas para que podamos tocar y producir sonido."
+        },
+        {
+          "type": "text",
+          "text": "Algunas sujetan y afinan las cuerdas; otras nos permiten elegir las notas; y otras ayudan a transmitir o proyectar las vibraciones. Vamos a conocerlas una por una."
+        }
+      ],
+      "image": {
+        "src": "/exercises/guitar/guitar-parts/partes.png",
+        "alt": "Diagrama con las partes principales de una guitarra",
+        "orientation": "vertical"
+      }
+    },
+    {
+      "id": "slide-03",
+      "type": "info",
+      "title": "La cabeza o pala",
+      "blocks": [
+        {
+          "type": "text",
+          "text": "La cabeza, también llamada pala, está en el extremo superior de la guitarra. Allí se encuentran las clavijas, que sirven para ajustar la tensión de las cuerdas y afinar el instrumento."
+        },
+        {
+          "type": "text",
+          "text": "Su diseño depende del modelo: algunas guitarras tienen tres clavijas a cada lado, mientras que otras las colocan en una sola línea. La forma de la pala también puede variar."
+        }
+      ],
+      "image": {
+        "src": "/exercises/guitar/guitar-parts/cabeza.png",
+        "alt": "Detalle de la cabeza o pala de la guitarra",
+        "orientation": "horizontal"
+      }
+    },
+    {
+      "id": "slide-04",
+      "type": "info",
+      "title": "Clavijero, clavijas y cejuela",
+      "blocks": [
+        {
+          "type": "text",
+          "heading": "El clavijero",
+          "text": "Es el conjunto de mecanismos que sostiene las clavijas. Al girar una clavija, el mecanismo enrolla o libera un poco de cuerda y cambia su tensión, lo que permite afinarla."
+        },
+        {
+          "type": "text",
+          "heading": "Las clavijas",
+          "text": "Son las piezas que giramos para afinar. Hazlo con movimientos pequeños: un cambio de tensión puede modificar bastante la nota."
+        },
+        {
+          "type": "text",
+          "heading": "La cejuela",
+          "text": "Es una pieza pequeña situada entre la pala y el diapasón. Tiene ranuras que mantienen las cuerdas separadas y a la altura adecuada antes de que recorran el mástil."
+        }
+      ],
+      "image": {
+        "src": "/exercises/guitar/guitar-parts/cabeza.png",
+        "alt": "Detalle de las clavijas, el clavijero y la cejuela",
+        "orientation": "vertical"
+      }
+    },
+    {
+      "id": "slide-05",
+      "type": "info",
+      "title": "El mástil",
+      "blocks": [
+        {
+          "type": "text",
+          "text": "El mástil es la parte larga y estrecha que conecta la cabeza con el cuerpo de la guitarra. Cuando tocamos acordes o notas, normalmente apoyamos la mano sobre esta zona."
+        },
+        {
+          "type": "text",
+          "heading": "El diapasón",
+          "text": "Es la superficie delantera del mástil, la que queda debajo de las cuerdas. Allí presionamos una cuerda para cambiar la longitud que vibra y producir distintas notas."
+        },
+        {
+          "type": "text",
+          "heading": "Marcas de posición",
+          "text": "Muchas guitarras tienen puntos en el diapasón o en el borde del mástil. Funcionan como referencias visuales para encontrar posiciones con más facilidad. Su ubicación puede variar según el instrumento."
+        },
+        {
+          "type": "text",
+          "heading": "El alma",
+          "text": "Algunas guitarras, especialmente muchas acústicas y eléctricas, tienen una varilla interna llamada alma. Sirve para ajustar la curvatura del mástil. No es una pieza que un principiante deba ajustar sin orientación."
+        }
+      ],
+      "image": {
+        "src": "/exercises/guitar/guitar-parts/mastil.png",
+        "alt": "Vista del mástil y el diapasón de una guitarra",
+        "orientation": "horizontal"
+      }
+    },
+    {
+      "id": "slide-06",
+      "type": "info",
+      "title": "Los trastes",
+      "blocks": [
+        {
+          "type": "text",
+          "text": "Los trastes son las barras metálicas finas que cruzan el diapasón, de forma perpendicular a las cuerdas."
+        },
+        {
+          "type": "text",
+          "text": "En el habla cotidiana también llamamos «traste» al espacio donde colocamos el dedo, entre dos barras. Para obtener una nota clara, normalmente presionamos la cuerda justo detrás de la barra del traste elegido, no encima de ella."
+        },
+        {
+          "type": "text",
+          "text": "Cada posición cambia la longitud vibrante de la cuerda y, por lo tanto, la nota que escuchamos. No necesitas aprender todas las notas ahora: primero, identifica las barras y los espacios."
+        }
+      ],
+      "image": {
+        "src": "/exercises/guitar/guitar-parts/trastes.png",
+        "alt": "Detalle de los trastes metálicos y los espacios del diapasón",
+        "orientation": "horizontal"
+      }
+    },
+    {
+      "id": "slide-07",
+      "type": "info",
+      "title": "El cuerpo de la guitarra",
+      "blocks": [
+        {
+          "type": "text",
+          "text": "El cuerpo es la parte más grande de la guitarra. En una guitarra clásica o acústica, la caja ayuda a proyectar el sonido y está formada por una tapa, un fondo y unos laterales llamados aros."
+        },
+        {
+          "type": "text",
+          "text": "En una guitarra acústica, las vibraciones de las cuerdas se transmiten al cuerpo y contribuyen al sonido que escuchamos. En una eléctrica de cuerpo sólido, el sonido se capta principalmente con pastillas electrónicas, por lo que su construcción es diferente."
+        },
+        {
+          "type": "text",
+          "text": "Aunque los materiales y las formas cambien según el modelo, el cuerpo también es una referencia importante para ubicar otras piezas, como el puente."
+        }
+      ],
+      "image": {
+        "src": "/exercises/guitar/guitar-parts/caja.png",
+        "alt": "Vista del cuerpo de una guitarra",
+        "orientation": "vertical"
+      }
+    },
+    {
+      "id": "slide-08",
+      "type": "info",
+      "title": "Puente y golpeador",
+      "blocks": [
+        {
+          "type": "text",
+          "heading": "El puente",
+          "text": "Está ubicado en el cuerpo, debajo de las cuerdas. Sujeta las cuerdas y transmite parte de sus vibraciones al instrumento. Su diseño cambia entre guitarras clásicas, acústicas y eléctricas."
+        },
+        {
+          "type": "text",
+          "heading": "El golpeador",
+          "text": "Es una lámina protectora que aparece en muchos modelos. Ayuda a evitar rayones en la superficie cuando rozamos la guitarra con la púa o con los dedos al tocar."
+        }
+      ],
+      "image": {
+        "src": "/exercises/guitar/guitar-parts/caja.png",
+        "alt": "Zona del puente y posible ubicación del golpeador",
+        "orientation": "vertical"
+      }
+    },
+    {
+      "id": "slide-09",
+      "type": "info",
+      "title": "Las seis cuerdas",
+      "blocks": [
+        {
+          "type": "text",
+          "text": "Las cuerdas son las que hacemos vibrar para producir las notas. En una guitarra común hay seis y se numeran desde la más fina hasta la más gruesa: la primera es la más fina y la sexta, la más gruesa."
+        },
+        {
+          "type": "text",
+          "heading": "Afinación habitual",
+          "text": "En la afinación estándar, de la sexta cuerda a la primera, las notas son Mi, La, Re, Sol, Si y Mi. La sexta suena más grave y la primera más aguda."
+        },
+        {
+          "type": "text",
+          "heading": "¿De qué material son?",
+          "text": "Depende del tipo de guitarra. Las guitarras clásicas suelen usar cuerdas de nailon en las tres primeras y cuerdas entorchadas en las más graves. Las acústicas y eléctricas suelen usar cuerdas metálicas, con materiales y recubrimientos que varían según el juego."
+        },
+        {
+          "type": "text",
+          "text": "Por ahora, quédate con esta idea: primera significa cuerda más fina; sexta significa cuerda más gruesa. Más adelante practicaremos sus nombres y su afinación."
+        }
+      ],
+      "image": {
+        "src": "/exercises/guitar/guitar-parts/cuerdas.png",
+        "alt": "Detalle de las seis cuerdas de la guitarra",
+        "orientation": "horizontal"
+      }
+    },
+    {
+      "id": "slide-10",
+      "type": "exercise",
+      "title": "¡A reconocer las partes!",
+      "description": "Lee cada pista y elige la parte de la guitarra que cumple esa función.",
+      "questions": [
+        {
+          "id": "q1",
+          "type": "multiple-choice",
+          "prompt": "¿Qué pieza giras para cambiar la tensión de una cuerda y afinarla?",
+          "options": [
+            {
+              "id": "a",
+              "text": "El puente"
+            },
+            {
+              "id": "b",
+              "text": "La clavija"
+            },
+            {
+              "id": "c",
+              "text": "El golpeador"
+            }
+          ],
+          "correctOptionId": "b",
+          "feedbackCorrect": "¡Correcto! La clavija permite ajustar la tensión de la cuerda para afinarla.",
+          "feedbackIncorrect": "Prueba otra vez. Busca la pieza que está en la cabeza de la guitarra y que puedes girar."
+        },
+        {
+          "id": "q2",
+          "type": "multiple-choice",
+          "prompt": "¿Cómo se llama la superficie delantera del mástil donde presionamos las cuerdas?",
+          "options": [
+            {
+              "id": "a",
+              "text": "El diapasón"
+            },
+            {
+              "id": "b",
+              "text": "La caja"
+            },
+            {
+              "id": "c",
+              "text": "La pala"
+            }
+          ],
+          "correctOptionId": "a",
+          "feedbackCorrect": "¡Exacto! El diapasón es la superficie donde colocamos los dedos para tocar distintas notas.",
+          "feedbackIncorrect": "Pista: está sobre el mástil, justo debajo de las cuerdas."
+        },
+        {
+          "id": "q3",
+          "type": "multiple-choice",
+          "prompt": "¿Qué parte ayuda a sujetar las cuerdas en el cuerpo de la guitarra?",
+          "options": [
+            {
+              "id": "a",
+              "text": "La cejuela"
+            },
+            {
+              "id": "b",
+              "text": "El clavijero"
+            },
+            {
+              "id": "c",
+              "text": "El puente"
+            }
+          ],
+          "correctOptionId": "c",
+          "feedbackCorrect": "¡Bien! El puente sujeta las cuerdas en el cuerpo y transmite parte de sus vibraciones.",
+          "feedbackIncorrect": "Pista: está en el cuerpo de la guitarra, no en la cabeza."
+        }
+      ],
+      "completion": {
+        "passingScore": 2,
+        "xp": 20
+      }
+    }
+  ]
+}
