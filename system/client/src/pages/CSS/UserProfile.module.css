@@ -1,9 +1,14 @@
+/* ─── Layout ──────────────────────────────────────────────────────────────── */
 .layout {
-  --profile-bg: #050b18;
-  --profile-text: #f4f8ff;
-  --profile-muted: #9aa9be;
-  --profile-accent: #6bb8ff;
+  --profile-bg:            #050b18;
+  --profile-text:          #f4f8ff;
+  --profile-muted:         #9aa9be;
+  --profile-accent:        #6bb8ff;
   --profile-sidebar-width: 260px;
+
+  /* Botón 40×40 sobre pantalla 1024×768:
+     40/1024 = 3.906vw  →  clamp para que no se achique demasiado ni crezca indefinidamente */
+  --friend-btn-size: clamp(2rem, 3.906vw, 2.6rem);
 
   display: flex;
   min-height: 100vh;
@@ -32,6 +37,7 @@
   font-size: 0.95rem;
 }
 
+/* ─── Profile header ──────────────────────────────────────────────────────── */
 .profileHeader {
   width: 100%;
   padding: 14px 0 34px;
@@ -67,9 +73,7 @@
   border-radius: 50%;
 }
 
-.avatar {
-  object-fit: cover;
-}
+.avatar { object-fit: cover; }
 
 .avatarFallback {
   border: 1px solid rgba(107, 184, 255, 0.22);
@@ -114,10 +118,8 @@
   white-space: pre-wrap;
 }
 
-.profileMenu {
-  position: relative;
-  flex-shrink: 0;
-}
+/* ─── Menú ••• ────────────────────────────────────────────────────────────── */
+.profileMenu { position: relative; flex-shrink: 0; }
 
 .menuButton {
   display: grid;
@@ -145,7 +147,8 @@
 .menuButton:focus-visible,
 .menuDropdown button:focus-visible,
 .closeButton:focus-visible,
-.saveButton:focus-visible {
+.saveButton:focus-visible,
+.friendButton:focus-visible {
   outline: 2px solid var(--profile-accent);
   outline-offset: 3px;
 }
@@ -181,6 +184,53 @@
   background: rgba(107, 184, 255, 0.08);
 }
 
+/* ─── Botón de amistad ────────────────────────────────────────────────────── */
+/* 40×40 sobre 1024×768 → var(--friend-btn-size) definido arriba */
+.friendButton {
+  display: grid;
+  place-items: center;
+  width: var(--friend-btn-size);
+  height: var(--friend-btn-size);
+  flex-shrink: 0;
+  border: 1px solid #334155;
+  border-radius: 50%;
+  background: #2a3952;
+  cursor: pointer;
+  transition: background 0.18s ease, border-color 0.18s ease, transform 0.15s ease;
+}
+
+.friendButton:hover:not(:disabled) {
+  background: #354969;
+  border-color: #4a6080;
+  transform: scale(1.07);
+}
+
+/* Variante activa (ya amigo / solicitud enviada / rechazar) */
+.friendButtonActive {
+  background: #2a3952;
+  border-color: #ff626b55;
+}
+
+.friendButtonActive:hover:not(:disabled) {
+  background: #3d2030;
+  border-color: #ff626b;
+}
+
+/* Los SVG son 64×64; los escalamos a ~55% del botón */
+.friendButtonIcon {
+  width: 55%;
+  height: 55%;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+/* Variante pequeña para las solicitudes recibidas */
+.friendButtonSmall {
+  width: clamp(1.6rem, 3.1vw, 2rem);
+  height: clamp(1.6rem, 3.1vw, 2rem);
+}
+
+/* ─── Racha ───────────────────────────────────────────────────────────────── */
 .streakDisplay {
   display: flex;
   min-width: 132px;
@@ -191,21 +241,10 @@
   transition: color 0.35s ease;
 }
 
-.streakwhite {
-  color: #f5f7fb;
-}
-
-.streakyellow {
-  color: #f6d85b;
-}
-
-.streakorange {
-  color: #ff994d;
-}
-
-.streakred {
-  color: #ff626b;
-}
+.streakwhite  { color: #f5f7fb; }
+.streakyellow { color: #f6d85b; }
+.streakorange { color: #ff994d; }
+.streakred    { color: #ff626b; }
 
 .streakIcon {
   width: 31px;
@@ -235,26 +274,204 @@
   line-height: 1;
 }
 
-.streakValue > span {
-  color: var(--profile-muted);
-  font-size: 0.82rem;
-}
+.streakValue > span { color: var(--profile-muted); font-size: 0.82rem; }
 
 .streakLabel,
-.streakUnavailable {
+.streakUnavailable { color: var(--profile-muted); font-size: 0.78rem; }
+
+.streakUnavailable { max-width: 8rem; line-height: 1.4; }
+
+/* ─── Panel (editar / solicitudes) ───────────────────────────────────────── */
+.editPanel {
+  display: grid;
+  gap: 22px;
+  width: 100%;
+  padding: 8px 0 30px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+  animation: editReveal 0.22s ease-out both;
+}
+
+.editPanelHeading,
+.formActions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.editPanelHeading .contentTitle { font-size: 1.25rem; color: #ffffff; }
+
+.closeButton {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 50%;
   color: var(--profile-muted);
-  font-size: 0.78rem;
+  background: transparent;
+  cursor: pointer;
+  font-size: 1.25rem;
+  line-height: 1;
+  transition: color 0.18s ease, border-color 0.18s ease, background 0.18s ease;
 }
 
-.streakUnavailable {
-  max-width: 8rem;
-  line-height: 1.4;
+.closeButton:hover {
+  border-color: rgba(107, 184, 255, 0.35);
+  color: var(--profile-accent);
+  background: rgba(107, 184, 255, 0.06);
 }
 
-.contentArea {
+/* ─── Lista de solicitudes ────────────────────────────────────────────────── */
+/* Contenedor con scroll cuando hay muchas solicitudes */
+.requestsList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 26rem;       /* ~4-5 items antes de hacer scroll */
+  overflow-y: auto;
+  padding-right: 4px;      /* espacio para la scrollbar */
+  scrollbar-width: thin;
+  scrollbar-color: #334155 transparent;
+}
+
+.requestsList::-webkit-scrollbar       { width: 4px; }
+.requestsList::-webkit-scrollbar-track { background: transparent; }
+.requestsList::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+
+/* Ítem de solicitud:
+   500×60 sobre 1024×768:
+   ancho  → 500/1024 = 48.83vw  → clamp(22rem, 48.8vw, 36rem)
+   alto   → 60/768   =  7.81vh  → clamp(3.2rem, 7.8vh, 4rem)   como min-height  */
+.requestItem {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: clamp(3.2rem, 7.8vh, 4rem);
+  max-width: clamp(22rem, 48.8vw, 36rem);
+  padding: 0 14px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.requestAvatar,
+.requestAvatarFallback {
+  width: 2rem;
+  height: 2rem;
+  flex-shrink: 0;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.requestAvatarFallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(145deg, #17385c, #0d1b32 75%);
+  border: 1px solid rgba(107, 184, 255, 0.22);
+  color: #d7edff;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.requestUsername {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--profile-text);
+}
+
+.requestActions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* Texto vacío de solicitudes */
+.requestsEmpty {
+  margin: 0;
+  color: #94a3b8;
+  font-size: 0.9rem;
+}
+
+/* ─── Formulario de edición ───────────────────────────────────────────────── */
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px 22px;
+}
+
+.formGrid label {
+  display: grid;
+  min-width: 0;
+  gap: 8px;
+  color: #bac6d8;
+  font-size: 0.84rem;
+  font-weight: 500;
+}
+
+.fieldLabel       { color: #bac6d8; font-weight: 500; }
+.fieldLabel small { color: #8190a5; font-size: inherit; font-weight: 400; }
+
+.formGrid input,
+.formGrid textarea {
   width: 100%;
   min-width: 0;
+  padding: 11px 13px;
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  border-radius: 7px;
+  color: var(--profile-text);
+  background: #091426;
+  font: inherit;
+  resize: vertical;
+  transition: border-color 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
 }
+
+.formGrid input:hover,
+.formGrid textarea:hover { border-color: rgba(107, 184, 255, 0.3); }
+
+.formGrid input:focus,
+.formGrid textarea:focus {
+  outline: none;
+  border-color: var(--profile-accent);
+  background: #0b182c;
+  box-shadow: 0 0 0 3px rgba(107, 184, 255, 0.12);
+}
+
+.fullField { grid-column: 1 / -1; }
+
+.formActions { justify-content: flex-end; }
+
+.formError {
+  margin: 0 auto 0 0;
+  color: #ff9a9f;
+  font-size: 0.86rem;
+}
+
+.saveButton {
+  padding: 11px 16px;
+  border: 1px solid #6bb8ff;
+  border-radius: 7px;
+  color: #06111e;
+  background: #6bb8ff;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 650;
+  transition: background 0.18s ease, border-color 0.18s ease, opacity 0.18s ease;
+}
+
+.saveButton:hover:not(:disabled) { border-color: #9bd1ff; background: #9bd1ff; }
+.saveButton:disabled { cursor: wait; opacity: 0.65; }
+
+/* ─── Contenido (cursos) ──────────────────────────────────────────────────── */
+.contentArea { width: 100%; min-width: 0; }
 
 .contentHeading {
   display: flex;
@@ -274,11 +491,7 @@
   letter-spacing: -0.035em;
 }
 
-.courseCount {
-  flex-shrink: 0;
-  color: var(--profile-muted);
-  font-size: 0.86rem;
-}
+.courseCount { flex-shrink: 0; color: var(--profile-muted); font-size: 0.86rem; }
 
 .courseGrid {
   display: grid;
@@ -306,179 +519,31 @@
   opacity: 0.8;
 }
 
-.emptyState h3 {
-  margin: 0 0 7px;
-  color: #e7eef8;
-  font-size: 1.05rem;
-  font-weight: 550;
-}
+.emptyState h3 { margin: 0 0 7px; color: #e7eef8; font-size: 1.05rem; font-weight: 550; }
+.emptyState p  { max-width: 28rem; margin: 0; font-size: 0.9rem; line-height: 1.6; }
 
-.emptyState p {
-  max-width: 28rem;
-  margin: 0;
-  font-size: 0.9rem;
-  line-height: 1.6;
-}
-
-.editPanel {
-  display: grid;
-  gap: 22px;
-  width: 100%;
-  padding: 8px 0 30px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.09);
-  animation: editReveal 0.22s ease-out both;
-}
-
-.editPanelHeading,
-.formActions {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-}
-
-.editPanelHeading .contentTitle {
-  font-size: 1.25rem;
-}
-
-.closeButton {
-  display: grid;
-  width: 34px;
-  height: 34px;
-  flex-shrink: 0;
-  place-items: center;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 50%;
-  color: var(--profile-muted);
-  background: transparent;
-  cursor: pointer;
-  font-size: 1.25rem;
-  line-height: 1;
-  transition: color 0.18s ease, border-color 0.18s ease, background 0.18s ease;
-}
-
-.closeButton:hover {
-  border-color: rgba(107, 184, 255, 0.35);
-  color: var(--profile-accent);
-  background: rgba(107, 184, 255, 0.06);
-}
-
-.formGrid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 18px 22px;
-}
-
-.formGrid label {
-  display: grid;
-  min-width: 0;
-  gap: 8px;
-  color: #bac6d8;
-  font-size: 0.84rem;
-  font-weight: 500;
-}
-
-.fieldLabel {
-  color: #bac6d8;
-  font-weight: 500;
-}
-
-.fieldLabel small {
-  color: #8190a5;
-  font-size: inherit;
-  font-weight: 400;
-}
-
-.formGrid input,
-.formGrid textarea {
-  width: 100%;
-  min-width: 0;
-  padding: 11px 13px;
-  border: 1px solid rgba(255, 255, 255, 0.13);
-  border-radius: 7px;
-  color: var(--profile-text);
-  background: #091426;
-  font: inherit;
-  resize: vertical;
-  transition: border-color 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
-}
-
-.formGrid input:hover,
-.formGrid textarea:hover {
-  border-color: rgba(107, 184, 255, 0.3);
-}
-
-.formGrid input:focus,
-.formGrid textarea:focus {
-  outline: none;
-  border-color: var(--profile-accent);
-  background: #0b182c;
-  box-shadow: 0 0 0 3px rgba(107, 184, 255, 0.12);
-}
-
-.fullField {
-  grid-column: 1 / -1;
-}
-
-.formActions {
-  justify-content: flex-end;
-}
-
-.formError {
-  margin: 0 auto 0 0;
-  color: #ff9a9f;
-  font-size: 0.86rem;
-}
-
-.saveButton {
-  padding: 11px 16px;
-  border: 1px solid #6bb8ff;
-  border-radius: 7px;
-  color: #06111e;
-  background: #6bb8ff;
-  cursor: pointer;
-  font: inherit;
-  font-size: 0.88rem;
-  font-weight: 650;
-  transition: background 0.18s ease, border-color 0.18s ease, opacity 0.18s ease;
-}
-
-.saveButton:hover:not(:disabled) {
-  border-color: #9bd1ff;
-  background: #9bd1ff;
-}
-
-.saveButton:disabled {
-  cursor: wait;
-  opacity: 0.65;
-}
-
+/* ─── Animación ───────────────────────────────────────────────────────────── */
 @keyframes editReveal {
-  from {
-    opacity: 0;
-    transform: translateY(-5px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(-5px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
+/* ─── Responsive ──────────────────────────────────────────────────────────── */
 @media (max-width: 1024px) {
-  .layout {
-    --profile-sidebar-width: 220px;
-  }
+  .layout { --profile-sidebar-width: 220px; }
 }
 
 @media (max-width: 900px) {
-  .profileMain {
-    grid-template-columns: auto minmax(0, 1fr);
-  }
+  .profileMain { grid-template-columns: auto minmax(0, 1fr); }
 
-  .streakDisplay {
+  /* Racha y botón de amistad bajan a segunda fila */
+  .streakDisplay,
+  .friendButton:not(.friendButtonSmall) {
     grid-column: 2;
     justify-self: start;
+    /* Racha: borde superior en vez de izquierdo */
+  }
+  .streakDisplay {
     padding: 12px 0 0;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
     border-left: 0;
@@ -486,144 +551,58 @@
 }
 
 @media (max-width: 768px) {
-  .layout {
-    --profile-sidebar-width: 0px;
-  }
-
-  .main {
-    padding: 30px 24px 56px;
-  }
+  .layout { --profile-sidebar-width: 0px; }
+  .main { padding: 30px 24px 56px; }
 }
 
 @media (max-width: 600px) {
-  .main {
-    gap: 24px;
-    padding: 22px 18px 44px;
-  }
-
-  .profileHeader {
-    padding: 6px 0 25px;
-  }
-
+  .main { gap: 24px; padding: 22px 18px 44px; }
+  .profileHeader { padding: 6px 0 25px; }
   .profileMain {
     grid-template-columns: 78px minmax(0, 1fr);
     align-items: center;
     gap: 16px;
   }
+  .avatarWrapper { width: 78px; padding: 3px; }
+  .username { font-size: clamp(1.55rem, 7vw, 2rem); }
+  .usernameRow { gap: 4px; }
+  .profileInfo { gap: 8px; }
+  .description { font-size: 0.9rem; }
 
-  .avatarWrapper {
-    width: 78px;
-    padding: 3px;
-  }
-
-  .username {
-    font-size: clamp(1.55rem, 7vw, 2rem);
-  }
-
-  .usernameRow {
-    gap: 4px;
-  }
-
-  .profileInfo {
-    gap: 8px;
-  }
-
-  .description {
-    font-size: 0.9rem;
-  }
-
-  .streakDisplay {
+  .streakDisplay,
+  .friendButton:not(.friendButtonSmall) {
     grid-column: 1 / -1;
     width: 100%;
+  }
+  .streakDisplay {
     align-items: center;
     padding-top: 14px;
   }
+  .streakIcon  { width: 24px; height: 31px; }
+  .streakValue strong { font-size: 1.35rem; }
 
-  .streakIcon {
-    width: 24px;
-    height: 31px;
-  }
-
-  .streakValue strong {
-    font-size: 1.35rem;
-  }
-
-  .contentHeading {
-    align-items: flex-end;
-    margin-bottom: 16px;
-    padding-bottom: 12px;
-  }
-
-  .contentTitle {
-    font-size: 1.35rem;
-  }
-
-  .courseCount {
-    font-size: 0.78rem;
-  }
-
-  .courseGrid {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .formGrid {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .fullField {
-    grid-column: auto;
-  }
+  .contentHeading { align-items: flex-end; margin-bottom: 16px; padding-bottom: 12px; }
+  .contentTitle { font-size: 1.35rem; }
+  .courseCount  { font-size: 0.78rem; }
+  .courseGrid   { grid-template-columns: minmax(0, 1fr); }
+  .formGrid     { grid-template-columns: minmax(0, 1fr); }
+  .fullField    { grid-column: auto; }
+  .requestItem  { max-width: 100%; }
 }
 
 @media (max-width: 400px) {
-  .main {
-    padding-right: 14px;
-    padding-left: 14px;
-  }
-
-  .profileMain {
-    grid-template-columns: 66px minmax(0, 1fr);
-    gap: 12px;
-  }
-
-  .avatarWrapper {
-    width: 66px;
-  }
-
-  .username {
-    font-size: 1.45rem;
-  }
-
-  .menuButton {
-    width: 30px;
-    height: 30px;
-  }
-
-  .contentHeading {
-    gap: 8px;
-  }
-
-  .contentTitle {
-    font-size: 1.2rem;
-  }
-
-  .courseCount {
-    font-size: 0.72rem;
-  }
-
+  .main { padding-right: 14px; padding-left: 14px; }
+  .profileMain { grid-template-columns: 66px minmax(0, 1fr); gap: 12px; }
+  .avatarWrapper { width: 66px; }
+  .username { font-size: 1.45rem; }
+  .menuButton { width: 30px; height: 30px; }
+  .contentHeading { gap: 8px; }
+  .contentTitle { font-size: 1.2rem; }
+  .courseCount  { font-size: 0.72rem; }
   .editPanelHeading,
-  .formActions {
-    align-items: stretch;
-    flex-direction: column;
-  }
-
-  .formActions {
-    gap: 12px;
-  }
-
-  .saveButton {
-    width: 100%;
-  }
+  .formActions { align-items: stretch; flex-direction: column; }
+  .formActions { gap: 12px; }
+  .saveButton  { width: 100%; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -631,12 +610,12 @@
   .menuButton,
   .menuDropdown,
   .closeButton,
+  .friendButton,
   .formGrid input,
   .formGrid textarea,
   .saveButton {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
-    scroll-behavior: auto !important;
     transition-duration: 0.01ms !important;
   }
 }
