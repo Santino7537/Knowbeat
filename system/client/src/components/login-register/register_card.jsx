@@ -3,10 +3,8 @@ import styles from './form_card.module.css';
 import axios from 'axios'
 import { useFieldErrors } from "../general/use_field_error.jsx";
 import { FieldError } from "../general/field_error.jsx";
-import { useNavigate } from 'react-router-dom';
 
-function Register_card({ switchToLogin }){
-    const navigate = useNavigate();
+function Register_card({ onAuthSuccess, switchToLogin }){
     const [password, setPassword] = useState("");
     const [username, setUsername] = useState("");
     const [email, setEmail] = useState("");
@@ -29,8 +27,7 @@ function Register_card({ switchToLogin }){
             const response = await axios.post("http://localhost:3000/register", {
                 password, username, email,
             });
-            console.log(response);
-            navigate("/courses")
+            await onAuthSuccess(response.data.token);
         }
         catch (err) {
             // Errores del servidor → mismo sistema, distintos mensajes

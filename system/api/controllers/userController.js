@@ -112,8 +112,10 @@ const register = async (req, res) => {
     return res.status(500).json({ error: 'Error al crear usuario' });
   }
 
+  const token = jwt.sign({ user_id: dbResult.insertId }, SECRET, { expiresIn: '8h' });
   res.status(201).json({
     message: 'Registro exitoso',
+    token,
     user: {
       id: dbResult.insertId,
       username: userPayload.username,

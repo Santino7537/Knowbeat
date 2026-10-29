@@ -21,18 +21,22 @@ export function AuthProvider({ children }) {
     if (!token) {
       setLoggedUser(false);
       setLoadingAuth(false);
-      return;
+      return false;
     }
     try {
       const { data } = await axios.get(
         "http://localhost:3000/token/get/user",
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setLoggedUser(data);           // { picture, username, biography }
+      setLoggedUser(data);
+      return data;
     } catch (err) {
-      // Token inválido / expirado → limpiar sesión
       console.warn("Sesión inválida:", err.response?.data ?? err.message);
+      if (err.response?.status === 401 || err.response?.status === 404) {
+        localStorage.removeItem("token");
+      }
       setLoggedUser(false);
+      return false;
     } finally {
       setLoadingAuth(false);
     }

@@ -3,10 +3,8 @@ import styles from './form_card.module.css'
 import axios from 'axios'
 import { useFieldErrors } from "../general/use_field_error.jsx";
 import { FieldError } from "../general/field_error.jsx";
-import { useNavigate } from 'react-router-dom';
 
-function Login_card({ onLoginSuccess ,  switchToRegister }){
-    const navigate = useNavigate();
+function Login_card({ onAuthSuccess, switchToRegister }){
     const [password, setPassword] = useState("");
     const [username, setUsername] = useState("");
     const { errors, setError, setErrors, clearError } = useFieldErrors();
@@ -29,8 +27,7 @@ function Login_card({ onLoginSuccess ,  switchToRegister }){
                 username,
                 password
             });
-            onLoginSuccess(response.data.token); // redirige
-            navigate("/courses")
+            await onAuthSuccess(response.data.token);
         } catch (err) {
             const status = err.response?.status;
             if (status === 400 || status === 401) {

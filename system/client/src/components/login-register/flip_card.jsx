@@ -3,7 +3,7 @@ import Login_card from "./login_card";
 import Register_card from "./register_card";
 import styles from "./flip_card.module.css";
 
-export default function FlipCard({ onLoginSuccess }) {
+export default function FlipCard({ onAuthSuccess }) {
   const [flipped, setFlipped] = useState(false);
 
   return (
@@ -12,13 +12,14 @@ export default function FlipCard({ onLoginSuccess }) {
         
         <div className={styles.cardFront}>
           <Login_card
-            onLoginSuccess={onLoginSuccess}
+            onAuthSuccess={onAuthSuccess}
             switchToRegister={() => setFlipped(true)}
           />
         </div>
 
         <div className={styles.cardBack}>
           <Register_card
+            onAuthSuccess={onAuthSuccess}
             switchToLogin={() => setFlipped(false)}
           />
         </div>

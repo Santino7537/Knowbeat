@@ -10,9 +10,9 @@ import SeventhChordsExercise from './exercises-pages/seventh-chords.jsx'
 import Messages from './pages/Messages.jsx';
 
 import Login_register from './pages/login_register.jsx'
-import { AuthProvider } from './context/AuthContext.jsx'
+import { AuthProvider, useAuth } from './context/AuthContext.jsx'
 import { useEffect } from "react";
-import { Routes, Route, useLocation } from "react-router-dom";
+import { Navigate, Outlet, Routes, Route, useLocation } from "react-router-dom";
 import './App.css'
 
 const getPageTitle = (pathname) => {
@@ -42,6 +42,15 @@ function DocumentTitle() {
   return null;
 }
 
+function ProtectedRoutes() {
+  const { loggedUser, loadingAuth } = useAuth();
+
+  if (loadingAuth) return null;
+  if (!loggedUser) return <Navigate to="/" replace />;
+
+  return <Outlet />;
+}
+
 function App() {
   return (
       // AuthProvider envuelve todo el árbol: el fetch del token
@@ -51,19 +60,19 @@ function App() {
       <AuthProvider>
         <DocumentTitle />
         <Routes>
-          <Route path="/admin" element={<AdminView />} />
-          <Route path="/settings" element={<Settings />} />
           <Route path="/Login" element={<Login_register />} />
           <Route path="/" element={<Landing />} />
-          <Route path="/courses" element={<Courses />} />
-          <Route path="/courses/catalog" element={<CoursesCatalog />} />
-          <Route path="/courses/:courseId/lessons" element={<CourseLessonMapPage />} />
-          <Route path="/exercises" element={<Exercises />}/>
-          <Route path="/exercises/seventh-chords" element={<SeventhChordsExercise />} />
-          <Route path="/messages" element={<Messages/>} />
-          
-          {/* PERFIL — :userId permite ver el perfil de cualquier usuario */}
-          <Route path="/user/:username" element={<UserProfile />} />
+          <Route element={<ProtectedRoutes />}>
+            <Route path="/admin" element={<AdminView />} />
+            <Route path="/settings" element={<Settings />} />
+            <Route path="/courses" element={<Courses />} />
+            <Route path="/courses/catalog" element={<CoursesCatalog />} />
+            <Route path="/courses/:courseId/lessons" element={<CourseLessonMapPage />} />
+            <Route path="/exercises" element={<Exercises />}/>
+            <Route path="/exercises/seventh-chords" element={<SeventhChordsExercise />} />
+            <Route path="/messages" element={<Messages/>} />
+            <Route path="/user/:username" element={<UserProfile />} />
+          </Route>
         </Routes>
       </AuthProvider>
     </>
