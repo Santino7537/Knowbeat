@@ -25,6 +25,31 @@
   overflow: hidden;
 }
 
+/*
+  Cuando la card es un enlace (<a>): los enlaces son "inline" por defecto y así
+  ignorarían el ancho y el aspect-ratio, por eso display: block. También se
+  quita el subrayado y el color azul del enlace.
+  Hover: el borde pasa a azul 3B82F6 (el mismo del foco de los campos), para que
+  se note que se puede hacer clic. Foco de teclado: anillo del mismo color.
+  Va después de .card para ganar por orden (misma especificidad).
+*/
+.cardLink {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+}
+
+.cardLink:hover {
+  border-color: #3b82f6;
+}
+
+.cardLink:focus-visible {
+  outline: 0.125rem solid #3b82f6;
+  outline-offset: 0.125rem;
+}
+
 /* Todo en una fila, centrado verticalmente: avatar | texto | racha */
 .inner {
   display: flex;
