@@ -142,7 +142,7 @@ const Landing = () => {
 
         {/* LOWER NOTES */}
 
-        <div className={styles.bottom_floating_notes}s>
+        <div className={styles.bottom_floating_notes}>
           <div className={styles.music_gradient}></div>
           <span className={`${styles.float_note} ${styles.fn1}`}>♪</span>
           <span className={`${styles.float_note} ${styles.fn2}`}>♫</span>
@@ -246,7 +246,7 @@ const Landing = () => {
           </article>
 
           <article className={styles.card}>
-            <div className={styles.ard_blur}></div>
+            <div className={styles.card_blur}></div>
             <div className={styles.card_line}></div>
             <h3>
               Ejercicios personalizados

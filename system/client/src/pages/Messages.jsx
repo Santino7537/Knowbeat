@@ -1,114 +1,247 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useAuth } from "../context/AuthContext.jsx";
 import Sidebar from '../components/Sidebar'
 import MessageBubble from '../components/message/Messagebubble'
 import MessageInput from '../components/message/Messageinput'
 import ContactList from '../components/message/Contactlist'
 import styles from './CSS/Message.module.css'
+import axios from "axios";
+import { io } from 'socket.io-client'
 
-// `currentUserId` es el id del usuario logueado. Se recibe por props porque la página no
-// debe inventarlo ni leerlo de un valor fijo; se usa para decidir de qué lado va cada mensaje.
-// TODO: cuando exista el contexto de autenticación, reemplazar la prop por ese hook.
-export default function Messages({ currentUserId }) {
-  const [contacts, setContacts] = useState([])
-  // Se guarda solo el id (no el objeto contacto): así hay una única fuente de verdad.
-  // Si el contacto se actualiza en `contacts` (ej. su último mensaje), `friend` se actualiza solo.
-  const [activeId, setActiveId] = useState(null)
+const API_URL = 'http://localhost:3000'
+const MESSAGE_PAGE_SIZE = 30
+
+export default function Messages() {
+  const { loggedUser } = useAuth();
+  const currentUserId = loggedUser.id;
+
+  const [friendChats, setFriendChats] = useState({})
+  const [currentFriendId, setCurrentFriendId] = useState(null)
   const [messages, setMessages] = useState([])
+  const [loadedFriendshipId, setLoadedFriendshipId] = useState(null)
   const [error, setError] = useState(null)
+  const [hasMoreMessages, setHasMoreMessages] = useState(true)
+  const [loadingOlderMessages, setLoadingOlderMessages] = useState(false)
   const listRef = useRef(null)
+  const socketRef = useRef(null)
+  const friendChatsRef = useRef(friendChats)
+  const currentFriendshipIdRef = useRef(null)
+  const loadingOlderMessagesRef = useRef(false)
+  const scrollAnchorRef = useRef(null)
+  const shouldStickToBottomRef = useRef(true)
+  const friend = friendChats[currentFriendId] ?? null
+  const friendshipIds = Object.values(friendChats).map((chat) => chat.friendship_id).filter(Boolean)
+  const friendshipIdsKey = friendshipIds.join(',')
+  const currentFriendIdRef = useRef(currentFriendId)
+  const visibleMessages = loadedFriendshipId === friend?.friendship_id ? messages : []
 
-  const friend = contacts.find((c) => c.id === activeId) ?? null
-
-  // La suscripción a mensajes nuevos se crea UNA vez, pero necesita saber cuál es la conversación
-  // abierta "ahora". Si leyera `activeId` directo, se quedaría con el valor de cuando se creó
-  // (closure viejo). Por eso se guarda en una ref que se mantiene al día.
-  const activeIdRef = useRef(null)
   useEffect(() => {
-    activeIdRef.current = activeId
-  }, [activeId])
+    friendChatsRef.current = friendChats
+  }, [friendChats])
+
+  useEffect(() => {
+    currentFriendshipIdRef.current = friend?.friendship_id ?? null
+  }, [friend?.friendship_id])
+
+  useEffect(() => {
+    currentFriendIdRef.current = currentFriendId
+  }, [currentFriendId])
 
   // Carga la lista de contactos una sola vez y deja abierta la primera conversación.
   useEffect(() => {
-    let cancelled = false
-    getConversations()
-      .then((data) => {
-        if (cancelled) return
-        setContacts(data)
-        setActiveId((prev) => prev ?? data[0]?.id ?? null)
+    const token = localStorage.getItem("token");
+
+    axios.get(
+      "http://localhost:3000/friend/list",
+      { headers: { Authorization: `Bearer ${token}` } }
+    ).then(({data}) => {
+        setFriendChats(data)
+        setCurrentFriendId((prev) => prev ?? Object.keys(data)[0] ?? null)
       })
-      .catch(() => !cancelled && setError('No se pudieron cargar las conversaciones.'))
-    return () => { cancelled = true }
+      .catch(() => setError('No se pudieron cargar las conversaciones.'))
   }, [])
 
   // Carga el historial cada vez que cambia la conversación activa.
-  // Se vacía la lista primero para no mostrar un instante los mensajes del chat anterior.
-  // `cancelled` evita que una respuesta tardía de otro chat pise a la actual.
   useEffect(() => {
-    if (activeId === null) return
+    const friendshipId = friend?.friendship_id
+    if (currentFriendId === null || !friendshipId) return
+
     let cancelled = false
-    setError(null)
-    setMessages([])
-    getMessages(activeId)
-      .then((data) => !cancelled && setMessages(data))
-      .catch(() => !cancelled && setError('No se pudieron cargar los mensajes.'))
+    loadingOlderMessagesRef.current = false
+    scrollAnchorRef.current = null
+    shouldStickToBottomRef.current = true
+
+    const token = localStorage.getItem("token");
+    axios.get(`${API_URL}/chat/${friendshipId}/messages`, {
+      params: { limit: MESSAGE_PAGE_SIZE },
+      headers: { Authorization: `Bearer ${token}` }
+    }).then(({ data }) => {
+      if (cancelled) return
+      setError(null)
+      setMessages(data.data)
+      setLoadedFriendshipId(friendshipId)
+      setHasMoreMessages(data.data.length === MESSAGE_PAGE_SIZE)
+    }).catch(() => {
+      if (!cancelled) setError('No se pudieron cargar los mensajes.')
+    })
+
     return () => { cancelled = true }
-  }, [activeId])
+  }, [currentFriendId, friend?.friendship_id])
 
-  // Entrar a una conversación = leerla: se borra el contador en pantalla y se avisa al backend.
-  // Está en un efecto sobre `activeId` (y no en el onClick) para cubrir también la conversación
-  // que se abre sola al cargar la página. El contador se borra primero en pantalla para que
-  // la respuesta sea inmediata; si el aviso al backend falla, no se interrumpe al usuario
-  // (el contador volvería a aparecer en la próxima carga).
+  // Marca como leídos los mensajes del chat actual
   useEffect(() => {
-    if (activeId === null) return
-    setContacts((prev) => prev.map((c) => (c.id === activeId && c.unreadCount ? { ...c, unreadCount: 0 } : c)))
-    markAsRead(activeId).catch(() => {})
-  }, [activeId])
+    const friendshipId = friend?.friendship_id
+    if (currentFriendId === null || !friendshipId) return
 
-  // Mensajes recibidos. Dos casos, según dónde esté el usuario en ese momento:
-  //  - Es la conversación abierta: el mensaje se agrega al chat, NO suma contador (el usuario
-  //    lo está viendo) y se marca como leído.
-  //  - Es otra conversación: suma 1 al contador de esa card.
-  // En ambos casos la card actualiza su último mensaje.
-  // El remitente es el amigo, por eso senderId identifica la conversación.
+    const token = localStorage.getItem("token");
+    axios.patch(`${API_URL}/chat/${friendshipId}/read`, {}, {
+      headers: { Authorization: `Bearer ${token}` }
+    }).then(() => {
+      setFriendChats((prev) => prev[currentFriendId]?.unread_count
+        ? { ...prev, [currentFriendId]: { ...prev[currentFriendId], unread_count: 0 } }
+        : prev)
+    }).catch(() => {})
+  }, [currentFriendId, friend?.friendship_id])
+
+  // Mantiene una conexión autenticada y escucha mensajes de todas las amistades.
   useEffect(() => {
-    return subscribeToMessages((message) => {
-      const isOpen = message.senderId === activeIdRef.current
+    const token = localStorage.getItem('token')
+    if (!token) return
 
-      setContacts((prev) =>
-        prev.map((c) =>
-          c.id === message.senderId
-            ? { ...c, lastMessage: message.text, unreadCount: isOpen ? 0 : (c.unreadCount ?? 0) + 1 }
-            : c
-        )
-      )
+    const socket = io(API_URL, { auth: { token } })
+    socketRef.current = socket
+
+    const handleMessage = (message) => {
+      if (message.author_id === currentUserId) return
+
+      const [friendId, chat] = Object.entries(friendChatsRef.current).find(([, item]) =>
+        Number(item.friendship_id) === Number(message.friendship_id)
+      ) ?? []
+      if (!friendId || !chat) return
+
+      const isOpen = currentFriendIdRef.current === friendId
+      setFriendChats((prev) => {
+        const currentChat = prev[friendId]
+        if (!currentChat) return prev
+        return {
+          ...prev,
+          [friendId]: {
+            ...currentChat,
+            last_message: message.text,
+            unread_count: isOpen ? 0 : (currentChat.unread_count ?? 0) + 1
+          }
+        }
+      })
 
       if (isOpen) {
-        setMessages((prev) => [...prev, message])
-        markAsRead(message.senderId).catch(() => {})
+        setMessages((prev) => prev.some((item) => String(item.id) === String(message.id))
+          ? prev
+          : [...prev, message])
+        axios.patch(`${API_URL}/chat/${message.friendship_id}/read`, {}, {
+          headers: { Authorization: `Bearer ${token}` }
+        }).catch(() => {})
       }
-      // TODO: si llega un mensaje de alguien que todavía no está en `contacts`
-      // (un amigo nuevo), habrá que pedir la lista de nuevo. Por ahora se ignora.
-    })
-  }, [])
+    }
 
-  // Cada vez que cambia la lista, bajamos al último mensaje.
+    socket.on('chat:message', handleMessage)
+    return () => {
+      socket.off('chat:message', handleMessage)
+      socket.disconnect()
+      socketRef.current = null
+    }
+  }, [currentUserId])
+
+  // El servidor autoriza cada sala antes de emitir sus mensajes al socket.
   useEffect(() => {
-    const el = listRef.current
-    el.scrollTop = el.scrollHeight
-  }, [messages])
+    const socket = socketRef.current
+    if (!socket) return
+    Object.values(friendChatsRef.current).forEach(({ friendship_id }) => {
+      socket.emit('chat:join', { friendship_id })
+    })
+  }, [friendshipIdsKey])
 
-  // Se agrega el mensaje cuando el servidor responde (no antes) porque es el
-  // servidor quien asigna el id y la hora oficial. Relanza el error para que
-  // el input sepa que falló y conserve el texto.
+  // Mantiene la posición al anteponer mensajes y sigue los nuevos si ya estaba abajo.
+  useLayoutEffect(() => {
+    const el = listRef.current
+    if (!el) return
+
+    if (scrollAnchorRef.current) {
+      const { height, top } = scrollAnchorRef.current
+      el.scrollTop = top + el.scrollHeight - height
+      scrollAnchorRef.current = null
+    } else if (shouldStickToBottomRef.current) {
+      el.scrollTop = el.scrollHeight
+    }
+  }, [messages, loadedFriendshipId, friend?.friendship_id])
+
+  const handleMessageListScroll = async (event) => {
+    const element = event.currentTarget
+    shouldStickToBottomRef.current = element.scrollHeight - element.scrollTop - element.clientHeight < 80
+
+    const friendshipId = friend?.friendship_id
+    const oldestMessage = visibleMessages[0]
+    if (element.scrollTop > 40 || !hasMoreMessages || loadingOlderMessagesRef.current || !friendshipId || !oldestMessage?.created_at) {
+      return
+    }
+
+    loadingOlderMessagesRef.current = true
+    setLoadingOlderMessages(true)
+    scrollAnchorRef.current = { height: element.scrollHeight, top: element.scrollTop }
+    const token = localStorage.getItem('token')
+
+    try {
+      const { data } = await axios.get(`${API_URL}/chat/${friendshipId}/messages`, {
+        params: { limit: MESSAGE_PAGE_SIZE, before: oldestMessage.created_at },
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      if (Number(currentFriendshipIdRef.current) !== Number(friendshipId)) return
+
+      const olderMessages = data.data
+      if (olderMessages.length === 0) {
+        setHasMoreMessages(false)
+        scrollAnchorRef.current = null
+        return
+      }
+
+      setMessages((prev) => {
+        const existingIds = new Set(prev.map((message) => String(message.id)))
+        return [...olderMessages.filter((message) => !existingIds.has(String(message.id))), ...prev]
+      })
+      setLoadedFriendshipId(friendshipId)
+      setHasMoreMessages(olderMessages.length === MESSAGE_PAGE_SIZE)
+    } catch {
+      scrollAnchorRef.current = null
+      setError('No se pudieron cargar más mensajes.')
+    } finally {
+      loadingOlderMessagesRef.current = false
+      setLoadingOlderMessages(false)
+    }
+  }
+
+  const handleSelectFriend = (friendId) => {
+    setCurrentFriendId(friendId)
+    setFriendChats((prev) => prev[friendId]?.unread_count
+      ? { ...prev, [friendId]: { ...prev[friendId], unread_count: 0 } }
+      : prev)
+  }
+
+  // Maneja el envío de un mensaje
   const handleSend = async (text) => {
     try {
       setError(null)
-      const saved = await sendMessage(activeId, text)
-      setMessages((prev) => [...prev, saved])
-      // La card del contacto muestra el último mensaje: se actualiza acá para que
-      // coincida con lo que acaba de pasar en el chat, sin volver a pedir la lista.
-      setContacts((prev) => prev.map((c) => (c.id === activeId ? { ...c, lastMessage: saved.text } : c)))
+      const token = localStorage.getItem("token");
+
+      const { data } = await axios.post(`${API_URL}/chat/send`, {
+        friendship_id: friend.friendship_id,
+        text
+      }, { headers: { Authorization: `Bearer ${token}` } })
+      const message = data.message
+      setMessages((prev) => prev.some((item) => String(item.id) === String(message.id))
+        ? prev
+        : [...prev, message])
+      setFriendChats((prev) => prev[currentFriendId]
+        ? { ...prev, [currentFriendId]: { ...prev[currentFriendId], last_message: message.text } }
+        : prev)
     } catch (err) {
       setError('No se pudo enviar el mensaje. Intenta de nuevo.')
       throw err
@@ -122,25 +255,26 @@ export default function Messages({ currentUserId }) {
       <main className={styles.chat}>
         {friend && (
           <header className={styles.header}>
-            {friend.avatar ? (
-              <img className={styles.avatar} src={friend.avatar} alt="" />
+            {friend.picture ? (
+              <img className={styles.avatar} src={friend.picture} alt="" />
             ) : (
               <div className={styles.avatar} />
             )}
-            <h1 className={styles.name}>{friend.name}</h1>
+            <h1 className={styles.name}>{friend.username}</h1>
           </header>
         )}
 
         {error && <p className={styles.error} role="alert">{error}</p>}
 
         {/* role="log" + aria-live: los lectores de pantalla anuncian los mensajes nuevos */}
-        <div className={styles.list} ref={listRef} role="log" aria-live="polite">
-          {messages.map((m) => (
+        <div className={styles.list} ref={listRef} onScroll={handleMessageListScroll} role="log" aria-live="polite">
+          {loadingOlderMessages && <span role="status">Cargando mensajes...</span>}
+          {visibleMessages.map((m) => (
             <MessageBubble
               key={m.id}
               text={m.text}
-              createdAt={m.createdAt}
-              isOwn={m.senderId === currentUserId}
+              created_at={m.created_at}
+              isOwn={m.author_id === currentUserId}
             />
           ))}
         </div>
@@ -153,7 +287,7 @@ export default function Messages({ currentUserId }) {
         )}
       </main>
 
-      <ContactList contacts={contacts} activeId={activeId} onSelect={setActiveId} />
+      <ContactList friendChats={friendChats} currentFriendId={currentFriendId} onSelect={handleSelectFriend} />
     </div>
   )
 }

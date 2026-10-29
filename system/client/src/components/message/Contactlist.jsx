@@ -1,20 +1,18 @@
 import ContactCard from './Contactcard'
 import styles from './ContactList.module.css'
 
-// Este componente es "tonto" a propósito: no sabe de dónde vienen los contactos ni qué pasa
-// al elegir uno. Recibe todo por props y la página decide. Así es reutilizable y fácil de probar.
-export default function ContactList({ contacts, activeId, onSelect }) {
+export default function ContactList({ friendChats, currentFriendId, onSelect }) {
   return (
     <aside className={styles.panel} aria-label="Conversaciones">
-      {contacts.map((c) => (
+      {Object.entries(friendChats).map(([id, c]) => (
         <ContactCard
-          key={c.id}
-          name={c.name}
-          avatar={c.avatar}
-          lastMessage={c.lastMessage}
-          unreadCount={c.unreadCount}
-          isActive={c.id === activeId}
-          onClick={() => onSelect(c.id)}
+          key={id}
+          username={c.username}
+          picture={c.picture}
+          last_message={c.last_message}
+          unread_count={c.unread_count}
+          currentFriendId={id === currentFriendId}
+          onClick={() => onSelect(id)}
         />
       ))}
     </aside>

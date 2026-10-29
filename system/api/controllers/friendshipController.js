@@ -1,4 +1,5 @@
 const db = require('../config/db');
+const { getDb } = require('../config/mongodb');
 const { getPublicFileUrl } = require('./bucketController');
 
 const parsePositiveId = value => {
@@ -81,12 +82,48 @@ const getFriends = async (req, res) => {
       ORDER BY u.username ASC
     `, [userId, userId, userId]);
 
-    return res.status(200).json(rows.map(row => ({
-      friendship_id: row.friendship_id,
-      id: row.user_id,
-      username: row.username,
-      picture: getPublicFileUrl('profiles', row.picture)
-    })));
+    const messageSummaries = rows.length > 0
+      ? await getDb().collection('Message').aggregate([
+        { $match: { friendship_id: { $in: rows.map(row => row.friendship_id) } } },
+        { $sort: { created_at: -1, _id: -1 } },
+        {
+          $group: {
+            _id: '$friendship_id',
+            unread_count: {
+              $sum: {
+                $cond: [
+                  {
+                    $and: [
+                      { $ne: ['$author_id', userId] },
+                      { $eq: [{ $ifNull: ['$seen', false] }, false] }
+                    ]
+                  },
+                  1,
+                  0
+                ]
+              }
+            },
+            last_message: { $first: '$text' }
+          }
+        }
+      ]).toArray()
+      : [];
+    const summariesByFriendshipId = new Map(
+      messageSummaries.map(summary => [summary._id, summary])
+    );
+
+    return res.status(200).json(
+      Object.fromEntries(rows.map(row => [
+        row.user_id,
+        {
+          friendship_id: row.friendship_id,
+          username: row.username,
+          picture: getPublicFileUrl('profiles', row.picture),
+          unread_count: summariesByFriendshipId.get(row.friendship_id)?.unread_count ?? 0,
+          last_message: summariesByFriendshipId.get(row.friendship_id)?.last_message ?? null
+        }
+      ]))
+    );
   } catch (error) {
     console.error('Error al obtener amistades:', error);
     return res.status(500).json({ error: 'Error al obtener amistades' });

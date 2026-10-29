@@ -89,7 +89,7 @@ const register = async (req, res) => {
     username,
     email,
     password: hashedPassword,
-    picture: `${process.env.MINIO_PUBLIC_URL}/profiles/default_profile.webp`,
+    picture: "default_profile.webp",
     streak: 0,
     score: 0,
     configuration: config_json,
@@ -204,7 +204,7 @@ const getUserByToken = async (req, res) => {
   const userId = req.user.user_id
 
   try {
-    let [user] = await db.query('SELECT picture, username, biography FROM User WHERE eliminated = 0 && id = ?', [userId]);
+    let [user] = await db.query('SELECT id, picture, username, biography FROM User WHERE eliminated = 0 && id = ?', [userId]);
     if (user.length === 1) {
       user = user[0]
       user.picture = getPublicFileUrl("profiles", user.picture);
