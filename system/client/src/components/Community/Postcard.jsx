@@ -1,8 +1,7 @@
 import { useLayoutEffect, useRef, useState } from 'react';
+import axios from 'axios';
 import styles from './PostCard.module.css';
 
-// Formatea la fecha que viene del backend (created_at llega como string ISO)
-// a algo legible en español, ej: "8 de octubre de 2026".
 const formatDate = (value) => {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return '';
@@ -14,57 +13,39 @@ const formatDate = (value) => {
   }).format(date);
 };
 
-/*
-  Props:
-  - post: { id, title, text, likes_count, created_at, author: { username, picture } }
-  - onLike(postId, isLiked): opcional, para cuando conectemos el endpoint
-  - onOpenComments(postId): opcional, para cuando hagamos la vista de comentarios
-*/
-export default function PostCard({ post, onLike, onOpenComments }) {
+export default function PostCard({ post }) {
   const { id, title, text, likes_count = 0, created_at, author = {} } = post;
 
-  // Por ahora el like es solo visual/local: no hay endpoint todavía.
   const [isLiked, setIsLiked] = useState(false);
   const [likes, setLikes] = useState(likes_count);
 
-  // expanded: el usuario pidió ver todo el contenido.
-  // hasHiddenContent: estando colapsada, la card está ocultando algo
-  // (texto o título cortado) y por eso corresponde ofrecer "Ver todo".
+  // Estados de expansión y comentarios
+  const [isCommentsOpen, setIsCommentsOpen] = useState(false);
+  const [comments, setComments] = useState([]);
+  const [isLoadingComments, setIsLoadingComments] = useState(false);
+  const [newCommentText, setNewCommentText] = useState('');
+  const [isSubmittingComment, setIsSubmittingComment] = useState(false);
+
   const [expanded, setExpanded] = useState(false);
   const [hasHiddenContent, setHasHiddenContent] = useState(false);
 
   const titleRef = useRef(null);
   const textRef = useRef(null);
+  const commentInputRef = useRef(null);
 
-  /*
-    Detectamos si hay contenido oculto midiendo el DOM real:
-    - Texto: el CSS lo recorta a 6 líneas (-webkit-line-clamp). Si su alto
-      total (scrollHeight) supera el alto visible (clientHeight), hay excedente.
-    - Título: se corta con "..." en una línea; si su ancho total supera el
-      visible, también hay algo oculto (si no, quedaría ilegible para siempre).
-
-    useLayoutEffect (y no useEffect) mide antes de que el navegador pinte,
-    así el botón nunca "parpadea" al aparecer.
-    ResizeObserver vuelve a medir cuando la card cambia de tamaño (ventana
-    redimensionada), porque al cambiar el ancho cambia cuántas líneas ocupa el texto.
-  */
   useLayoutEffect(() => {
     const titleEl = titleRef.current;
     const textEl = textRef.current;
     if (!titleEl || !textEl) return undefined;
 
     const measure = () => {
-      // Expandida no hay recorte, así que no hay nada que medir:
-      // se conserva el último valor y se vuelve a medir al colapsar.
       if (expanded) return;
-
       const titleCut = titleEl.scrollWidth > titleEl.clientWidth + 1;
       const textCut = textEl.scrollHeight > textEl.clientHeight + 1;
       setHasHiddenContent(titleCut || textCut);
     };
 
     measure();
-
     const observer = new ResizeObserver(measure);
     observer.observe(titleEl);
     observer.observe(textEl);
@@ -72,65 +53,112 @@ export default function PostCard({ post, onLike, onOpenComments }) {
     return () => observer.disconnect();
   }, [title, text, expanded]);
 
-  const handleLike = () => {
+  // Manejo del Like conectado al backend real
+  const handleLike = async () => {
     const nextLiked = !isLiked;
     setIsLiked(nextLiked);
-    // Actualizamos el contador de inmediato (+1 / -1) para que se sienta
-    // instantáneo; cuando exista el endpoint, esto pasa a ser "optimista".
     setLikes((prev) => prev + (nextLiked ? 1 : -1));
-    onLike?.(id, nextLiked);
+
+    try {
+      await axios.patch(`/community/like/thread/${id}`, {}, { withCredentials: true });
+    } catch (error) {
+      // Revertimos en caso de error (ej: "Ya has dado like a este hilo")
+      setIsLiked(!nextLiked);
+      setLikes((prev) => prev + (nextLiked ? -1 : 1));
+      console.error('Error al dar like:', error?.response?.data?.message || error.message);
+    }
+  };
+
+  // Apertura y carga de comentarios
+  const handleToggleComments = async () => {
+    const nextOpen = !isCommentsOpen;
+    setIsCommentsOpen(nextOpen);
+
+    if (nextOpen && comments.length === 0) {
+      setIsLoadingComments(true);
+      try {
+        const response = await axios.get(`/community/search/thread/${id}/responses`, {
+          withCredentials: true,
+        });
+        setComments(response.data.data || []);
+      } catch (error) {
+        console.error('Error al cargar comentarios:', error);
+      } finally {
+        setIsLoadingComments(false);
+      }
+    }
+  };
+
+  // Enviar un nuevo comentario
+  const handleCommentSubmit = async (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      const trimmedText = newCommentText.trim();
+      if (!trimmedText || isSubmittingComment) return;
+
+      setIsSubmittingComment(true);
+      try {
+        const response = await axios.post(
+          `/community/create/response/${id}`,
+          { text: trimmedText },
+          { withCredentials: true }
+        );
+
+        const newResponseId = response.data.responseId;
+
+        // Agregamos el comentario de forma optimista a la lista local
+        const createdComment = {
+          id: newResponseId,
+          text: trimmedText,
+          created_at: new Date().toISOString(),
+          author_id: 'current_user', // O el id de tu usuario logueado si lo tenés disponible
+          likes_count: 0,
+        };
+
+        setComments((prev) => [...prev, createdComment]);
+        setNewCommentText('');
+      } catch (error) {
+        console.error('Error al crear comentario:', error);
+      } finally {
+        setIsSubmittingComment(false);
+      }
+    }
+  };
+
+  // Ajuste automático de tamaño del textarea de comentarios
+  const handleInputResize = (e) => {
+    setNewCommentText(e.target.value);
+    const target = e.target;
+    target.style.height = 'auto';
+    target.style.height = `${target.scrollHeight}px`;
   };
 
   return (
-    <article className={styles.card}>
+    <article className={styles.card} style={isCommentsOpen ? { height: 'auto', aspectRatio: 'unset' } : {}}>
       <div className={styles.inner}>
-        {/* Parte superior: avatar + usuario + fecha */}
+        {/* Parte superior */}
         <header className={styles.header}>
           {author.picture ? (
-            <img
-              className={styles.avatar}
-              src={author.picture}
-              alt={`Foto de ${author.username ?? 'usuario'}`}
-            />
+            <img className={styles.avatar} src={author.picture} alt={`Foto de ${author.username ?? 'usuario'}`} />
           ) : (
-            // Círculo gris de relleno cuando el usuario no tiene foto
             <div className={styles.avatar} aria-hidden="true" />
           )}
 
           <div className={styles.userInfo}>
-            <span className={styles.username}>
-              {author.username ?? 'Usuario desconocido'}
-            </span>
+            <span className={styles.username}>{author.username ?? 'Usuario desconocido'}</span>
             <span className={styles.date}>{formatDate(created_at)}</span>
           </div>
         </header>
 
-        {/* Parte central: título + cuerpo + fila del botón "Ver todo" */}
+        {/* Parte central */}
         <div className={styles.content}>
-          <h3
-            ref={titleRef}
-            className={
-              expanded
-                ? `${styles.title} ${styles.titleExpanded}`
-                : styles.title
-            }
-          >
+          <h3 ref={titleRef} className={expanded ? `${styles.title} ${styles.titleExpanded}` : styles.title}>
             {title}
           </h3>
-          <p
-            ref={textRef}
-            className={
-              expanded ? `${styles.text} ${styles.textExpanded}` : styles.text
-            }
-          >
+          <p ref={textRef} className={expanded ? `${styles.text} ${styles.textExpanded}` : styles.text}>
             {text}
           </p>
 
-          {/*
-            Esta fila se renderiza SIEMPRE (con o sin botón) para que su
-            espacio esté reservado y la altura de la card no cambie
-            según haya o no contenido oculto.
-          */}
           <div className={styles.toggleRow}>
             {(hasHiddenContent || expanded) && (
               <button
@@ -145,16 +173,12 @@ export default function PostCard({ post, onLike, onOpenComments }) {
           </div>
         </div>
 
-        {/* Parte inferior: línea separadora + acciones */}
+        {/* Parte inferior: Acciones */}
         <footer className={styles.footer}>
           <div className={styles.likeGroup}>
             <button
               type="button"
-              className={
-                isLiked
-                  ? `${styles.likeButton} ${styles.likeButtonActive}`
-                  : styles.likeButton
-              }
+              className={isLiked ? `${styles.likeButton} ${styles.likeButtonActive}` : styles.likeButton}
               onClick={handleLike}
               aria-pressed={isLiked}
               aria-label={isLiked ? 'Quitar me gusta' : 'Dar me gusta'}
@@ -162,7 +186,6 @@ export default function PostCard({ post, onLike, onOpenComments }) {
               <svg
                 className={styles.icon}
                 viewBox="0 0 24 24"
-                // Vacío cuando está apagado, relleno cuando está en "me gusta"
                 fill={isLiked ? 'currentColor' : 'none'}
                 stroke="currentColor"
                 strokeWidth="2"
@@ -176,17 +199,17 @@ export default function PostCard({ post, onLike, onOpenComments }) {
             <span className={styles.likeCount}>{likes}</span>
           </div>
 
-          {/* De momento no hace nada: solo tiene el diseño */}
           <button
             type="button"
             className={styles.commentsButton}
-            onClick={() => onOpenComments?.(id)}
+            onClick={handleToggleComments}
             aria-label="Ver comentarios"
+            aria-expanded={isCommentsOpen}
           >
             <svg
               className={styles.icon}
               viewBox="0 0 24 24"
-              fill="none"
+              fill={isCommentsOpen ? 'currentColor' : 'none'}
               stroke="currentColor"
               strokeWidth="2"
               strokeLinecap="round"
@@ -197,6 +220,47 @@ export default function PostCard({ post, onLike, onOpenComments }) {
             </svg>
           </button>
         </footer>
+
+        {/* Sección extendida de comentarios */}
+        {isCommentsOpen && (
+          <>
+            <div className={styles.commentsSection}>
+              {isLoadingComments && <p className={styles.noComments}>Cargando comentarios...</p>}
+
+              {!isLoadingComments && comments.length === 0 && (
+                <p className={styles.noComments}>Sé el primero en comentar.</p>
+              )}
+
+              {comments.map((comment) => (
+                <div key={comment.id} className={styles.commentItem}>
+                  <div className={styles.commentHeader}>
+                    <div className={styles.commentAvatar} />
+                    <div className={styles.commentUserInfo}>
+                      <span className={styles.commentUsername}>
+                        {comment.author_name || 'Usuario'}
+                      </span>
+                      <span className={styles.commentDate}>{formatDate(comment.created_at)}</span>
+                    </div>
+                  </div>
+                  <p className={styles.commentText}>{comment.text}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Input fijo en la parte inferior de la sección de comentarios */}
+            <div className={styles.commentInputWrapper}>
+              <textarea
+                ref={commentInputRef}
+                className={styles.commentInput}
+                rows={1}
+                placeholder="Escribe un comentario..."
+                value={newCommentText}
+                onChange={handleInputResize}
+                onKeyDown={handleCommentSubmit}
+              />
+            </div>
+          </>
+        )}
       </div>
     </article>
   );
