@@ -6,14 +6,33 @@ import MessageInput from '../components/message/Messageinput'
 import ContactList from '../components/message/Contactlist'
 import styles from './CSS/Message.module.css'
 import axios from "axios";
+import { useNavigate } from 'react-router-dom'
+import Avatar from '../components/general/Avatar.jsx'
+import { getErrorMessage } from '../api/client'
 import { io } from 'socket.io-client'
 
 const API_URL = 'http://localhost:3000'
 const MESSAGE_PAGE_SIZE = 30
 
+// Etiqueta de día para separar los mensajes: "Hoy", "Ayer" o la fecha
+function dayLabel(value) {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return ''
+  const today = new Date()
+  const startOf = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime()
+  const diff = Math.round((startOf(today) - startOf(date)) / 86400000)
+  if (diff === 0) return 'Hoy'
+  if (diff === 1) return 'Ayer'
+  return new Intl.DateTimeFormat('es-AR', { weekday: 'long', day: 'numeric', month: 'long' }).format(date)
+}
+
+const QUICK_REPLIES = ['¡Hola! 👋', '¿Practicamos juntos?', '¿Cómo vas con el curso?']
+
 export default function Messages() {
   const { loggedUser } = useAuth();
-  const currentUserId = loggedUser.id;
+  const navigate = useNavigate()
+  const currentUserId = loggedUser?.id;
+  const [contactsLoaded, setContactsLoaded] = useState(false)
 
   const [friendChats, setFriendChats] = useState({})
   const [currentFriendId, setCurrentFriendId] = useState(null)
@@ -58,7 +77,8 @@ export default function Messages() {
         setFriendChats(data)
         setCurrentFriendId((prev) => prev ?? Object.keys(data)[0] ?? null)
       })
-      .catch(() => setError('No se pudieron cargar las conversaciones.'))
+      .catch((err) => setError(getErrorMessage(err, 'No se pudieron cargar las conversaciones.')))
+      .finally(() => setContactsLoaded(true))
   }, [])
 
   // Carga el historial cada vez que cambia la conversación activa.
@@ -81,8 +101,8 @@ export default function Messages() {
       setMessages(data.data)
       setLoadedFriendshipId(friendshipId)
       setHasMoreMessages(data.data.length === MESSAGE_PAGE_SIZE)
-    }).catch(() => {
-      if (!cancelled) setError('No se pudieron cargar los mensajes.')
+    }).catch((err) => {
+      if (!cancelled) setError(getErrorMessage(err, 'No se pudieron cargar los mensajes.'))
     })
 
     return () => { cancelled = true }
@@ -209,9 +229,9 @@ export default function Messages() {
       })
       setLoadedFriendshipId(friendshipId)
       setHasMoreMessages(olderMessages.length === MESSAGE_PAGE_SIZE)
-    } catch {
+    } catch (err) {
       scrollAnchorRef.current = null
-      setError('No se pudieron cargar más mensajes.')
+      setError(getErrorMessage(err, 'No se pudieron cargar más mensajes.'))
     } finally {
       loadingOlderMessagesRef.current = false
       setLoadingOlderMessages(false)
@@ -243,38 +263,98 @@ export default function Messages() {
         ? { ...prev, [currentFriendId]: { ...prev[currentFriendId], last_message: message.text } }
         : prev)
     } catch (err) {
-      setError('No se pudo enviar el mensaje. Intenta de nuevo.')
+      setError(getErrorMessage(err, 'No se pudo enviar el mensaje. Probá de nuevo.'))
       throw err
     }
   }
+
+  const hasContacts = Object.keys(friendChats).length > 0
+  // Mensajes con separadores por día
+  const rows = []
+  let lastDay = null
+  visibleMessages.forEach((m) => {
+    const label = dayLabel(m.created_at)
+    if (label && label !== lastDay) {
+      rows.push({ type: 'day', key: `day-${label}-${m.id}`, label })
+      lastDay = label
+    }
+    rows.push({ type: 'msg', key: m.id, message: m })
+  })
 
   return (
     <div className={styles.page}>
       <Sidebar />
 
-      <main className={styles.chat}>
-        {friend && (
-          <header className={styles.header}>
-            {friend.picture ? (
-              <img className={styles.avatar} src={friend.picture} alt="" />
-            ) : (
-              <div className={styles.avatar} />
-            )}
-            <h1 className={styles.name}>{friend.username}</h1>
-          </header>
-        )}
+      <ContactList
+        friendChats={friendChats}
+        currentFriendId={currentFriendId}
+        onSelect={handleSelectFriend}
+        loaded={contactsLoaded}
+      />
 
-        {error && <p className={styles.error} role="alert">{error}</p>}
+      <main className={styles.chat}>
+        {friend ? (
+          <header className={styles.header}>
+            <Avatar name={friend.username} src={friend.picture} size={48} ring />
+            <div className={styles.headerInfo}>
+              <h1 className={styles.name}>{friend.username}</h1>
+              <span className={styles.headerSub}>Amistad en Knowbeat</span>
+            </div>
+            <button
+              type="button"
+              className={styles.profileButton}
+              onClick={() => navigate(`/user/${encodeURIComponent(friend.username)}`)}
+            >
+              Ver perfil
+            </button>
+          </header>
+        ) : null}
+
+        {error && (
+          <div className={styles.error} role="alert">
+            <span>{error}</span>
+            <button type="button" onClick={() => setError(null)} aria-label="Cerrar aviso">×</button>
+          </div>
+        )}
 
         {/* role="log" + aria-live: los lectores de pantalla anuncian los mensajes nuevos */}
         <div className={styles.list} ref={listRef} onScroll={handleMessageListScroll} role="log" aria-live="polite">
-          {loadingOlderMessages && <span role="status">Cargando mensajes...</span>}
-          {visibleMessages.map((m) => (
+          {loadingOlderMessages && <span className={styles.loadingOlder} role="status">Cargando mensajes anteriores…</span>}
+
+          {contactsLoaded && !hasContacts && !error && (
+            <div className={styles.empty}>
+              <span className={styles.emptyEmoji} aria-hidden="true">💬</span>
+              <h2>Todavía no tenés conversaciones</h2>
+              <p>Cuando agregues amigos vas a poder chatear con ellos desde acá. Buscá gente en la comunidad.</p>
+              <button type="button" className={styles.emptyButton} onClick={() => navigate('/community')}>
+                Ir a la comunidad
+              </button>
+            </div>
+          )}
+
+          {friend && loadedFriendshipId === friend.friendship_id && visibleMessages.length === 0 && (
+            <div className={styles.empty}>
+              <Avatar name={friend.username} src={friend.picture} size={72} ring />
+              <h2>Empezá la charla con {friend.username}</h2>
+              <p>Un saludo rápido para romper el hielo:</p>
+              <div className={styles.quickReplies}>
+                {QUICK_REPLIES.map((text) => (
+                  <button key={text} type="button" className={styles.quickReply} onClick={() => handleSend(text).catch(() => {})}>
+                    {text}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {rows.map((row) => row.type === 'day' ? (
+            <div key={row.key} className={styles.daySeparator}><span>{row.label}</span></div>
+          ) : (
             <MessageBubble
-              key={m.id}
-              text={m.text}
-              created_at={m.created_at}
-              isOwn={m.author_id === currentUserId}
+              key={row.key}
+              text={row.message.text}
+              created_at={row.message.created_at}
+              isOwn={row.message.author_id === currentUserId}
             />
           ))}
         </div>
@@ -282,12 +362,10 @@ export default function Messages() {
         {/* Sin conversación abierta no hay a quién escribirle */}
         {friend && (
           <div className={styles.composer}>
-            <MessageInput onSend={handleSend} />
+            <MessageInput onSend={handleSend} placeholder={`Escribile a ${friend.username}…`} />
           </div>
         )}
       </main>
-
-      <ContactList friendChats={friendChats} currentFriendId={currentFriendId} onSelect={handleSelectFriend} />
     </div>
   )
 }

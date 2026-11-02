@@ -1,57 +1,30 @@
-:root {
-  --bg: #0f1419;
-  --surface: #1a2332;
-  --surfaceInset: #121a24;
-  --border: #2d3a4d;
-  --text: #e8edf4;
-  --textMuted: #8b9cb3;
-  --accent: #3b82f6;
-  --accentHover: #2563eb;
-  --success: #15803d;
-  --successBg: #14532d;
-  --error: #b91c1c;
-  --errorBg: #450a0a;
-  --radius: 12px;
-  --radiusSm: 8px;
-}
+
 
 .page_layout {
   display: flex;
   min-height: 100vh;
-  background: var(--bg);
+  background: transparent;
 }
 
 .page_content {
   flex: 1;
-  margin-left: 260px;
+  margin-left: var(--kb-sidebar-width);
   min-width: 0;
 }
 
 .back_button {
+  composes: kb-btn kb-btn-secondary from global;
   margin: 24px 20px 0;
-  padding: 10px 16px;
-  border: 1px solid var(--border);
-  border-radius: var(--radiusSm);
-  background: var(--surface);
-  color: var(--textMuted);
-  cursor: pointer;
-  font-size: 0.875rem;
-  font-weight: 500;
-  transition: color 0.15s, border-color 0.15s, background 0.15s;
 }
 
-.back_button:hover {
-  color: var(--text);
-  border-color: #4b607a;
-  background: var(--surfaceInset);
-}
+
 
 .container {
   max-width: 960px;
   width: 100%;
   margin: 0 auto;
   padding: 16px 20px 48px;
-  color: var(--text);
+  color: var(--kb-text);
 }
 
 .type_badge {
@@ -59,18 +32,16 @@
   margin-bottom: 12px;
   padding: 4px 10px;
   border-radius: 999px;
-  background: var(--surfaceInset);
-  border: 1px solid var(--border);
-  color: var(--textMuted);
+  background: var(--kb-surface-inset);
+  border: 1px solid var(--kb-border);
+  color: var(--kb-text-muted);
   font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
 
-.container * {
-  color: inherit;
-}
+
 
 .pageHeader {
   margin-bottom: 28px;
@@ -84,14 +55,14 @@
 }
 
 .pageSubtitle {
-  color: var(--textMuted);
+  color: var(--kb-text-muted);
   font-size: 1rem;
 }
 
 .panel {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
+  background: var(--kb-surface);
+  border: 1px solid var(--kb-border);
+  border-radius: var(--kb-radius-lg);
   padding: 24px;
   margin-bottom: 20px;
 }
@@ -100,14 +71,14 @@
   font-size: 1.125rem;
   font-weight: 600;
   margin-bottom: 16px;
-  color: var(--text);
+  color: var(--kb-text);
 }
 
 .panelTitleSm {
   font-size: 0.9375rem;
   font-weight: 600;
   margin-bottom: 12px;
-  color: var(--textMuted);
+  color: var(--kb-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
@@ -119,9 +90,9 @@
 }
 
 .filterBox {
-  background: var(--surfaceInset);
-  border: 1px solid var(--border);
-  border-radius: var(--radiusSm);
+  background: var(--kb-surface-inset);
+  border: 1px solid var(--kb-border);
+  border-radius: var(--kb-radius);
   padding: 16px;
 }
 
@@ -137,18 +108,18 @@
   gap: 10px;
   font-size: 0.9375rem;
   cursor: pointer;
-  color: var(--text);
-  transition: color 0.15s;
+  color: var(--kb-text);
+  transition: color var(--kb-dur-fast);
 }
 
 .checkboxGroup label:hover {
-  color: #fff;
+  color: var(--kb-text);
 }
 
 .checkboxGroup input[type='checkbox'] {
   width: 16px;
   height: 16px;
-  accent-color: var(--accent);
+  accent-color: var(--kb-accent-strong);
   cursor: pointer;
   flex-shrink: 0;
 }
@@ -162,41 +133,41 @@
 .fieldLabel {
   font-size: 0.8125rem;
   font-weight: 500;
-  color: var(--textMuted);
+  color: var(--kb-text-muted);
 }
 
-select,
-input[type='number'] {
-  background: var(--surfaceInset);
-  border: 1px solid var(--border);
-  color: var(--text);
+.container select,
+.container input[type='number'] {
+  background: var(--kb-surface-inset);
+  border: 1px solid var(--kb-border);
+  color: var(--kb-text);
   padding: 10px 12px;
-  border-radius: var(--radiusSm);
+  border-radius: var(--kb-radius);
   font-size: 0.9375rem;
   width: 100%;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  transition: border-color var(--kb-dur-fast), box-shadow var(--kb-dur-fast);
 }
 
-option {
-  color: var(--text);
-  background-color: var(--surfaceInset);
+.container option {
+  color: var(--kb-text);
+  background-color: var(--kb-surface-inset);
 }
 
-select:hover,
-input[type='number']:hover {
-  border-color: #4b607a;
+.container select:hover,
+.container input[type='number']:hover {
+  border-color: var(--kb-border-strong);
 }
 
-select:focus-visible,
-input[type='number']:focus-visible,
+.container select:focus-visible,
+.container input[type='number']:focus-visible,
 .primaryButton:focus-visible {
   outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+  border-color: var(--kb-accent-strong);
+  box-shadow: 0 0 0 3px rgb(var(--kb-accent-rgb) / 0.25);
 }
 
-select:disabled,
-input[type='number']:disabled {
+.container select:disabled,
+.container input[type='number']:disabled {
   opacity: 0.55;
   cursor: not-allowed;
 }
@@ -215,38 +186,26 @@ input[type='number']:disabled {
 }
 
 .primaryButton {
-  background: var(--accent);
-  color: white;
-  border: none;
-  padding: 12px 24px;
-  border-radius: var(--radiusSm);
-  cursor: pointer;
-  font-size: 0.9375rem;
-  font-weight: 600;
+  composes: kb-btn kb-btn-primary kb-btn-lg from global;
   width: 100%;
   max-width: 280px;
-  transition: background 0.15s, transform 0.1s, opacity 0.15s;
 }
 
-.primaryButton:not(.disabledButton):hover {
-  background: var(--accentHover);
-}
-
-.primaryButton:not(.disabledButton):active {
-  transform: scale(0.98);
-}
-
-.disabledButton {
+.disabledButton,
+.disabledButton:hover:not(:disabled) {
   opacity: 0.45;
   cursor: not-allowed;
   filter: none;
+  transform: none;
+  box-shadow: none;
+  background: var(--kb-accent-strong);
 }
 
 .exerciseArea,
 .keyboardHelpArea {
-  background: var(--surfaceInset);
-  border: 1px solid var(--border);
-  border-radius: var(--radiusSm);
+  background: var(--kb-surface-inset);
+  border: 1px solid var(--kb-border);
+  border-radius: var(--kb-radius);
   padding: 28px 24px;
 }
 
@@ -265,23 +224,23 @@ input[type='number']:disabled {
 }
 
 .statBadge {
-  background: var(--surface);
-  border: 1px solid var(--border);
+  background: var(--kb-surface);
+  border: 1px solid var(--kb-border);
   border-radius: 999px;
   padding: 6px 14px;
   font-size: 0.875rem;
   font-weight: 500;
-  color: var(--textMuted);
+  color: var(--kb-text-muted);
 }
 
 .statBadge strong {
-  color: var(--text);
+  color: var(--kb-text);
   font-weight: 600;
 }
 
 .gameHint {
   text-align: center;
-  color: var(--textMuted);
+  color: var(--kb-text-muted);
   font-size: 0.875rem;
   margin-top: -16px;
   margin-bottom: 24px;
@@ -298,7 +257,7 @@ input[type='number']:disabled {
 }
 
 .currentChordIdle {
-  color: var(--textMuted);
+  color: var(--kb-text-muted);
   font-size: 1.25rem;
   font-weight: 500;
   letter-spacing: normal;
@@ -315,25 +274,25 @@ input[type='number']:disabled {
 .noteSlot {
   width: 72px;
   height: 72px;
-  border-radius: var(--radiusSm);
-  background: var(--surface);
-  border: 2px solid var(--border);
+  border-radius: var(--kb-radius);
+  background: var(--kb-surface);
+  border: 2px solid var(--kb-border);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1.5rem;
   font-weight: 700;
-  transition: background 0.2s, border-color 0.2s;
+  transition: background var(--kb-dur), border-color var(--kb-dur);
 }
 
 .noteSlotGoodAnswer {
-  background: var(--successBg);
-  border-color: var(--success);
+  background: var(--kb-success-soft);
+  border-color: var(--kb-success-strong);
 }
 
 .noteSlotBadAnswer {
-  background: var(--errorBg);
-  border-color: var(--error);
+  background: var(--kb-danger-soft);
+  border-color: var(--kb-danger-strong);
 }
 
 .keyboardGrid {
@@ -349,18 +308,18 @@ input[type='number']:disabled {
 .keyboardHint {
   margin-top: 12px;
   font-size: 0.8125rem;
-  color: var(--textMuted);
+  color: var(--kb-text-muted);
 }
 
 .gameFinished {
   text-align: center;
-  color: var(--textMuted);
+  color: var(--kb-text-muted);
   font-size: 0.9375rem;
   margin-bottom: 16px;
 }
 
 .gameFinished strong {
-  color: var(--text);
+  color: var(--kb-text);
 }
 
 @media (max-width: 900px) {

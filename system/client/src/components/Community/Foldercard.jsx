@@ -1,5 +1,5 @@
 import folderIcon from '../../assets/folder-open-svgrepo-com.svg';
-import styles from './FolderCard.module.css';
+import styles from './Foldercard.module.css';
 
 /*
   Props:
@@ -23,7 +23,7 @@ export default function FolderCard({ folder }) {
         <div className={styles.folderInfo}>
           <span className={styles.name}>{name}</span>
           <span className={styles.creator}>
-            {author?.username ?? 'Usuario desconocido'}
+            Carpeta pública de {author?.username ?? 'un usuario'}
           </span>
         </div>
       </div>

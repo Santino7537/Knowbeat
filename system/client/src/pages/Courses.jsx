@@ -5,29 +5,18 @@ import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import CourseCard from "../components/CourseCard";
 import styles from "./CSS/Courses.module.css";
+import { getErrorMessage } from "../api/client";
 
 const Courses = () => {
   const navigate = useNavigate();
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [reloadKey, setReloadKey] = useState(0);
 
   const token = localStorage.getItem("token");
 
   const user = JSON.parse(localStorage.getItem("user") || "null");
-  const settings = user?.configuration || user;
-
-  /* ==========================================
-      APLICAR CONFIGURACIÓN DE DARK MODE
-  ========================================== */
-
-  useEffect(() => {
-    if (settings?.appearance?.dark_mode === false) {
-      document.body.classList.add("light-mode");
-    } else {
-      document.body.classList.remove("light-mode");
-    }
-    return () => document.body.classList.remove("light-mode");
-  }, [settings?.appearance?.dark_mode]);
 
   /* ==========================================
       INIT
@@ -38,6 +27,7 @@ const Courses = () => {
 
     const init = async () => {
       setLoading(true);
+      setError("");
       try {
         const response = await axios.get(
           "http://localhost:3000/user/get/progress",
@@ -45,7 +35,7 @@ const Courses = () => {
         );
         if (active) setCourses(response.data);
       } catch (error) {
-        console.error("Error obteniendo cursos:", error);
+        if (active) setError(getErrorMessage(error, "No pudimos cargar tus cursos."));
       } finally {
         if (active) setLoading(false);
       }
@@ -53,7 +43,7 @@ const Courses = () => {
 
     init();
     return () => { active = false; };
-  }, [token]);
+  }, [token, reloadKey]);
 
   /* ==========================================
       LOADING
@@ -62,15 +52,13 @@ const Courses = () => {
   if (loading) {
     return (
       <div className={styles.courses_loading}>
-        <div className="loader"></div>
+        <div className={styles.loader}></div>
       </div>
     );
   }
 
   return (
-    <div className={`${styles.courses_layout} ${
-      settings?.appearance?.dark_mode === false ? styles.light_mode : ""
-    }`}>
+    <div className={styles.courses_layout}>
       <Sidebar />
       <main className={styles.courses_main}>
 
@@ -100,8 +88,17 @@ const Courses = () => {
 
         {/* EMPTY */}
 
+        {error && (
+          <div className={styles.catalog_message_error} role="alert">
+            {error}{" "}
+            <button type="button" className={styles.catalog_back_btn} onClick={() => setReloadKey((k) => k + 1)}>
+              Reintentar
+            </button>
+          </div>
+        )}
+
         {
-          courses.length === 0 && (
+          !error && courses.length === 0 && (
             <div className={styles.empty_state}>
               <h2>
                 Todavía no estás anotado

@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import Sidebar from "../components/Sidebar";
@@ -11,26 +10,9 @@ const CourseLessonMapPage = () => {
   const navigate = useNavigate();
   const courseName = location.state?.courseName;
 
-  let user = null;
-  try {
-    user = JSON.parse(localStorage.getItem("user") || "null");
-  } catch {
-    user = null;
-  }
-  const settings = user?.configuration || user;
-  const isLightMode = settings?.appearance?.dark_mode === false;
-
-  useEffect(() => {
-    if (isLightMode) {
-      document.body.classList.add("light-mode");
-    } else {
-      document.body.classList.remove("light-mode");
-    }
-    return () => document.body.classList.remove("light-mode");
-  }, [isLightMode]);
 
   return (
-    <div className={`${styles.coursePage} ${isLightMode ? styles.lightMode : ""}`}>
+    <div className={styles.coursePage}>
       <Sidebar />
       <main className={styles.courseMain}>
         <header className={styles.pageHeader}>

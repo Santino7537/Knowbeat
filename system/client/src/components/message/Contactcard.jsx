@@ -1,32 +1,23 @@
-import styles from './ContactCard.module.css'
+import Avatar from '../general/Avatar.jsx'
+import styles from './Contactcard.module.css'
 
 export default function ContactCard({ username, picture, last_message, unread_count = 0, currentFriendId, onClick }) {
-  // Es un <button> y no un <div onClick> porque el botón es enfocable con Tab y se activa
-  // con Enter/Espacio sin código extra. aria-current le avisa a los lectores de pantalla
-  // cuál es la conversación abierta (no depender solo del color del borde).
-  // Dentro de un <button> solo es válido HTML "inline", por eso todo son <span>.
-
-  // Con 3 cifras el círculo se ensancharía demasiado y taparía el nombre: se topa en 99+.
   const badgeText = unread_count > 99 ? '+99' : unread_count
+  const hasUnread = unread_count > 0
+
   return (
     <button
       type="button"
-      className={`${styles.card} ${currentFriendId ? styles.active : ''}`}
+      className={`${styles.card} ${currentFriendId ? styles.active : ''} ${hasUnread ? styles.hasUnread : ''}`}
       aria-current={currentFriendId ? 'true' : undefined}
       onClick={onClick}
     >
-      {picture ? (
-        <img className={styles.avatar} src={picture} alt="" /> /* alt vacío: el nombre ya está al lado */
-      ) : (
-        <span className={styles.avatar} />
-      )}
+      <Avatar name={username} src={picture} size={46} />
       <span className={styles.info}>
         <span className={styles.name}>{username}</span>
-        <span className={styles.lastMessage}>{last_message}</span>
+        <span className={styles.lastMessage}>{last_message || 'Todavía no hay mensajes'}</span>
       </span>
-
-      {/* Solo el círculo con el número. Se dibuja únicamente si hay mensajes sin leer. */}
-      {unread_count > 0 && <span className={styles.badge}>{badgeText}</span>}
+      {hasUnread && <span className={styles.badge} aria-label={`${unread_count} sin leer`}>{badgeText}</span>}
     </button>
   )
 }

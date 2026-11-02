@@ -1,196 +1,275 @@
 /*
-  La página ocupa exactamente el alto de la ventana y NO scrollea ella misma:
-  el que scrollea es .mainArea (ver abajo). Así la scrollbar queda dentro de
-  nuestro CSS Module y podemos pintarla con la paleta oscura, sin tocar estilos
-  globales del <body> que afectarían al resto de la app.
-  100dvh evita que en celulares la barra del navegador tape el final de la página.
+  La página ocupa el alto de la ventana y el que scrollea es .mainArea,
+  así la sidebar queda fija y la scrollbar dentro del contenido.
+  La Sidebar es position: fixed, por eso el margen usa --kb-sidebar-width.
 */
 .page {
   display: flex;
   height: 100vh;
   height: 100dvh;
   overflow: hidden;
-  background-color: #0f172a;
 }
 
-/*
-  La Sidebar (asumo position: fixed, 260px) no ocupa lugar en el flujo, por eso
-  el margen izquierdo: 260 / 16 = 16.25rem. Si en realidad no es fixed, avisame
-  y se saca.
-
-  Padding de 1.25rem (20px) a los costados, como pediste. El de arriba es un
-  poco mayor (1.75rem) para igualar el aire que tiene la barra de búsqueda
-  en tu captura.
-
-  overflow-y: auto muestra la scrollbar SOLO cuando las publicaciones se
-  salen de la pantalla. scrollbar-color/width la adaptan al tema oscuro
-  (thumb 334155 sobre el fondo 0F172A, el mismo del borde de los campos).
-*/
 .mainArea {
   flex: 1;
   min-width: 0;
   height: 100%;
-  margin-left: 16.25rem;
-  padding: 1.75rem 1.25rem 1.25rem;
-  box-sizing: border-box;
+  margin-left: var(--kb-sidebar-width);
+  padding: 32px clamp(16px, 3vw, 40px) 40px;
   overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: #334155 #0f172a;
+  transition: margin-left var(--kb-dur-slow) var(--kb-ease);
 }
 
-/* Fila superior: búsqueda + botón de "+" centrados en el área de contenido */
-.topBar {
+/* ---------- Encabezado ---------- */
+.pageHeader {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 1rem;
-  width: 100%;
-  margin-bottom: 1.75rem;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  max-width: 1080px;
+  margin: 0 auto 28px;
 }
 
-/*
-  max-width 35.5rem: en tu captura de 1024px la barra mide ~569px
-  (569 / 16 = 35.5rem), antes tenía 40rem. width 100% la deja achicarse
-  en pantallas angostas.
-*/
+.pageHeader h1 {
+  margin: 0 0 6px;
+  font-size: var(--kb-fs-2xl);
+}
+
+.pageHeader p {
+  margin: 0;
+  color: var(--kb-text-muted);
+}
+
 .searchWrapper {
+  composes: kb-input kb-input-pill from global;
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  width: 100%;
-  max-width: 35.5rem;
-  background-color: #1e293b;
-  border: 0.0625rem solid #334155;
-  border-radius: 0.75rem;
-  padding: 0.75rem 1.25rem;
-  box-sizing: border-box;
-  transition: border-color 0.15s ease;
-}
-
-.searchWrapper:focus-within {
-  border-color: #3b82f6;
+  width: min(100%, 26rem);
+  padding: 0.7rem 1.1rem;
+  background: var(--kb-surface);
 }
 
 .searchIcon {
   flex-shrink: 0;
-  width: 1.25rem;
-  height: 1.25rem;
-  color: #94a3b8;
+  width: 1.15rem;
+  height: 1.15rem;
+  color: var(--kb-text-muted);
 }
 
 .searchInput {
   flex: 1;
-  background: transparent;
+  min-width: 0;
   border: none;
   outline: none;
-  color: #ffffff;
-  font-size: 1rem;
-  min-width: 0;
+  background: transparent;
+  color: var(--kb-text);
+  font: inherit;
 }
 
 .searchInput::placeholder {
-  color: #94a3b8;
+  color: var(--kb-text-subtle);
 }
 
-.addButton {
-  flex-shrink: 0;
-  width: 3rem;
-  height: 3rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-  border-radius: 0.75rem;
-  background-color: #2563eb;
-  color: #ffffff;
+.searchInput::-webkit-search-cancel-button {
+  display: none;
+}
+
+.clearSearch {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--kb-surface-3);
+  color: var(--kb-text-secondary);
+  line-height: 1;
   cursor: pointer;
-  transition: background-color 0.15s ease;
 }
 
-.addButton:hover {
-  background-color: #1d4ed8;
-}
-
-.addButton svg {
-  width: 1.25rem;
-  height: 1.25rem;
-}
-
-/*
-  Reparto horizontal (a 1024px):
-    sidebar 260 | 20 | columna de posts (flexible, ~476) | 20 | filtros 228 | 20
-  La columna de posts toma todo el espacio que sobra (flex: 1) y el panel de
-  filtros tiene ancho propio. El gap de 1.25rem (20px) los separa.
-*/
+/* ---------- Columnas ---------- */
 .columns {
   display: flex;
   align-items: flex-start;
-  gap: 1.25rem;
+  gap: 24px;
+  max-width: 1080px;
+  margin: 0 auto;
 }
 
-/*
-  min-width: 0 es necesario para que una columna flex pueda achicarse por
-  debajo del ancho de su contenido en vez de empujar el layout.
-  align-items: center centra las cards si la columna es más ancha que 468px.
-*/
 .feed {
+  display: flex;
   flex: 1;
+  flex-direction: column;
+  gap: 18px;
   min-width: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1.5rem;
 }
 
-/* Lista de publicaciones: 1.25rem (20px) entre cada una, como pediste */
 .list {
-  width: 100%;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 1.25rem;
-  transition: opacity 0.15s ease;
+  gap: 18px;
+  transition: opacity var(--kb-dur-fast) var(--kb-ease);
 }
 
-/* Mientras carga otra página, lo anterior queda atenuado en vez de desaparecer */
 .listLoading {
   opacity: 0.5;
   pointer-events: none;
 }
 
-/* Estados de la lista: cargando / vacío / error */
+/* ---------- Caja para publicar ---------- */
+.composer {
+  padding: 16px 18px;
+  border: 1px solid rgb(var(--kb-accent-rgb) / 0.25);
+  border-radius: var(--kb-radius-xl);
+  background:
+    radial-gradient(500px 120px at 0% 0%, rgb(var(--kb-accent-rgb) / 0.12), transparent 70%),
+    var(--kb-surface);
+  box-shadow: var(--kb-shadow-sm);
+}
+
+.composerTop {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.composerInput {
+  flex: 1;
+  min-width: 0;
+  padding: 12px 18px;
+  border: 1px solid var(--kb-border);
+  border-radius: var(--kb-radius-pill);
+  background: var(--kb-surface-inset);
+  color: var(--kb-text-muted);
+  font: inherit;
+  text-align: left;
+  cursor: text;
+  transition: border-color var(--kb-dur) var(--kb-ease), background-color var(--kb-dur) var(--kb-ease);
+}
+
+.composerInput:hover {
+  border-color: rgb(var(--kb-accent-rgb) / 0.5);
+  background: var(--kb-surface-2);
+}
+
+.composerKinds {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+  padding-left: 56px;
+}
+
+.composerKind {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 0;
+  border-radius: var(--kb-radius-pill);
+  background: transparent;
+  color: var(--kb-text-secondary);
+  font: inherit;
+  font-size: var(--kb-fs-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color var(--kb-dur-fast) var(--kb-ease);
+}
+
+.composerKind:hover {
+  background: rgb(var(--kb-tint-rgb) / 0.06);
+}
+
+.composerPublish {
+  composes: kb-btn kb-btn-primary kb-btn-sm from global;
+  margin-left: auto;
+}
+
+/* ---------- Estados ---------- */
 .statusBox {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1rem;
+  gap: 8px;
+  padding: 44px 24px;
+  border: 1px dashed var(--kb-border-strong);
+  border-radius: var(--kb-radius-xl);
+  text-align: center;
+}
+
+.statusBox h2 {
+  margin: 0;
+  font-size: var(--kb-fs-lg);
 }
 
 .statusText {
-  margin: 0;
-  padding: 2rem 0;
-  font-size: 1rem;
-  text-align: center;
-  color: #94a3b8;
-}
-
-.statusBox .statusText {
-  padding: 0;
+  max-width: 28rem;
+  margin: 0 0 8px;
+  color: var(--kb-text-muted);
 }
 
 .retryButton {
-  padding: 0.6rem 1.4rem;
-  border: none;
-  border-radius: 0.4rem;
-  background-color: #2563eb;
-  color: #ffffff;
-  font-family: inherit;
-  font-size: 0.95rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: background-color 0.15s ease;
+  composes: kb-btn kb-btn-primary from global;
 }
 
-.retryButton:hover {
-  background-color: #1d4ed8;
+/* Esqueletos de carga */
+.skeletonList {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.skeleton {
+  display: grid;
+  gap: 12px;
+  padding: 22px;
+  border: 1px solid var(--kb-border);
+  border-radius: var(--kb-radius-xl);
+  background: var(--kb-surface);
+}
+
+.skeletonHead {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.skCircle,
+.skLine,
+.skLineWide,
+.skLineShort {
+  display: block;
+  border-radius: var(--kb-radius-pill);
+  background: linear-gradient(90deg, var(--kb-surface-2), var(--kb-surface-3), var(--kb-surface-2));
+  background-size: 200% 100%;
+  animation: shimmer 1.2s linear infinite;
+}
+
+.skCircle { width: 44px; height: 44px; border-radius: 50%; }
+.skLine { width: 140px; height: 12px; }
+.skLineWide { width: 100%; height: 12px; }
+.skLineShort { width: 55%; height: 12px; }
+
+@media (max-width: 1100px) {
+  .columns {
+    flex-direction: column-reverse;
+  }
+
+  .feed {
+    width: 100%;
+  }
+}
+
+@media (max-width: 560px) {
+  .composerKinds {
+    padding-left: 0;
+  }
+}
+
+@keyframes shimmer {
+  to { background-position: -200% 0; }
 }

@@ -13,9 +13,10 @@ const parsePagination = (query) => {
 	page = Number.parseInt(page || '1', 10);
 	limit = Number.parseInt(limit || '20', 10);
 
-	if (page < 1 || limit < 1 || limit > MAX_LIMIT) {
-		return res.status(400).json({ message: 'Los parámetros de página o límite son inválidos' });
-	}
+	// Valores inválidos: en vez de fallar (acá no existe "res"), usamos los valores por defecto
+	if (!Number.isFinite(page) || page < 1) page = 1;
+	if (!Number.isFinite(limit) || limit < 1) limit = 20;
+	if (limit > MAX_LIMIT) limit = MAX_LIMIT;
 
 	return { page, limit, skip: (page - 1) * limit };
 };
@@ -50,7 +51,7 @@ const searchFolders = async (req, res) => {
 };
 
 const searchUsers = async (req, res) => {
-	const pagination = parsePagination(req);
+	const pagination = parsePagination(req.query);
 	const query = String(req.query.query ?? req.query.q ?? '').trim();
 
 	try {
@@ -78,7 +79,7 @@ const searchUsers = async (req, res) => {
 };
 
 const searchThreads = async (req, res) => {
-	const pagination = parsePagination(req);
+	const pagination = parsePagination(req.query);
 	const query = String(req.query.query ?? req.query.q ?? '').trim();
 	const tags = String(req.query.tags ?? '').trim();
 
@@ -146,11 +147,15 @@ const searchCommunity = async (req, res) => {
 		return res.status(422).json({ message: 'Los tipos de búsqueda son inválidos' });
 	}
 
+	// runSearch recibe el "request" directamente (antes se pasaba { req: {...} } y
+	// los controladores no encontraban req.query, por eso la búsqueda fallaba)
+	const subQuery = { query, tags, page: req.query.page, limit: req.query.limit };
+
 	try {
 		const searches = [];
-		if (types.includes('folders')) searches.push(runSearch(searchFolders, { req: { query: { query, tags } } }).then(data => ['folders', data]));
-		if (types.includes('users')) searches.push(runSearch(searchUsers, { req: { query: { query, tags } } }).then(data => ['users', data]));
-		if (types.includes('threads')) searches.push(runSearch(searchThreads, { req: { query: { query, tags } } }).then(data => ['threads', data]));
+		if (types.includes('folders')) searches.push(runSearch(searchFolders, { query: subQuery }).then(data => ['folders', data]));
+		if (types.includes('users')) searches.push(runSearch(searchUsers, { query: subQuery }).then(data => ['users', data]));
+		if (types.includes('threads')) searches.push(runSearch(searchThreads, { query: subQuery }).then(data => ['threads', data]));
 
 		const result = Object.fromEntries(await Promise.all(searches));
 
@@ -177,6 +182,7 @@ const createThread = async (req, res) => {
       author_id: userId,
       title,
 	  text,
+	  tags,
 	  likes_count: 0,
 	  created_at: new Date(),
     });
@@ -185,10 +191,10 @@ const createThread = async (req, res) => {
 
 	const existingTags = await searchTags();
 	const newTags = tags.filter(tag => !existingTags.some(existingTag => existingTag.name.toLowerCase() === tag.toLowerCase()));
-	
-	newTags.forEach(async tag => {
-		await createTag(tag);
-	});
+
+	// Antes: forEach(async ...) sin await. Si createTag fallaba, el error quedaba sin
+	// capturar y Node cerraba el proceso de la API. Ahora se espera y cae en el catch.
+	await Promise.all(newTags.map(tag => createTag(tag, req)));
 
     req.actions_data["create-thread"] = {
       entity: "Thread",
@@ -287,12 +293,14 @@ const searchTags = async () => {
 	return db.collection('Tag').find({}).sort({ name: 1 }).toArray();
 };
 
-const createTag = async (name) => {
+const createTag = async (name, req) => {
 	if (typeof name !== 'string' || !name.trim()) {
 		throw new TypeError('El nombre de la etiqueta es obligatorio');
 	}
 
-	req.actions_data = {};
+	// "req" llega por parámetro (antes no existía en esta función y rompía la API).
+	// No se reinicia actions_data para no borrar el registro del hilo en la bitácora.
+	if (req) req.actions_data = req.actions_data || {};
 
 	const normalizedName = name.trim();
 	const db = getDb();
@@ -306,7 +314,7 @@ const createTag = async (name) => {
 
 	const result = await db.collection('Tag').insertOne({ name: normalizedName });
 
-	req.actions_data["create-tag"] = {
+	if (req) req.actions_data[`create-tag-${normalizedName}`] = {
 		entity: "Tag",
 		record_id: result.insertedId,
 		action: "insert",
@@ -336,7 +344,7 @@ const likePublication = (publication_type) => {
 						return res.status(404).json({ message: 'Hilo no encontrado' });
 					}
 
-					const old_thread_like = await db.collection('ThreadLikes').findOne({ thread_id: new ObjectId(publicationId) });
+					const old_thread_like = await db.collection('ThreadLikes').findOne({ thread_id: new ObjectId(publicationId), user_id: userId });
 
 					if (old_thread_like) {
 						return res.status(400).json({ message: 'Ya has dado like a este hilo' });
@@ -349,7 +357,7 @@ const likePublication = (publication_type) => {
 
 					await db.collection('ThreadLikes').insertOne({
 						thread_id: new ObjectId(publicationId),
-						user_id: new ObjectId(userId)
+						user_id: userId
 					});
 
 					break;
@@ -360,7 +368,7 @@ const likePublication = (publication_type) => {
 						return res.status(404).json({ message: 'Respuesta no encontrada' });
 					}
 
-					const old_response_like = await db.collection('ResponseLikes').findOne({ response_id: new ObjectId(publicationId) });
+					const old_response_like = await db.collection('ResponseLikes').findOne({ response_id: new ObjectId(publicationId), user_id: userId });
 
 					if (old_response_like) {
 						return res.status(400).json({ message: 'Ya has dado like a esta respuesta' });
@@ -373,7 +381,7 @@ const likePublication = (publication_type) => {
 
 					await db.collection('ResponseLikes').insertOne({
 						response_id: new ObjectId(publicationId),
-						user_id: new ObjectId(userId)
+						user_id: userId
 					});
 					
 					break;

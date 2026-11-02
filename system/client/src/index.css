@@ -1,9 +1,1 @@
-*,
-*::before,
-*::after {
-    box-sizing: border-box;
-}
-
-body{
-    margin: 0;
-}
+/* Los estilos globales viven en src/styles/ (theme.css, base.css, components.css). */

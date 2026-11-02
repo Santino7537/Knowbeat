@@ -13,16 +13,18 @@
   max-width: 68%;
   /* Abajo queda más espacio (1.25rem) reservado para la hora, así nunca pisa el texto. */
   padding: 0.5rem 0.75rem 1.25rem;
-  background: #7b9ccc;
-  border-radius: 0.375rem;      /* "levemente circular" */
+  background: var(--kb-bubble);
+  border-radius: 18px;
+  box-shadow: var(--kb-shadow-sm);
+  animation: popIn var(--kb-dur) var(--kb-ease);      /* "levemente circular" */
 }
 
 .text {
   margin: 0;
-  color: #ffffff;
-  font-size: 1.125rem;
-  font-weight: 700;
-  line-height: 1.5rem;
+  color: var(--kb-bubble-text);
+  font-size: 0.98rem;
+  font-weight: 500;
+  line-height: 1.45rem;
   white-space: pre-wrap;        /* respeta los saltos de línea que escribió el usuario */
   overflow-wrap: anywhere;      /* una palabra larguísima no rompe el ancho máximo */
 }
@@ -32,7 +34,7 @@
   bottom: 0.25rem;
   font-size: 0.625rem;
   font-weight: 700;
-  color: #dad7d7;
+  color: rgb(255 255 255 / 0.75);
 }
 
 /* La cola es un triángulo hecho con bordes CSS (ancho y alto 0): no necesita
@@ -43,7 +45,7 @@
   top: 0;
   width: 0;
   height: 0;
-  border-top: 0.5rem solid #7b9ccc;
+  border-top: 0.5rem solid var(--kb-bubble);
 }
 
 /* Mensaje del otro usuario → todo a la izquierda */
@@ -60,10 +62,18 @@
 /* Mensaje propio → espejado a la derecha */
 .own {
   align-self: flex-end;
+  background: var(--kb-accent-strong);
   border-top-right-radius: 0;
 }
 .own::before {
   right: -0.5rem;
+  border-top-color: var(--kb-accent-strong);
   border-right: 0.5rem solid transparent;
 }
 .own .time { right: 0.75rem; }
+
+/* Keyframes locales (los CSS Modules no ven los @keyframes globales) */
+@keyframes popIn {
+  from { opacity: 0; transform: translateY(8px) scale(0.97); }
+  to   { opacity: 1; transform: none; }
+}

@@ -124,9 +124,9 @@ httpServer.listen(PORT, async () => {
   console.log('La API está corriendo en el puerto ', PORT);
   initSocket(httpServer, allowedOrigins);
 
-  try {
-    await connectMongo();
-  } catch (err) { console.error("Failed to start MongoDB:", err); }
+   try {
+     await connectMongo();
+   } catch (err) { console.error("Failed to start MongoDB:", err); }
 
   await require('./config/createRoles')();
   await require('./config/createPermissions')();

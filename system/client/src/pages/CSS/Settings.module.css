@@ -1,229 +1,248 @@
-.settings_page {
-
+.settings_layout {
+  display: flex;
   min-height: 100vh;
+}
 
-  background:
-    linear-gradient(
-      180deg,
-      #020617 0%,
-      #0f172a 100%
-    );
+.settings_main {
+  flex: 1;
+  min-width: 0;
+  margin-left: var(--kb-sidebar-width);
+}
 
+.settings_page {
+  min-height: 100vh;
   padding: 40px;
-
-  font-family: "Inter", sans-serif;
-
-  color: white;
-
-  transition: .3s;
+  color: var(--kb-text);
 }
 
 .settings_container {
-
   max-width: 1100px;
-  margin: auto;
+  margin: 0 auto;
 }
 
 .settings_header {
-
   margin-bottom: 30px;
 }
 
 .settings_header h1 {
-
-  font-size: 40px;
-  margin-bottom: 10px;
+  margin: 0 0 8px;
+  font-size: var(--kb-fs-2xl);
 }
 
 .settings_header p {
-
-  color: #94a3b8;
+  margin: 0;
+  color: var(--kb-text-muted);
 }
 
 .settings_tabs {
-
   display: flex;
+  flex-wrap: wrap;
   gap: 10px;
-
   margin-bottom: 30px;
 }
 
-.settings_tabs button {
-
-  background: rgba(255,255,255,.05);
-
-  border: 1px solid rgba(255,255,255,.08);
-
-  color: white;
-
-  padding: 12px 18px;
-
-  border-radius: 12px;
-
-  cursor: pointer;
-
-  transition: .3s;
+.tab {
+  composes: kb-btn kb-btn-tonal from global;
 }
 
-.settings_tabs button:hover {
-
-  background: rgba(255,255,255,.08);
-}
-
-.settings_tabs .active {
-
-  background: #2563eb;
+.active {
+  composes: kb-btn-active from global;
 }
 
 .settings_card {
-
-  background:
-    rgba(15,23,42,.72);
-
-  border:
-    1px solid rgba(255,255,255,.06);
-
-  backdrop-filter: blur(16px);
-
-  border-radius: 24px;
-
+  composes: kb-card from global;
   padding: 30px;
-
-  box-shadow:
-    0 10px 40px rgba(0,0,0,.35);
-
-  transition: .3s;
+  border-radius: var(--kb-radius-xl);
+  animation: popIn var(--kb-dur-slow) var(--kb-ease);
 }
 
 .settings_card h2 {
-
-  margin-bottom: 30px;
+  margin: 0 0 12px;
+  font-size: var(--kb-fs-xl);
 }
 
 .setting_item {
-
   display: flex;
-
   justify-content: space-between;
-
   align-items: center;
-
-  padding: 22px 0;
-
-  border-bottom:
-    1px solid rgba(255,255,255,.05);
+  gap: 24px;
+  padding: 20px 0;
+  border-bottom: 1px solid var(--kb-border);
 }
 
-.setting_item h3 {
-
-  margin-bottom: 6px;
+.setting_item:last-child {
+  border-bottom: none;
 }
 
-.setting_item p {
+.setting_item h3,
+.setting_item_column h3 {
+  margin: 0 0 4px;
+  font-size: var(--kb-fs-md);
+  font-weight: 600;
+}
 
-  color: #94a3b8;
+.setting_item p,
+.setting_item_column p {
+  margin: 0;
+  color: var(--kb-text-muted);
+  font-size: var(--kb-fs-sm);
 }
 
 .switch {
-
-  position: relative;
-
-  width: 60px;
-  height: 32px;
-}
-
-.switch input {
-
-  opacity: 0;
+  composes: kb-switch from global;
 }
 
 .slider {
+  composes: kb-switch-track from global;
+}
 
-  position: absolute;
+/* =====================================================
+   SELECTOR DE TEMA
+===================================================== */
 
-  inset: 0;
+.setting_item_column {
+  display: grid;
+  gap: 18px;
+  padding: 20px 0 4px;
+}
 
-  background: #1e293b;
+.theme_options {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 240px));
+  gap: 16px;
+}
 
-  border-radius: 999px;
-
-  transition: .3s;
-
+.theme_option {
+  display: grid;
+  gap: 12px;
+  padding: 12px;
+  border: 2px solid var(--kb-border);
+  border-radius: var(--kb-radius-lg);
+  background: var(--kb-surface-inset);
+  color: var(--kb-text);
+  font: inherit;
+  text-align: left;
   cursor: pointer;
+  transition:
+    border-color var(--kb-dur) var(--kb-ease),
+    transform var(--kb-dur) var(--kb-ease),
+    box-shadow var(--kb-dur) var(--kb-ease);
 }
 
-.slider::before {
+.theme_option:hover {
+  border-color: var(--kb-border-strong);
+  transform: translateY(-2px);
+}
 
-  content: "";
+.theme_option_active,
+.theme_option_active:hover {
+  border-color: var(--kb-accent);
+  box-shadow: var(--kb-ring);
+}
 
-  position: absolute;
+.theme_preview {
+  display: flex;
+  gap: 6px;
+  height: 92px;
+  padding: 8px;
+  overflow: hidden;
+  border-radius: var(--kb-radius);
+}
 
-  width: 24px;
-  height: 24px;
+.preview_dark {
+  background: #0f172a;
+  --pv-side: #1e293b;
+  --pv-line: #334155;
+}
 
-  left: 4px;
-  top: 4px;
+.preview_light {
+  background: #f4f7fb;
+  --pv-side: #ffffff;
+  --pv-line: #e2e8f0;
+  box-shadow: inset 0 0 0 1px #e2e8f0;
+}
 
-  background: white;
+.preview_sidebar {
+  width: 26%;
+  border-radius: 6px;
+  background: var(--pv-side);
+}
 
+.preview_body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 7px;
+  padding: 6px;
+  border-radius: 6px;
+  background: var(--pv-side);
+}
+
+.preview_line,
+.preview_line_short {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--pv-line);
+}
+
+.preview_line_short {
+  width: 60%;
+}
+
+.preview_button {
+  width: 42%;
+  height: 14px;
+  margin-top: auto;
+  border-radius: 999px;
+  background: #2563eb;
+}
+
+.theme_label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+}
+
+.theme_radio {
+  position: relative;
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--kb-border-strong);
   border-radius: 50%;
-
-  transition: .3s;
+  transition: border-color var(--kb-dur) var(--kb-ease);
 }
 
-.switch input:checked + .slider {
-
-  background: #2563eb;
+.theme_radio::after {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border-radius: 50%;
+  background: var(--kb-accent);
+  transform: scale(0);
+  transition: transform var(--kb-dur) var(--kb-ease);
 }
 
-.switch input:checked + .slider::before {
-
-  transform: translateX(28px);
+.theme_option_active .theme_radio {
+  border-color: var(--kb-accent);
 }
 
-/* MODO CLARO */
-
-.light_mode {
-
-  background:
-    linear-gradient(
-      180deg,
-      #e2e8f0 0%,
-      #f8fafc 100%
-    );
-
-  color: #0f172a;
+.theme_option_active .theme_radio::after {
+  transform: scale(1);
 }
 
-.light_mode .settings_card {
+@media (max-width: 768px) {
+  .settings_page {
+    padding: 24px 16px;
+  }
 
-  background: rgba(255,255,255,.85);
-
-  border:
-    1px solid rgba(15,23,42,.08);
-
-  color: #0f172a;
+  .settings_card {
+    padding: 20px;
+  }
 }
 
-.light_mode .settings_tabs button {
-
-  background: rgba(15,23,42,.06);
-
-  color: #0f172a;
-}
-
-.light_mode .settings_tabs .active {
-
-  background: #2563eb;
-  color: white;
-}
-
-.light_mode .setting_item p {
-
-  color: #475569;
-}
-
-.light_mode .slider {
-
-  background: #cbd5e1;
+/* Keyframes locales (los CSS Modules no ven los @keyframes globales) */
+@keyframes popIn {
+  from { opacity: 0; transform: translateY(8px) scale(0.97); }
+  to   { opacity: 1; transform: none; }
 }

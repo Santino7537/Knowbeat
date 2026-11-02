@@ -6,6 +6,10 @@ import Sidebar from "../components/Sidebar.jsx";
 import CourseCard from "../components/CourseCard.jsx";
 import AddFriendIcon from "../assets/add-friend.svg";
 import RemoveFriendIcon from "../assets/remove-friend.svg";
+import Avatar from "../components/general/Avatar.jsx";
+import MusicStaff from "../components/general/MusicStaff.jsx";
+import { useToast } from "../context/ToastContext.jsx";
+import { getErrorMessage } from "../api/client";
 import styles from "./CSS/UserProfile.module.css";
 
 const API = "http://localhost:3000";
@@ -26,6 +30,9 @@ function authHeaders() {
 function FriendButton({ profileUsername }) {
   // friendshipStatus: null mientras carga, luego objeto con los campos necesarios
   const [status, setStatus]     = useState("loading");
+  const [busy, setBusy]         = useState(false);
+  const toast                   = useToast();
+  const navigate                = useNavigate();
   // Guardamos IDs que necesitamos para las acciones
   const [friendshipId, setFriendshipId]   = useState(null);
   const [requestId, setRequestId]         = useState(null);
@@ -76,8 +83,9 @@ function FriendButton({ profileUsername }) {
   }, [profileUsername]);
 
   const handleClick = async () => {
-    if (status === "loading") return;
+    if (status === "loading" || busy) return;
 
+    setBusy(true);
     try {
       if (status === "none") {
         // Necesitamos el user_id del perfil visitado.
@@ -113,12 +121,14 @@ function FriendButton({ profileUsername }) {
         setFriendshipId(null);
       }
     } catch (err) {
-      console.error("Error en acción de amistad:", err.response?.data ?? err.message);
+      toast.error(getErrorMessage(err, "No se pudo completar la acción de amistad."));
+    } finally {
+      setBusy(false);
     }
   };
 
-  // Mientras carga no mostramos nada para evitar flash
-  if (status === "loading") return null;
+  // Mientras carga mostramos un botón "fantasma" del mismo tamaño (sin saltos)
+  if (status === "loading") return <span className={styles.friendPlaceholder} aria-hidden="true" />;
 
   const isFriend     = status === "friends";
   const isPending    = status === "pending_sent";
@@ -127,20 +137,28 @@ function FriendButton({ profileUsername }) {
                      : "Enviar solicitud de amistad";
 
   return (
-    <button
-      className={`${styles.friendButton} ${isFriend || isPending ? styles.friendButtonActive : ""}`}
-      onClick={handleClick}
-      aria-label={label}
-      title={label}
-      type="button"
-    >
-      <img
-        src={isFriend ? RemoveFriendIcon : AddFriendIcon}
-        alt=""
-        aria-hidden="true"
-        className={styles.friendButtonIcon}
-      />
-    </button>
+    <div className={styles.friendActions}>
+      {isFriend && (
+        <button type="button" className={styles.primaryAction} onClick={() => navigate("/messages")}>
+          Enviar mensaje
+        </button>
+      )}
+      <button
+        className={isFriend || isPending ? styles.secondaryAction : styles.primaryAction}
+        onClick={handleClick}
+        disabled={busy}
+        title={label}
+        type="button"
+      >
+        <img
+          src={isFriend ? RemoveFriendIcon : AddFriendIcon}
+          alt=""
+          aria-hidden="true"
+          className={styles.actionIcon}
+        />
+        {isFriend ? "Amigos · Eliminar" : isPending ? "Solicitud enviada · Cancelar" : "Agregar amigo"}
+      </button>
+    </div>
   );
 }
 
@@ -148,7 +166,6 @@ function FriendButton({ profileUsername }) {
 
 function FriendRequestItem({ request, onAccept, onReject }) {
   const [busy, setBusy] = useState(false);
-  const initial = request.user.username?.[0]?.toUpperCase() ?? "?";
 
   const handle = async (action) => {
     setBusy(true);
@@ -158,15 +175,7 @@ function FriendRequestItem({ request, onAccept, onReject }) {
 
   return (
     <div className={styles.requestItem}>
-      {request.user.picture ? (
-        <img
-          className={styles.requestAvatar}
-          src={request.user.picture}
-          alt={`Foto de ${request.user.username}`}
-        />
-      ) : (
-        <div className={styles.requestAvatarFallback}>{initial}</div>
-      )}
+      <Avatar name={request.user.username} src={request.user.picture} size={40} />
       <span className={styles.requestUsername}>{request.user.username}</span>
       <div className={styles.requestActions}>
         {/* Aceptar */}
@@ -260,7 +269,7 @@ function StreakDisplay({ streak, loading, error }) {
   const tier      = days > 60 ? "red" : days > 30 ? "orange" : days > 5 ? "yellow" : "white";
 
   return (
-    <div className={`${styles.streakDisplay} ${styles[`streak${tier}`]}`} aria-label="Racha de aprendizaje">
+    <div className={`${styles.statCard} ${styles.streakDisplay} ${styles[`streak${tier}`]}`} aria-label="Racha de aprendizaje">
       <svg className={styles.streakIcon} viewBox="0 0 32 40" aria-hidden="true">
         <path d="M17.2 1.5c1.2 7.1-4.9 9.5-2.8 15.2 1.3-1.2 2.2-3.1 2.1-5.3 6.1 4.6 9.6 10 8.5 16.3C24 34 19.8 38 14.2 38 7.8 38 3 33.4 3 26.8c0-5.2 3.1-9.2 7.1-12.8-.2 4.2.3 6.5 1.7 8.1C11 15.1 18.7 11 17.2 1.5Z" fill="currentColor"/>
         <path d="M16.4 23.2c2.8 2.2 4.1 4.2 3.7 7.1-.3 2.3-1.9 3.8-4 3.8-2.4 0-4.1-1.8-4.1-4.2 0-2.5 1.8-4.5 4.4-6.7Z" fill="currentColor" opacity=".58"/>
@@ -276,7 +285,7 @@ function StreakDisplay({ streak, loading, error }) {
               <strong>{days}</strong>
               <span>{days === 1 ? "día" : "días"}</span>
             </span>
-            <span className={styles.streakLabel}>Racha</span>
+            <span className={styles.streakLabel}>de racha {days > 0 ? "· Seguí así" : "· practicá hoy para empezar"}</span>
           </>
         )}
       </div>
@@ -287,73 +296,82 @@ function StreakDisplay({ streak, loading, error }) {
 // ── ProfileHeader ─────────────────────────────────────────────────────────────
 
 function ProfileHeader({
-  user, isOwner, isMenuOpen, onMenuToggle, onEditClick, onRequestsClick,
-  streak, streakLoading, streakError
+  user, isOwner, onEditClick, onRequestsClick, panel
 }) {
-  const [imageError, setImageError] = useState(false);
-  const initial = user.username?.[0]?.toUpperCase() ?? "U";
-
   return (
     <section className={styles.profileHeader} aria-label="Información del perfil">
+      {/* Portada con pentagrama y notas */}
+      <div className={styles.cover} aria-hidden="true">
+        <MusicStaff staves={1} notes={12} lineGap={18} className={styles.coverStaff} />
+      </div>
+
       <div className={styles.profileMain}>
+        <Avatar name={user.username} src={user.picture} size={128} ring className={styles.profileAvatar} />
 
-        {/* Avatar */}
-        <div className={styles.avatarWrapper}>
-          {user.picture && !imageError ? (
-            <img
-              className={styles.avatar}
-              src={user.picture}
-              alt={`Foto de perfil de ${user.username}`}
-              onError={() => setImageError(true)}
-            />
-          ) : (
-            <div className={styles.avatarFallback} role="img" aria-label={`Perfil de ${user.username}`}>
-              {initial}
-            </div>
-          )}
-        </div>
-
-        {/* Info */}
         <div className={styles.profileInfo}>
-          <div className={styles.usernameRow}>
-            <h1 className={styles.username}>{user.username}</h1>
-            {isOwner && (
-              <div className={styles.profileMenu}>
-                <button
-                  className={styles.menuButton}
-                  onClick={onMenuToggle}
-                  aria-label="Abrir opciones del perfil"
-                  aria-expanded={isMenuOpen}
-                  title="Opciones del perfil"
-                  type="button"
-                >
-                  <span aria-hidden="true">•••</span>
-                </button>
-                {isMenuOpen && (
-                  <div className={styles.menuDropdown} role="menu">
-                    <button type="button" role="menuitem" onClick={onEditClick}>
-                      Editar perfil
-                    </button>
-                    <button type="button" role="menuitem" onClick={onRequestsClick}>
-                      Ver solicitudes
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-          {user.biography && (
+          <h1 className={styles.username}>{user.username}</h1>
+          {user.biography ? (
             <p className={styles.description}>{user.biography}</p>
+          ) : isOwner ? (
+            <button type="button" className={styles.addBio} onClick={onEditClick}>
+              + Agregá una biografía para que la comunidad te conozca
+            </button>
+          ) : (
+            <p className={styles.descriptionMuted}>Este músico todavía no escribió su biografía.</p>
           )}
         </div>
 
-        {/* Derecha: racha (dueño) o botón amistad (visitante) */}
-        {isOwner ? (
-          <StreakDisplay streak={streak} loading={streakLoading} error={streakError} />
-        ) : (
-          <FriendButton profileUsername={user.username} />
-        )}
+        <div className={styles.headerActions}>
+          {isOwner ? (
+            <>
+              <button
+                type="button"
+                className={panel === "edit" ? styles.primaryAction : styles.secondaryAction}
+                onClick={onEditClick}
+              >
+                Editar perfil
+              </button>
+              <button
+                type="button"
+                className={panel === "requests" ? styles.primaryAction : styles.secondaryAction}
+                onClick={onRequestsClick}
+              >
+                Solicitudes
+              </button>
+            </>
+          ) : (
+            <FriendButton profileUsername={user.username} />
+          )}
+        </div>
+      </div>
+    </section>
+  );
+}
 
+// ── Estadísticas rápidas ──────────────────────────────────────────────────────
+
+function ProfileStats({ isOwner, streak, streakLoading, streakError, courses, progressVisible }) {
+  const completed = courses.reduce(
+    (sum, c) => sum + Math.max(0, Math.min(Number(c.total_lessons) || 0, (Number(c.current_lesson) || 1) - 1)),
+    0
+  );
+
+  return (
+    <section className={styles.stats} aria-label="Estadísticas">
+      {isOwner && (
+        <StreakDisplay streak={streak} loading={streakLoading} error={streakError} />
+      )}
+      <div className={styles.statCard}>
+        <div>
+          <strong>{progressVisible ? courses.length : "—"}</strong>
+          <span>{courses.length === 1 ? "curso en progreso" : "cursos en progreso"}</span>
+        </div>
+      </div>
+      <div className={styles.statCard}>
+        <div>
+          <strong>{progressVisible ? completed : "—"}</strong>
+          <span>{completed === 1 ? "lección completada" : "lecciones completadas"}</span>
+        </div>
       </div>
     </section>
   );
@@ -365,12 +383,13 @@ export default function UserProfile() {
   const { username }             = useParams();
   const navigate                 = useNavigate();
   const { loggedUser, refreshUser } = useAuth();
+  const toast = useToast();
 
   const [profileUser, setProfileUser]   = useState(null);
   const [loading, setLoading]           = useState(true);
   const [error, setError]               = useState("");
   const [panel, setPanel]               = useState(null); // null | "edit" | "requests"
-  const [isMenuOpen, setIsMenuOpen]     = useState(false);
+  const [, setIsMenuOpen]               = useState(false);
   const [saving, setSaving]             = useState(false);
   const [form, setForm]                 = useState({ username: "", email: "", biography: "", password: "" });
   const [streak, setStreak]             = useState(null);
@@ -465,12 +484,13 @@ export default function UserProfile() {
       setProfileUser(prev => ({ ...prev, ...payload, ...data.userPayload }));
       setForm(prev => ({ ...prev, password: "" }));
       setPanel(null);
+      toast.success("Perfil actualizado.");
       await refreshUser();
       if (payload.username !== username) {
         navigate(`/user/${encodeURIComponent(payload.username)}`, { replace: true });
       }
     } catch (err) {
-      setError(err.response?.data?.message ?? "No se pudo guardar el perfil.");
+      setError(getErrorMessage(err, "No se pudo guardar el perfil."));
     } finally {
       setSaving(false);
     }
@@ -505,13 +525,18 @@ export default function UserProfile() {
           key={`${profileUser.username}:${profileUser.picture ?? ""}`}
           user={profileUser}
           isOwner={isOwner}
-          isMenuOpen={isMenuOpen}
-          onMenuToggle={() => setIsMenuOpen(p => !p)}
+          panel={panel}
           onEditClick={() => togglePanel("edit")}
           onRequestsClick={() => togglePanel("requests")}
+        />
+
+        <ProfileStats
+          isOwner={isOwner}
           streak={streak}
           streakLoading={streakLoading}
           streakError={streakError}
+          courses={coursesInProgress}
+          progressVisible={profileUser.progressVisible !== false}
         />
 
         {/* Panel editar perfil */}
@@ -578,7 +603,12 @@ export default function UserProfile() {
                 <path d="M23 4v17.5a4.5 4.5 0 1 1-2-3.7V8l-11 3v14.5a4.5 4.5 0 1 1-2-3.7V9L23 4Z" fill="currentColor"/>
               </svg>
               <h3>Todavía no hay cursos en progreso</h3>
-              <p>Cuando este usuario se inscriba en un curso, aparecerá aquí.</p>
+              <p>{isOwner ? "Elegí tu primer curso y empezá a aprender hoy." : "Cuando se inscriba en un curso, va a aparecer acá."}</p>
+              {isOwner && (
+                <button type="button" className={styles.primaryAction} onClick={() => navigate("/courses/catalog")}>
+                  Explorar cursos
+                </button>
+              )}
             </div>
           )}
         </section>

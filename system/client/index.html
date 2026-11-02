@@ -1,9 +1,33 @@
 <!doctype html>
-<html lang="en">
+<html lang="es" data-theme="dark">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="/favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#050b18" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <script>
+      // Aplica el tema guardado antes de que cargue React (evita el "flash" de tema).
+      (function () {
+        try {
+          var t = localStorage.getItem('kb-theme');
+          if (t !== 'light' && t !== 'dark') {
+            var u = JSON.parse(localStorage.getItem('user') || 'null');
+            var c = (u && u.configuration) || u;
+            t = c && c.appearance && c.appearance.dark_mode === false ? 'light' : 'dark';
+          }
+          document.documentElement.setAttribute('data-theme', t);
+          if (localStorage.getItem('kb-sidebar-collapsed') === '1') {
+            document.documentElement.classList.add('kb-sidebar-collapsed');
+          }
+        } catch (e) {}
+      })();
+    </script>
     <title>Inicio</title>
   </head>
   <body>

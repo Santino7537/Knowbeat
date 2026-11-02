@@ -1,0 +1,80 @@
+.staffWrap {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.staff path {
+  fill: none;
+  stroke: rgb(var(--kb-accent-rgb) / 0.38);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+  stroke-dasharray: 2600;
+  stroke-dashoffset: 2600;
+  animation: draw 2.2s var(--kb-ease) forwards;
+}
+
+/* Las notas viajan de izquierda a derecha y suben/bajan suavemente */
+.note {
+  position: absolute;
+  left: 0;
+  margin-top: -0.7em;
+  color: #6bb8ff;
+  text-shadow: 0 0 14px rgb(var(--kb-accent-rgb) / 0.9), 0 0 32px rgb(var(--kb-accent-rgb) / 0.5);
+  line-height: 1;
+  will-change: transform;
+  animation: travel linear infinite;
+}
+
+.noteAlt {
+  color: #a5b4fc;
+  text-shadow: 0 0 14px rgb(129 140 248 / 0.9), 0 0 32px rgb(129 140 248 / 0.45);
+}
+
+:global([data-theme="light"]) .note {
+  color: #2563eb;
+  text-shadow: 0 0 12px rgb(37 99 235 / 0.35);
+}
+
+:global([data-theme="light"]) .noteAlt {
+  color: #6366f1;
+}
+
+.noteInner {
+  display: inline-block;
+  animation: bob ease-in-out infinite alternate;
+}
+
+@keyframes draw {
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes travel {
+  0%   { transform: translateX(-8vw); opacity: 0; }
+  6%   { opacity: 1; }
+  94%  { opacity: 1; }
+  100% { transform: translateX(108vw); opacity: 0; }
+}
+
+@keyframes bob {
+  from { transform: translateY(-14px) rotate(-10deg); }
+  to   { transform: translateY(14px) rotate(8deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .note {
+    display: none;
+  }
+
+  .staff path {
+    stroke-dashoffset: 0;
+  }
+}

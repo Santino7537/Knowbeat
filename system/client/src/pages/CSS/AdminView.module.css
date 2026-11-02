@@ -1,12 +1,7 @@
 .admin_page {
   min-height: 100vh;
   padding: 40px;
-  background:
-    radial-gradient(
-      circle at top left,
-      #1e293b,
-      #0f172a 60%
-    );
+  color: var(--kb-text);
 }
 
 /* HEADER */
@@ -25,21 +20,17 @@
 }
 
 .admin_top p {
-  color: #94a3b8;
+  color: var(--kb-text-muted);
 }
 
 .admin_badge {
-  background:
-    linear-gradient(
-      135deg,
-      #3b82f6,
-      #2563eb
-    );
-  padding: 10px 18px;
-  border-radius: 999px;
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 1px;
+  composes: kb-badge from global;
+  padding: 0.6rem 1.1rem;
+  background: var(--kb-gradient-accent);
+  color: var(--kb-on-accent);
+  letter-spacing: var(--kb-tracking-label);
+  text-transform: uppercase;
+  box-shadow: var(--kb-shadow-glow);
 }
 
 /* TABS */
@@ -51,26 +42,11 @@
 }
 
 .tab {
-  border: none;
-  background:
-    rgba(255, 255, 255, 0.05);
-
-  color: #94a3b8;
-  padding: 12px 18px;
-  border-radius: 14px;
-  cursor: pointer;
-  transition: 0.2s;
-}
-
-.tab:hover {
-  background:
-    rgba(59, 130, 246, 0.15);
-  color: white;
+  composes: kb-btn kb-btn-tonal from global;
 }
 
 .active {
-  background: #2563eb;
-  color: white;
+  composes: kb-btn-active from global;
 }
 
 /* STATS */
@@ -87,24 +63,18 @@
 }
 
 .stat_card {
-  background:
-    rgba(30, 41, 59, 0.8);
-  border:
-    1px solid
-    rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(10px);
+  composes: kb-card from global;
   padding: 24px;
-  border-radius: 22px;
-  transition: 0.25s;
 }
 
 .stat_card:hover {
   transform: translateY(-4px);
-  border-color: #3b82f6;
+  border-color: rgb(var(--kb-accent-rgb) / 0.55);
+  box-shadow: var(--kb-shadow-md);
 }
 
 .stat_card span {
-  color: #94a3b8;
+  color: var(--kb-text-muted);
   font-size: 14px;
 }
 
@@ -116,14 +86,12 @@
 /* USERS */
 
 .users_container {
-  background:
-    rgba(15, 23, 42, 0.75);
-  border:
-    1px solid
-    rgba(255, 255, 255, 0.06);
-  border-radius: 28px;
   padding: 28px;
+  border: 1px solid var(--kb-border-subtle);
+  border-radius: var(--kb-radius-xl);
+  background: var(--kb-surface-glass);
   backdrop-filter: blur(12px);
+  box-shadow: var(--kb-shadow-sm);
 }
 
 .section_title {
@@ -136,7 +104,7 @@
 }
 
 .section_title p {
-  color: #94a3b8;
+  color: var(--kb-text-muted);
   font-size: 14px;
 }
 
@@ -149,28 +117,19 @@
 /* USER CARD */
 
 .user_card {
+  composes: kb-card from global;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background:
-    rgba(30, 41, 59, 0.8);
-
-  border:
-    1px solid
-    rgba(255, 255, 255, 0.05);
-  border-radius: 22px;
-  padding: 22px;
   margin-bottom: 16px;
-  transition: 0.25s;
+  padding: 22px;
 }
 
 .user_card:hover {
   transform: translateY(-3px);
   border-color:
-    rgba(59, 130, 246, 0.4);
-  box-shadow:
-    0 10px 30px
-    rgba(0, 0, 0, 0.25);
+    rgb(var(--kb-accent-rgb) / 0.4);
+  box-shadow: var(--kb-shadow-md);
 }
 
 /* LEFT */
@@ -184,23 +143,17 @@
 /* AVATAR */
 
 .avatar {
-  width: 62px;
-  height: 62px;
-  border-radius: 18px;
-  background:
-    linear-gradient(
-      135deg,
-      #3b82f6,
-      #2563eb
-    );
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 62px;
+  height: 62px;
+  border-radius: 50%;
+  background: var(--kb-gradient-accent);
+  color: var(--kb-on-accent);
   font-size: 22px;
   font-weight: 700;
-  box-shadow:
-    0 10px 25px
-    rgba(37, 99, 235, 0.35);
+  box-shadow: var(--kb-shadow-glow);
 }
 
 /* USER DATA */
@@ -211,7 +164,7 @@
 }
 
 .user_data p {
-  color: #94a3b8;
+  color: var(--kb-text-muted);
   margin-bottom: 10px;
 }
 
@@ -223,38 +176,26 @@
 }
 
 .role {
-  padding: 7px 14px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 600;
+  composes: kb-badge from global;
 }
 
 .admin {
-  background:
-    rgba(239, 68, 68, 0.18);
-  color: #f87171;
+  background: var(--kb-danger-soft);
+  color: var(--kb-danger);
 }
 
 .mod {
-  background:
-    rgba(168, 85, 247, 0.18);
-  color: #c084fc;
+  background: var(--kb-purple-soft);
+  color: var(--kb-purple);
 }
 
 .user {
-  background:
-    rgba(59, 130, 246, 0.18);
-  color: #60a5fa;
+  background: var(--kb-accent-soft);
+  color: var(--kb-accent-text);
 }
 
 .you_badge {
-  background:
-    rgba(34, 197, 94, 0.18);
-  color: #4ade80;
-  padding: 7px 12px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 700;
+  composes: kb-badge kb-badge-success from global;
 }
 
 /* ACTIONS */
@@ -266,44 +207,19 @@
 }
 
 .role_select {
-  background:
-    rgba(255, 255, 255, 0.05);
-  border:
-    1px solid
-    rgba(255, 255, 255, 0.08);
-  color: white;
-  padding: 12px 14px;
-  border-radius: 14px;
-  outline: none;
+  composes: kb-input kb-input-pill from global;
+  width: auto;
+  padding: 0.7rem 1rem;
   cursor: pointer;
-  transition: 0.2s;
-}
-
-.role_select:hover {
-  border-color: #3b82f6;
 }
 
 .role_select option {
-  background: #0f172a;
-  color: white;
+  background: var(--kb-surface);
+  color: var(--kb-text);
 }
 
 .delete_btn {
-  background:
-    rgba(239, 68, 68, 0.16);
-  color: #f87171;
-  border: none;
-  padding: 12px 18px;
-  border-radius: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: 0.2s;
-}
-
-.delete_btn:hover {
-  background:
-    rgba(239, 68, 68, 0.28);
-  transform: translateY(-1px);
+  composes: kb-btn kb-btn-danger from global;
 }
 
 .disabled {
@@ -314,42 +230,23 @@
 /* LOADER */
 
 .admin_loading {
-  height: 100vh;
-  background: #0f172a;
   display: flex;
   align-items: center;
   justify-content: center;
+  height: 100vh;
+  background: var(--kb-bg);
 }
 
 .loader {
-  width: 55px;
-  height: 55px;
-  border-radius: 50%;
-  border:
-    4px solid
-    rgba(255, 255, 255, 0.1);
-  border-top:
-    4px solid #3b82f6;
-  animation:
-    spin 1s linear infinite;
+  composes: kb-loader from global;
 }
 
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
 /* REPORTS */
 
 .report_card {
-  background:
-    rgba(30, 41, 59, 0.8);
-  border:
-    1px solid
-    rgba(255, 255, 255, 0.05);
-  border-radius: 18px;
-  padding: 22px;
+  composes: kb-card from global;
   margin-bottom: 16px;
+  padding: 22px;
 }
 
 .report_header {
@@ -364,19 +261,19 @@
 }
 
 .report_count {
-  color: #60a5fa;
+  color: var(--kb-accent-text);
   font-size: 14px;
   font-weight: 600;
 }
 
 .report_card p {
-  color: #cbd5e1;
+  color: var(--kb-text-secondary);
   margin-bottom: 10px;
   line-height: 1.5;
 }
 
 .report_author {
-  color: #94a3b8;
+  color: var(--kb-text-muted);
   font-size: 14px;
 }
 
@@ -388,23 +285,16 @@
   gap: 18px;
 }
 
-.announcement_input,
-.announcement_textarea {
-  width: 100%;
-  background:
-    rgba(255, 255, 255, 0.05);
-  border:
-    1px solid
-    rgba(255, 255, 255, 0.08);
-  color: white;
-  border-radius: 16px;
+.announcement_input {
+  composes: kb-input from global;
   padding: 16px;
-  outline: none;
+  border-radius: var(--kb-radius-lg);
 }
 
-.announcement_input:focus,
-.announcement_textarea:focus {
-  border-color: #3b82f6;
+.announcement_textarea {
+  composes: kb-input from global;
+  padding: 16px;
+  border-radius: var(--kb-radius-lg);
 }
 
 .announcement_textarea {
@@ -413,27 +303,8 @@
 }
 
 .publish_btn {
-  border: none;
-
-  background:
-    linear-gradient(
-      135deg,
-      #3b82f6,
-      #2563eb
-    );
-  color: white;
-  padding: 14px 20px;
-  border-radius: 16px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: 0.2s;
-}
-
-.publish_btn:hover {
-  transform: translateY(-2px);
-  box-shadow:
-    0 10px 30px
-    rgba(37, 99, 235, 0.35);
+  composes: kb-btn kb-btn-primary kb-btn-lg from global;
+  align-self: flex-start;
 }
 
 /* MODAL */
@@ -441,9 +312,9 @@
 .modal_overlay {
   position: fixed;
   inset: 0;
-  background:
-    rgba(0, 0, 0, 0.65);
-  backdrop-filter: blur(5px);
+  background: var(--kb-overlay);
+  backdrop-filter: blur(6px);
+  animation: fadeIn var(--kb-dur) var(--kb-ease);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -453,14 +324,12 @@
 .delete_modal {
   width: 420px;
   max-width: 90%;
-  background: #111827;
-  border:
-    1px solid
-    rgba(255, 255, 255, 0.08);
-  border-radius: 24px;
   padding: 30px;
-  animation:
-    modal_appear 0.2s ease;
+  border: 1px solid var(--kb-border);
+  border-radius: var(--kb-radius-xl);
+  background: var(--kb-surface);
+  box-shadow: var(--kb-shadow-lg);
+  animation: popIn var(--kb-dur-slow) var(--kb-ease);
 }
 
 .delete_modal h2 {
@@ -468,7 +337,7 @@
 }
 
 .delete_modal p {
-  color: #cbd5e1;
+  color: var(--kb-text-secondary);
   line-height: 1.5;
 }
 
@@ -479,48 +348,12 @@
   margin-top: 28px;
 }
 
-.cancel_btn,
-.confirm_delete_btn {
-  border: none;
-  padding: 12px 18px;
-  border-radius: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: 0.2s;
-}
-
 .cancel_btn {
-  background:
-    rgba(255, 255, 255, 0.06);
-  color: white;
-}
-
-.cancel_btn:hover {
-  background:
-    rgba(255, 255, 255, 0.12);
+  composes: kb-btn kb-btn-tonal from global;
 }
 
 .confirm_delete_btn {
-  background:
-    rgba(239, 68, 68, 0.18);
-  color: #f87171;
-}
-
-.confirm_delete_btn:hover {
-  background:
-    rgba(239, 68, 68, 0.3);
-}
-
-@keyframes modal_appear {
-  from {
-    opacity: 0;
-    transform: scale(0.96);
-  }
-
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
+  composes: kb-btn kb-btn-danger from global;
 }
 
 /* RESPONSIVE */
@@ -570,4 +403,15 @@
   .confirm_delete_btn {
     width: 100%;
   }
+}
+
+/* Keyframes locales (los CSS Modules no ven los @keyframes globales) */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes popIn {
+  from { opacity: 0; transform: translateY(8px) scale(0.97); }
+  to   { opacity: 1; transform: none; }
 }

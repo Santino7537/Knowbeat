@@ -1,12 +1,12 @@
 .exercises_layout {
   display: flex;
   min-height: 100vh;
-  background: #0f172a;
 }
 
 .exercises_main {
   flex: 1;
-  margin-left: 260px;
+  min-width: 0;
+  margin-left: var(--kb-sidebar-width);
   padding: 40px;
 }
 
@@ -19,13 +19,14 @@
 }
 
 .exercises_header h1 {
-  color: white;
-  font-size: 2.2rem;
-  margin-bottom: 8px;
+  margin: 0 0 8px;
+  color: var(--kb-text);
+  font-size: var(--kb-fs-2xl);
 }
 
 .exercises_header p {
-  color: #94a3b8;
+  margin: 0;
+  color: var(--kb-text-muted);
 }
 
 .header_stats {
@@ -33,13 +34,12 @@
 }
 
 .stat_pill {
-  display: inline-block;
-  padding: 8px 14px;
-  border-radius: 999px;
-  background: #1e293b;
-  border: 1px solid #334155;
-  color: #94a3b8;
-  font-size: 0.875rem;
+  composes: kb-badge from global;
+  padding: 0.5rem 0.95rem;
+  border: 1px solid var(--kb-border);
+  background: var(--kb-surface);
+  color: var(--kb-text-muted);
+  font-size: var(--kb-fs-sm);
 }
 
 .content_container {
@@ -49,61 +49,52 @@
 }
 
 .types_panel {
-  background: #1e293b;
-  border: 1px solid #334155;
-  border-radius: 18px;
-  padding: 24px;
-  height: fit-content;
+  composes: kb-card from global;
   position: sticky;
   top: 24px;
+  height: fit-content;
+  padding: 24px;
 }
 
 .types_panel h3 {
-  color: white;
-  margin-bottom: 20px;
+  margin: 0 0 18px;
+  color: var(--kb-text);
+  font-size: var(--kb-fs-lg);
 }
 
 .type_button {
-  width: 100%;
-  padding: 14px 16px;
-  margin-bottom: 10px;
-  border: 1px solid transparent;
-  border-radius: 12px;
-  background: #334155;
-  color: white;
-  cursor: pointer;
-  transition: 0.2s ease;
-  display: flex;
-  align-items: center;
+  composes: kb-btn kb-btn-tonal from global;
   justify-content: space-between;
   gap: 12px;
+  width: 100%;
+  margin-bottom: 8px;
+  padding: 0.8rem 1rem;
   text-align: left;
 }
 
-.type_button:hover {
-  background: #475569;
+.type_button:hover:not(:disabled) {
+  transform: translateX(3px);
 }
 
 .type_button_active {
-  background: #2563eb;
-  border-color: #3b82f6;
-}
-
-.type_button_active:hover {
-  background: #1d4ed8;
+  composes: kb-btn-active from global;
 }
 
 .type_count {
-  min-width: 24px;
-  height: 24px;
-  padding: 0 8px;
-  border-radius: 999px;
-  background: rgba(15, 23, 42, 0.35);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.75rem;
-  font-weight: 600;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: var(--kb-radius-pill);
+  background: rgb(var(--kb-tint-rgb) / 0.1);
+  font-size: var(--kb-fs-xs);
+  font-weight: 700;
+}
+
+.type_button_active .type_count {
+  background: rgb(255 255 255 / 0.2);
 }
 
 .exercises_panel {
@@ -115,13 +106,14 @@
 }
 
 .panel_header h2 {
-  color: white;
-  font-size: 1.5rem;
-  margin-bottom: 6px;
+  margin: 0 0 6px;
+  color: var(--kb-text);
+  font-size: var(--kb-fs-xl);
 }
 
 .panel_header p {
-  color: #94a3b8;
+  margin: 0;
+  color: var(--kb-text-muted);
 }
 
 .exercises_grid {
@@ -131,35 +123,46 @@
 }
 
 .exercise_card {
-  background: #1e293b;
-  border: 1px solid #334155;
-  border-radius: 18px;
-  padding: 24px;
+  composes: kb-card from global;
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 12px;
   min-height: 220px;
+  padding: 24px;
+  overflow: hidden;
+}
+
+/* Brillo sutil en la esquina, igual que las cards de la landing */
+.exercise_card::after {
+  content: "";
+  position: absolute;
+  top: -60px;
+  right: -60px;
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  background: var(--kb-accent-glow);
+  filter: blur(70px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--kb-dur-slow) var(--kb-ease);
 }
 
 .exercise_card_clickable {
-  cursor: pointer;
-  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  composes: kb-card-interactive from global;
 }
 
-.exercise_card_clickable:hover {
-  transform: translateY(-2px);
-  border-color: #3b82f6;
-  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.35);
+.exercise_card_clickable:hover::after {
+  opacity: 0.22;
 }
 
-.exercise_card_clickable:focus-visible {
-  outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+.exercise_card_clickable:hover .enter_link {
+  gap: 10px;
 }
 
 .exercise_card_disabled {
-  opacity: 0.65;
+  opacity: 0.6;
 }
 
 .card_top {
@@ -170,86 +173,68 @@
 }
 
 .type_badge {
-  display: inline-block;
-  padding: 4px 10px;
-  border-radius: 999px;
-  background: #334155;
-  color: #cbd5e1;
-  font-size: 0.75rem;
-  font-weight: 600;
+  composes: kb-badge from global;
 }
 
 .coming_soon_badge {
-  display: inline-block;
-  padding: 4px 10px;
-  border-radius: 999px;
-  background: #451a03;
-  color: #fdba74;
-  font-size: 0.75rem;
-  font-weight: 600;
+  composes: kb-badge kb-badge-warning from global;
 }
 
 .exercise_card h3 {
-  color: white;
-  font-size: 1.125rem;
+  margin: 0;
+  color: var(--kb-text);
+  font-size: var(--kb-fs-lg);
   line-height: 1.4;
 }
 
 .exercise_card p {
-  color: #94a3b8;
+  flex: 1;
+  margin: 0;
+  color: var(--kb-text-muted);
   font-size: 0.9375rem;
   line-height: 1.5;
-  flex: 1;
 }
 
 .enter_link {
-  color: #60a5fa;
-  font-size: 0.875rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--kb-accent-text);
+  font-size: var(--kb-fs-sm);
   font-weight: 600;
+  transition: gap var(--kb-dur) var(--kb-ease);
 }
 
 .empty_state {
-  background: #1e293b;
-  border: 1px dashed #475569;
-  border-radius: 18px;
+  composes: kb-card from global;
   padding: 48px 24px;
+  border-style: dashed;
   text-align: center;
 }
 
 .empty_icon {
   display: block;
-  font-size: 2.5rem;
   margin-bottom: 16px;
+  font-size: 2.5rem;
 }
 
 .empty_state h3 {
-  color: white;
-  margin-bottom: 8px;
+  margin: 0 0 8px;
+  color: var(--kb-text);
 }
 
 .empty_state p {
-  color: #94a3b8;
   max-width: 420px;
   margin: 0 auto 24px;
+  color: var(--kb-text-muted);
 }
 
 .reset_filter_button {
-  padding: 12px 20px;
-  border: none;
-  border-radius: 12px;
-  background: #2563eb;
-  color: white;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.reset_filter_button:hover {
-  background: #1d4ed8;
+  composes: kb-btn kb-btn-primary from global;
 }
 
 @media (max-width: 900px) {
   .exercises_main {
-    margin-left: 0;
     padding: 24px 16px;
   }
 
@@ -264,59 +249,4 @@
   .exercises_header {
     flex-direction: column;
   }
-}
-
-/* ==================================================
-   LIGHT MODE
-================================================== */
-
-.light_mode {
-  background: #f8fafc;
-}
-
-.light_mode .exercises_header h1,
-.light_mode .panel_header h2,
-.light_mode .types_panel h3,
-.light_mode .exercise_card h3,
-.light_mode .empty_state h3 {
-  color: #0f172a;
-}
-
-.light_mode .exercises_header p,
-.light_mode .panel_header p,
-.light_mode .exercise_card p,
-.light_mode .empty_state p {
-  color: #64748b;
-}
-
-.light_mode .stat_pill,
-.light_mode .types_panel,
-.light_mode .exercise_card,
-.light_mode .empty_state {
-  background: #ffffff;
-  border-color: #e2e8f0;
-}
-
-.light_mode .stat_pill {
-  color: #475569;
-}
-
-.light_mode .type_button {
-  background: #e2e8f0;
-  color: #0f172a;
-}
-
-.light_mode .type_button:hover {
-  background: #cbd5e1;
-}
-
-.light_mode .type_button_active,
-.light_mode .type_button_active:hover {
-  background: #2563eb;
-  color: #ffffff;
-}
-
-.light_mode .type_badge {
-  background: #e2e8f0;
-  color: #475569;
 }

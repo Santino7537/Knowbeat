@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import CourseCard from "../components/CourseCard";
 import styles from "./CSS/Courses.module.css";
+import { getErrorMessage } from "../api/client";
 
 const CoursesCatalog = () => {
   const navigate = useNavigate();
@@ -21,20 +22,9 @@ const CoursesCatalog = () => {
   } catch {
     user = null;
   }
-  const settings = user?.configuration || user;
-  const isLightMode = settings?.appearance?.dark_mode === false;
   const authHeaders = {
     headers: { Authorization: `Bearer ${token}` }
   };
-
-  useEffect(() => {
-    if (isLightMode) {
-      document.body.classList.add("light-mode");
-    } else {
-      document.body.classList.remove("light-mode");
-    }
-    return () => document.body.classList.remove("light-mode");
-  }, [isLightMode]);
 
   useEffect(() => {
     let active = true;
@@ -48,8 +38,8 @@ const CoursesCatalog = () => {
         if (active) {
           setCourses(Array.isArray(response.data) ? response.data : []);
         }
-      } catch {
-        if (active) setError("No se pudo cargar el catálogo. Probá nuevamente.");
+      } catch (requestError) {
+        if (active) setError(getErrorMessage(requestError, "No se pudo cargar el catálogo. Probá nuevamente."));
       } finally {
         if (active) setLoading(false);
       }
@@ -85,7 +75,7 @@ const CoursesCatalog = () => {
         )));
         setMessage("Ya estabas anotado a este curso.");
       } else {
-        setError(requestError.response?.data?.error || "No se pudo completar la inscripción.");
+        setError(getErrorMessage(requestError, "No se pudo completar la inscripción."));
       }
     } finally {
       setRegisteringId(null);
@@ -95,13 +85,13 @@ const CoursesCatalog = () => {
   if (loading) {
     return (
       <div className={styles.courses_loading}>
-        <div className="loader"></div>
+        <div className={styles.loader}></div>
       </div>
     );
   }
 
   return (
-    <div className={`${styles.courses_layout} ${isLightMode ? styles.light_mode : ""}`}>
+    <div className={styles.courses_layout}>
       <Sidebar />
       <main className={styles.courses_main}>
         <div className={styles.courses_header}>

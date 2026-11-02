@@ -1,96 +1,176 @@
-/* ── Layout general ──
-   Sidebar (200px, ya hecha) + centro (484px) + panel derecho (340px) = 1024px.
-   Para el centro y el panel NO se usan anchos fijos sino proporciones (flex: 484 y flex: 340):
-   comparten el espacio restante en esa misma relación, así que a 1024px dan exactamente
-   las medidas del diseño y en otras pantallas escalan juntos.
-   (Supuesto: la Sidebar ocupa su lugar en el flujo. Si es position: fixed,
-   agregá margin-left: 200px a .chat.) */
-   .page {
-    /* Ancho de la Sidebar en UN solo lugar. Si cambia, se cambia acá. */
-    --sidebar-width: 260px;
-    display: flex;
-    /* La Sidebar está fuera del flujo (position fixed), así que no ocupa lugar y el contenido
-       se dibujaba debajo de ella, tapándola. Este padding deja libre su franja a la izquierda. */
-    padding-left: var(--sidebar-width);
-    height: 100vh;
-    height: 100dvh;      /* dvh evita el salto de la barra del navegador en celulares */
-    overflow: hidden;    /* la página no scrollea; solo lo hace la lista de mensajes */
-    background: #0f172a;
-  }
-  
-  /* ── Columna central ── */
-  .chat {
-    position: relative;  /* el input se posiciona respecto a esta columna */
-    display: flex;
+/* Layout: sidebar (fija) | lista de conversaciones | chat */
+.page {
+  display: flex;
+  height: 100vh;
+  height: 100dvh;
+  padding-left: var(--kb-sidebar-width);
+  overflow: hidden;
+  transition: padding-left var(--kb-dur-slow) var(--kb-ease);
+}
+
+.chat {
+  position: relative;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  /* Pentagrama muy sutil de fondo, en tono con el resto de la app */
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0 46px,
+    rgb(var(--kb-tint-rgb) / 0.025) 46px 47px
+  );
+}
+
+/* ---------- Encabezado del chat ---------- */
+.header {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 28px;
+  border-bottom: 1px solid var(--kb-border-subtle);
+  background: color-mix(in srgb, var(--kb-bg) 70%, transparent);
+  backdrop-filter: blur(12px);
+}
+
+.headerInfo {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.name {
+  margin: 0;
+  overflow: hidden;
+  font-size: var(--kb-fs-lg);
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.headerSub {
+  color: var(--kb-text-muted);
+  font-size: var(--kb-fs-xs);
+}
+
+.profileButton {
+  composes: kb-btn kb-btn-secondary kb-btn-sm from global;
+}
+
+.error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 12px 28px 0;
+  padding: 10px 14px;
+  border-radius: var(--kb-radius);
+  background: var(--kb-danger-soft);
+  color: var(--kb-danger);
+  font-size: var(--kb-fs-sm);
+}
+
+.error button {
+  border: 0;
+  background: none;
+  color: inherit;
+  font-size: 1.2rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+/* ---------- Mensajes ---------- */
+.list {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 10px;
+  padding: 20px clamp(16px, 5%, 56px) 120px;
+  overflow-y: auto;
+}
+
+.loadingOlder {
+  align-self: center;
+  color: var(--kb-text-muted);
+  font-size: var(--kb-fs-xs);
+}
+
+.daySeparator {
+  display: flex;
+  justify-content: center;
+  margin: 10px 0 4px;
+}
+
+.daySeparator span {
+  padding: 4px 12px;
+  border-radius: var(--kb-radius-pill);
+  background: var(--kb-surface-2);
+  color: var(--kb-text-muted);
+  font-size: var(--kb-fs-xs);
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  max-width: 26rem;
+  margin: auto;
+  padding: 24px;
+  text-align: center;
+  animation: popIn var(--kb-dur-slow) var(--kb-ease);
+}
+
+.empty h2 {
+  margin: 8px 0 0;
+  font-size: var(--kb-fs-lg);
+}
+
+.empty p {
+  margin: 0;
+  color: var(--kb-text-muted);
+}
+
+.emptyEmoji {
+  font-size: 2.8rem;
+}
+
+.emptyButton {
+  composes: kb-btn kb-btn-primary from global;
+  margin-top: 8px;
+}
+
+.quickReplies {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.quickReply {
+  composes: kb-btn kb-btn-tonal kb-btn-sm from global;
+}
+
+/* El input flota abajo, centrado sobre la conversación */
+.composer {
+  position: absolute;
+  right: clamp(16px, 5%, 56px);
+  bottom: 18px;
+  left: clamp(16px, 5%, 56px);
+}
+
+@media (max-width: 700px) {
+  .page {
     flex-direction: column;
-    flex: 484 1 0;
-    min-width: 0;        /* permite que la columna se achique en vez de desbordar */
-    background: #0f172a;
   }
-  
-  /* Cabecera: 390px / 484px = 80.6% de ancho; 100px = 6.25rem de alto; centrada con auto */
-  .header {
-    flex-shrink: 0;
-    box-sizing: border-box;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    width: 80.6%;
-    height: 6.25rem;
-    margin: 1rem auto 0;
-    padding: 0 0.625rem; /* (100px - 80px de avatar) / 2 = 10px: el avatar queda centrado en vertical */
-    background: #1e293b;
-    border-radius: 0.5rem;
-  }
-  
-  .avatar {
-    flex-shrink: 0;      /* nunca se aplasta si el nombre es largo */
-    width: 5rem;         /* 80px */
-    height: 5rem;
-    border-radius: 50%;
-    object-fit: cover;   /* la foto se recorta en vez de deformarse */
-    background: #d9d9d9; /* color de relleno mientras no hay foto */
-  }
-  
-  .name {
-    margin: 0;
-    min-width: 0;
-    font-size: 1.5rem;
-    font-weight: 700;
-    line-height: 1.2;
-    color: #ffffff;
-    overflow-wrap: anywhere;
-  }
-  
-  .error {
-    margin: 0.5rem auto 0;
-    width: 80.6%;
-    font-size: 0.875rem;
-    color: #f87171;
-  }
-  
-  /* Lista de mensajes: ocupa todo el espacio que queda y es lo único que scrollea */
-  .list {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 0.875rem;
-    overflow-y: auto;
-    /* Padding lateral en % para que la cola (0.5rem) nunca quede cortada.
-       Padding inferior de 8.5rem = 1rem de margen + 6.1rem del input a 3 líneas + aire:
-       como el input flota encima, sin esto el último mensaje quedaría tapado. */
-    padding: 1.25rem 4% 8.5rem;
-    scrollbar-width: thin;
-    scrollbar-color: #334155 transparent;
-  }
-  
-  /* Input flotante: absoluto respecto a .chat, anclado abajo. Al crecer, lo hace hacia
-     arriba y se sobrepone a los mensajes, como pediste. left 9.7% + width 80.6% lo centra
-     (mismas proporciones que la cabecera, 390 de 484). El wrapper solo mide lo que mide
-     el input, así que no bloquea el scroll ni los clics sobre los mensajes de atrás. */
-  .composer {
-    position: absolute;
-    bottom: 1rem;
-    left: 9.7%;
-    width: 80.6%;
-  }
+}
+
+@keyframes popIn {
+  from { opacity: 0; transform: translateY(8px) scale(0.97); }
+  to   { opacity: 1; transform: none; }
+}

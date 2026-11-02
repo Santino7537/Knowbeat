@@ -1,83 +1,88 @@
 import { useState } from 'react';
-import styles from './form_card.module.css'
-import axios from 'axios'
-import { useFieldErrors } from "../general/use_field_error.jsx";
-import { FieldError } from "../general/field_error.jsx";
+import api, { getErrorMessage } from '../../api/client';
+import AuthField from './AuthField.jsx';
+import styles from './form_card.module.css';
 
-function Login_card({ onAuthSuccess, switchToRegister }){
-    const [password, setPassword] = useState("");
+function Login_card({ onAuthSuccess, switchToRegister }) {
     const [username, setUsername] = useState("");
-    const { errors, setError, setErrors, clearError } = useFieldErrors();
+    const [password, setPassword] = useState("");
+    const [errors, setErrors] = useState({});
+    const [generalError, setGeneralError] = useState("");
+    const [loading, setLoading] = useState(false);
+
+    const clear = (field) => {
+        setErrors((prev) => ({ ...prev, [field]: undefined }));
+        setGeneralError("");
+    };
 
     function validateForm() {
-        const newErrors = {};
-        if (!username.trim()) newErrors.username = "El nombre de usuario es obligatorio";
-        if (!password) newErrors.password = "La contraseña es obligatoria";
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
+        const next = {};
+        if (!username.trim()) next.username = "Ingresá tu nombre de usuario.";
+        if (!password) next.password = "Ingresá tu contraseña.";
+        setErrors(next);
+        return Object.keys(next).length === 0;
     }
 
-
     async function fetchLogin(event) {
-        event.preventDefault(); // evita recargar la página
-        if (!validateForm()) return;
-    
+        event.preventDefault();
+        setGeneralError("");
+        if (!validateForm() || loading) return;
+
+        setLoading(true);
         try {
-            const response = await axios.post("http://localhost:3000/login", {
-                username,
-                password
-            });
-            await onAuthSuccess(response.data.token);
+            const { data } = await api.post("/login", { username: username.trim(), password });
+            await onAuthSuccess(data.token);
         } catch (err) {
             const status = err.response?.status;
             if (status === 400 || status === 401) {
-                // Credenciales incorrectas: error en ambos campos para no revelar cuál falló
-                setErrors({
-                username: "Usuario o contraseña incorrectos",
-                password: "Usuario o contraseña incorrectos",});
+                // Credenciales incorrectas: marcamos ambos campos (no revelamos cuál falló)
+                setErrors({ username: " ", password: " " });
+                setGeneralError("El usuario o la contraseña no son correctos. Revisalos e intentá de nuevo.");
             } else {
-                setError("general", "No se pudo conectar. Intentá de nuevo.");
+                setGeneralError(getErrorMessage(err, "No pudimos iniciar sesión. Probá de nuevo."));
             }
+        } finally {
+            setLoading(false);
         }
     }
 
-    return(
-        <>
-            <div className={styles.card}>
-                <section className={styles.section}>
-                    <h2>Iniciar Sesión</h2>
-                    <form action="" className={styles.form} onSubmit={ fetchLogin }>
-                        <label htmlFor="username">Nombre de usuario</label>
-                        <input
-                            type="text" id="username"
-                            className={`${styles.input} ${errors.username ? styles.input_error : ""}`}
-                            onChange={(e) => { setUsername(e.target.value); clearError("username"); }}/>
-                        <FieldError message={errors.username}/>
-                        
-                        <label htmlFor="password">Contraseña</label>
-                        <input
-                            type="password" id="password"
-                            className={`${styles.input} ${errors.password ? styles.input_error : ""}`}
-                            onChange={(e) => { setPassword(e.target.value); clearError("password"); }}/>
-                        <FieldError message={errors.password} />
-
-                        <div className={styles.forgot_password}>
-                            <a href="#">Olvidé mi contraseña</a>
-                        </div>
-
-                        {errors.general && <FieldError message={errors.general} />}
-
-                        <button type='submit' className={styles.button}>Iniciar Sesión</button>
-                    </form>
-                </section>
-                <section className={styles.section} id={styles.change_section}>
-                    <h2>¿No tiene cuenta?</h2>
-                    <p>Registrese aquí</p>
-                    <button className={styles.button} onClick={ switchToRegister }>Registrarse</button>
-                </section>
+    return (
+        <form className={styles.form} onSubmit={fetchLogin} noValidate>
+            <div className={styles.formHead}>
+                <h2>¡Hola de nuevo! 👋</h2>
+                <p>Entrá para seguir practicando donde lo dejaste.</p>
             </div>
-        </>
-    )
+
+            <AuthField
+                id="login-username" label="Nombre de usuario" icon="user"
+                value={username} autoComplete="username" placeholder="tu_usuario"
+                onChange={(e) => { setUsername(e.target.value); clear("username"); }}
+                error={errors.username}
+            />
+            <AuthField
+                id="login-password" label="Contraseña" type="password" icon="lock"
+                value={password} autoComplete="current-password" placeholder="••••••••"
+                onChange={(e) => { setPassword(e.target.value); clear("password"); }}
+                error={errors.password}
+            />
+
+            <div className={styles.forgot_password}>
+                <a href="#" onClick={(e) => e.preventDefault()}>¿Olvidaste tu contraseña?</a>
+            </div>
+
+            {generalError && <div className={styles.alert} role="alert">{generalError}</div>}
+
+            <button type="submit" className={styles.button} disabled={loading}>
+                {loading && <span className={styles.spinner} aria-hidden="true" />}
+                {loading ? "Entrando…" : "Iniciar sesión"}
+            </button>
+
+            <p className={styles.switchText}>
+                ¿No tenés cuenta?{" "}
+                <button type="button" className={styles.linkButton} onClick={switchToRegister}>Creá una gratis</button>
+            </p>
+        </form>
+    );
 }
 
-export default Login_card
+export default Login_card;

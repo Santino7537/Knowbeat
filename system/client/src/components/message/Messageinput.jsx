@@ -1,62 +1,64 @@
 import { useLayoutEffect, useRef, useState } from 'react'
-import styles from './MessageInput.module.css'
+import styles from './Messageinput.module.css'
 
-export default function MessageInput({ onSend }) {
+export default function MessageInput({ onSend, placeholder = 'Escribí un mensaje…' }) {
   const [value, setValue] = useState('')
   const [sending, setSending] = useState(false)
   const ref = useRef(null)
 
-  // Se eligió <textarea> (y no <input>) porque un input no puede tener varias líneas.
-  // Ajustamos la altura en useLayoutEffect (antes de que el navegador pinte) para que
-  // no haya un parpadeo. Depende de `value`, así que también se achica solo cuando
-  // el texto se borra después de enviar.
+  // El textarea crece con el contenido hasta 3 líneas (el máximo lo pone el CSS)
   useLayoutEffect(() => {
     const el = ref.current
-    el.style.height = 'auto' // primero se resetea para poder medir también cuando se borra texto
-    // El textarea ya no tiene padding ni borde propios (los tiene el contenedor), por eso
-    // scrollHeight es exactamente la altura del texto. El tope de 3 líneas lo pone
-    // `max-height` en el CSS; pasado ese punto aparece la scrollbar.
+    el.style.height = 'auto'
     el.style.height = `${el.scrollHeight}px`
   }, [value])
 
   const submit = async () => {
     const text = value.trim()
-    if (!text || sending) return // evita mensajes vacíos y doble envío con Enter repetido
+    if (!text || sending) return // evita mensajes vacíos y doble envío
     setSending(true)
     try {
       await onSend(text)
-      setValue('') // solo se borra si el envío salió bien: si falla, no se pierde lo escrito
+      setValue('') // solo se borra si se envió: si falla, no se pierde lo escrito
     } catch {
       /* el error lo muestra la página */
     } finally {
       setSending(false)
+      ref.current?.focus()
     }
   }
 
   const handleKeyDown = (e) => {
-    // Como el diseño no tiene botón de enviar, Enter envía y Shift+Enter hace salto de línea
-    // (es la convención de WhatsApp/Discord). isComposing evita enviar a mitad de una
-    // composición de teclados IME (acentos, japonés, etc.).
     if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
       e.preventDefault()
       submit()
     }
   }
 
-  // El <label> envuelve al textarea a propósito: al hacer clic en cualquier parte de la
-  // píldora (también en su padding) el navegador enfoca el textarea, sin código extra.
   return (
-    <label className={styles.field}>
+    <div className={styles.field}>
       <textarea
         ref={ref}
         className={styles.input}
         rows={1}
         value={value}
-        placeholder="Escribe un mensaje..."
-        aria-label="Escribe un mensaje"
+        placeholder={placeholder}
+        aria-label="Escribí un mensaje"
         onChange={(e) => setValue(e.target.value)}
         onKeyDown={handleKeyDown}
+        maxLength={1000}
       />
-    </label>
+      <button
+        type="button"
+        className={styles.send}
+        onClick={submit}
+        disabled={!value.trim() || sending}
+        aria-label="Enviar mensaje"
+      >
+        {sending
+          ? <span className={styles.spinner} aria-hidden="true" />
+          : <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3.4 20.4 21 12 3.4 3.6 3.4 10l12.6 2-12.6 2z" /></svg>}
+      </button>
+    </div>
   )
 }

@@ -1,4 +1,4 @@
-import styles from './MessageBubble.module.css'
+import styles from './Messagebubble.module.css'
 
 // Formatear la hora para que cada usuario la vea en su zona horaria.
 function formatTime(isoDate) {

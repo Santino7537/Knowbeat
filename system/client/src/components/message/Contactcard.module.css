@@ -1,91 +1,73 @@
 .card {
-  position: relative;            /* referencia para ubicar el badge en la esquina */
-  /* Ancho: 310px de 340px (el panel) = 91.2% del panel. */
-  width: 91.2%;
-  height: 6.25rem;               /* 100px */
-  /* Imprescindible: el panel es una columna flex con scroll. Sin esto, cuando hay muchas
-     cards el navegador las achicaría para que entren todas en vez de dejar que scrolleen. */
-  flex-shrink: 0;
-  box-sizing: border-box;
+  position: relative;
   display: flex;
+  flex-shrink: 0;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0 0.75rem;
-  background: #1e293b;
-  border: 2px solid #334155;
-  border-radius: 0.25rem;
-  /* Reseteo de estilos nativos de <button> para que herede la tipografía del sitio */
+  gap: 12px;
+  width: 100%;
+  padding: 12px;
+  border: 1px solid transparent;
+  border-radius: var(--kb-radius-lg);
+  background: transparent;
+  color: inherit;
   font: inherit;
   text-align: left;
   cursor: pointer;
+  transition: background-color var(--kb-dur-fast) var(--kb-ease), border-color var(--kb-dur-fast) var(--kb-ease);
 }
 
-/* Conversación abierta: solo cambia el color del borde (el grosor no cambia,
-   así que la card no "salta" de tamaño al seleccionarla). */
-.active { border-color: #7b9ccc; }
-
-.avatar {
-  flex-shrink: 0;                /* el avatar nunca se aplasta por un nombre largo */
-  display: block;                /* un <span> es inline y no respeta width/height */
-  width: 3rem;                   /* 48px (no lo indicaste: estimado de la imagen) */
-  height: 3rem;
-  border-radius: 50%;
-  object-fit: cover;
-  background: #d9d9d9;           /* relleno mientras no hay foto */
+.card:hover {
+  background: rgb(var(--kb-tint-rgb) / 0.05);
 }
 
-/* min-width: 0 es la clave del truncado: por defecto un hijo flex no puede ser más
-   angosto que su contenido, así que sin esto el texto largo ensancharía la card
-   en vez de cortarse con "...". */
+.active,
+.active:hover {
+  border-color: rgb(var(--kb-accent-rgb) / 0.35);
+  background: var(--kb-accent-soft-strong);
+}
+
 .info {
-  flex: 1;
-  min-width: 0;
   display: flex;
+  flex: 1;
   flex-direction: column;
-  gap: 0.125rem;
+  gap: 2px;
+  min-width: 0;
 }
 
-/* Las 3 propiedades juntas hacen el "..." : una sola línea + ocultar el exceso +
-   puntos suspensivos. Se usan en el nombre también, por si alguien tiene uno larguísimo. */
 .name,
 .lastMessage {
   display: block;
   overflow: hidden;
-  white-space: nowrap;
   text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .name {
-  font-size: 1.25rem;
+  color: var(--kb-text);
   font-weight: 700;
-  line-height: 1.5rem;
-  color: #ffffff;
 }
 
 .lastMessage {
-  font-size: 0.875rem;
-  font-weight: 600;
-  line-height: 1.25rem;
-  color: #94a3b8;
+  color: var(--kb-text-muted);
+  font-size: var(--kb-fs-sm);
 }
 
-/* Badge de mensajes sin leer. Absoluto respecto a la card para no empujar ni mover el
-   resto del contenido: aparece y desaparece sin que nada se corra. */
+.hasUnread .lastMessage {
+  color: var(--kb-text-secondary);
+  font-weight: 600;
+}
+
 .badge {
-  position: absolute;
-  top: 0.5rem;                   /* posición estimada de tu imagen */
-  right: 0.75rem;
-  box-sizing: border-box;
-  /* Mismo min-width que alto = círculo perfecto con 1 cifra; con "12" o "99+"
-     el min-width deja de mandar, el padding lo ensancha y queda como píldora. */
-  min-width: 1.125rem;
-  height: 1.125rem;
-  padding: 0 0.3125rem;
-  border-radius: 9999px;
-  background: #7b9ccc;
+  flex-shrink: 0;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 7px;
+  border-radius: var(--kb-radius-pill);
+  background: var(--kb-accent-strong);
+  box-shadow: 0 0 12px rgb(var(--kb-accent-rgb) / 0.55);
   color: #ffffff;
-  font-size: 0.6875rem;
+  font-size: var(--kb-fs-xs);
   font-weight: 700;
-  line-height: 1.125rem;         /* = alto: centra el número en vertical */
+  line-height: 22px;
   text-align: center;
 }

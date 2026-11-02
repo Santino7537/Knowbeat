@@ -1,273 +1,367 @@
-/* Fondo oscuro semitransparente que cubre toda la pantalla */
 .overlay {
   position: fixed;
   inset: 0;
-  background-color: rgba(0, 0, 0, 0.6);
+  z-index: 1500;
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  padding: 20px;
+  background: var(--kb-overlay);
+  backdrop-filter: blur(8px);
+  animation: fadeIn var(--kb-dur) var(--kb-ease);
 }
 
-/*
-  Tamaño del modal.
-  Me diste que sobre una pantalla de referencia de 1024x768 el modal
-  mide 661x539. Convierto eso a porcentaje del viewport en vez de usar
-  un valor fijo, así el modal escala igual sin importar la resolución:
-
-  ancho:  661 / 1024 = 0.6455 -> 64.55vw
-  alto:   539 / 768  = 0.7018 -> 70.18vh
-
-  Le agrego un max-width/max-height en rem para que en pantallas muy
-  grandes el modal no se vuelva gigante, y un min-width/min-height
-  para que en pantallas chicas siga siendo usable.
-*/
 .modal {
-  width: 64.55vw;
-  height: 70.18vh;
-  max-width: 45rem;
-  max-height: 40rem;
-  min-width: 20rem;
-  min-height: 26rem;
-  background-color: #2a3952;
-  border-radius: 0.6rem; /* esquinas muy levemente curvadas */
-  padding: 2rem 2.5rem;
-  box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
-  color: #ffffff;
+  width: min(640px, 100%);
+  max-height: min(820px, calc(100dvh - 40px));
+  overflow: hidden;
+  border: 1px solid var(--kb-border);
+  border-radius: var(--kb-radius-xl);
+  background: var(--kb-surface);
+  box-shadow: var(--kb-shadow-lg);
+  color: var(--kb-text);
+  animation: popIn var(--kb-dur-slow) var(--kb-ease);
 }
 
+/* ---------- Encabezado ---------- */
 .header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  flex-shrink: 0;
+  gap: 16px;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--kb-border);
+  background:
+    radial-gradient(400px 120px at 0% 0%, rgb(var(--kb-accent-rgb) / 0.14), transparent 70%);
+}
+
+.headerUser {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .title {
   margin: 0;
-  font-size: 1.4rem;
+  font-size: var(--kb-fs-lg);
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: #ffffff;
+}
+
+.subtitle {
+  margin: 0;
+  color: var(--kb-text-muted);
+  font-size: var(--kb-fs-sm);
+}
+
+.subtitle strong {
+  color: var(--kb-text-secondary);
 }
 
 .closeButton {
-  background: none;
-  border: none;
-  color: #ffffff;
-  font-size: 1.3rem;
-  font-weight: 700;
-  line-height: 1;
-  padding: 0.3rem 0.6rem;
-  border-radius: 0.35rem;
-  cursor: pointer;
-  transition: background-color 0.15s ease, color 0.15s ease;
+  composes: kb-btn kb-btn-ghost kb-btn-icon from global;
 }
 
-/* "se oscurece un poco con hover" */
-.closeButton:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.75);
+.closeButton svg {
+  width: 18px;
+  height: 18px;
 }
 
-/* Contenedor de todos los campos, con scroll propio por si el modal
-   queda chico para el contenido (por ejemplo con muchas etiquetas) */
+/* ---------- Cuerpo ---------- */
 .body {
-  flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 1.1rem;
+  gap: 14px;
+  padding: 18px 24px 8px;
   overflow-y: auto;
-  min-height: 0; /* necesario para que el flex hijo pueda scrollear */
+}
+
+.kinds {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.kind {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border: 1px solid var(--kb-border);
+  border-radius: var(--kb-radius-pill);
+  background: var(--kb-surface-inset);
+  color: var(--kb-text-secondary);
+  font: inherit;
+  font-size: var(--kb-fs-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--kb-dur-fast) var(--kb-ease);
+}
+
+.kind:hover {
+  border-color: rgb(var(--kb-accent-rgb) / 0.5);
+  color: var(--kb-text);
+}
+
+.kindActive,
+.kindActive:hover {
+  border-color: var(--kb-accent);
+  background: var(--kb-accent-soft-strong);
+  color: var(--kb-text);
 }
 
 .field {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
-  flex-shrink: 0;
-}
-
-/* El campo "Cuerpo" es el que más espacio ocupa, como en la referencia */
-.bodyField {
-  flex: 1;
-  min-height: 0;
+  gap: 6px;
 }
 
 .label {
-  font-size: 0.9rem;
+  color: var(--kb-text-secondary);
+  font-size: var(--kb-fs-sm);
   font-weight: 600;
-  color: #ffffff;
 }
 
-/* Estilo compartido por input de título y textarea de cuerpo */
-.input,
-.textarea {
-  background-color: #1e293b;
-  border: 0.0625rem solid #334155;
-  border-radius: 0.4rem;
-  color: #ffffff;
-  padding: 0.65rem 0.9rem;
-  font-size: 0.95rem;
-  font-family: inherit;
+/* Título grande, sin caja: se siente como escribir */
+.titleInput {
+  width: 100%;
+  padding: 6px 2px;
+  border: 0;
+  border-bottom: 2px solid var(--kb-border);
+  background: transparent;
+  color: var(--kb-text);
+  font-family: var(--kb-font-display);
+  font-size: 1.45rem;
+  font-weight: 600;
   outline: none;
-  box-sizing: border-box;
-  transition: border-color 0.15s ease;
+  transition: border-color var(--kb-dur) var(--kb-ease);
 }
 
-.input::placeholder,
-.textarea::placeholder {
-  color: #94a3b8;
+.titleInput::placeholder {
+  color: var(--kb-text-subtle);
 }
 
-.input:focus,
-.textarea:focus {
-  border-color: #3b82f6;
-}
-
-/*
-  Borde rojo cuando el campo quedó vacío al intentar publicar.
-  Se define después de .input/.textarea para que, con la misma
-  especificidad (una sola clase), esta regla gane y pinte el borde.
-  En la práctica nunca compite con :focus, porque el borde rojo se
-  saca por estado de React apenas el usuario hace foco en el campo.
-*/
-.inputErrorBorder {
-  border-color: #f87171;
+.titleInput:focus {
+  border-bottom-color: var(--kb-accent);
 }
 
 .textarea {
-  flex: 1;
-  min-height: 6rem;
+  composes: kb-input from global;
+  min-height: 130px;
+  max-height: 320px;
+  padding: 14px 16px;
+  border-radius: var(--kb-radius-lg);
+  line-height: 1.6;
   resize: none;
 }
 
-.charCount {
-  align-self: flex-end;
-  font-size: 0.75rem;
-  color: #94a3b8;
+.invalid,
+.invalid:focus,
+.invalid:focus-within {
+  border-color: var(--kb-danger) !important;
 }
 
-/* Fila que contiene el campo de etiquetas junto al botón de publicar */
-.tagsRow {
+.textarea.invalid:focus,
+.tagsField.invalid:focus-within {
+  box-shadow: 0 0 0 3px var(--kb-danger-soft);
+}
+
+.fieldFoot {
   display: flex;
-  align-items: flex-start;
-  gap: 1rem;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 1.1rem;
 }
 
-/*
-  Campo de etiquetas: se ve igual que los otros inputs (mismo fondo y
-  borde), pero en vez de mostrar texto plano muestra los "chips" de
-  etiquetas ya creadas más un input chico para seguir escribiendo.
+.fieldError {
+  color: var(--kb-danger);
+  font-size: var(--kb-fs-xs);
+  font-weight: 500;
+}
 
-  max-height + overflow-y controlan el pedido de que, si hay muchas
-  etiquetas, aparezca una scrollbar en vez de que el campo crezca sin
-  límite.
-*/
+.fieldError:empty {
+  display: none;
+}
+
+.charCount {
+  margin-left: auto;
+  color: var(--kb-text-subtle);
+  font-size: var(--kb-fs-xs);
+}
+
+.charWarn {
+  color: var(--kb-warning);
+}
+
+/* ---------- Etiquetas ---------- */
 .tagsField {
-  flex: 1;
+  composes: kb-input from global;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.4rem;
-  background-color: #1e293b;
-  border: 0.0625rem solid #334155;
-  border-radius: 0.4rem;
-  padding: 0.5rem 0.7rem;
-  max-height: 5rem;
-  overflow-y: auto;
-  box-sizing: border-box;
-  transition: border-color 0.15s ease;
+  gap: 6px;
+  min-height: 48px;
+  padding: 8px 10px;
+  cursor: text;
 }
 
-.tagsField:focus-within {
-  border-color: #3b82f6;
-}
-
-/* Cada etiqueta ya confirmada, con el borde azul pedido */
 .tagChip {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
-  border: 0.0625rem solid #2563eb;
-  border-radius: 0.35rem;
-  padding: 0.15rem 0.5rem;
-  font-size: 0.8rem;
-  color: #ffffff;
-  white-space: nowrap;
+  gap: 4px;
+  padding: 4px 6px 4px 11px;
+  border-radius: var(--kb-radius-pill);
+  background: var(--kb-accent-soft-strong);
+  color: var(--kb-accent-text);
+  font-size: var(--kb-fs-sm);
+  font-weight: 600;
+  animation: popIn var(--kb-dur) var(--kb-ease);
 }
 
 .tagRemoveButton {
-  background: none;
-  border: none;
-  color: #ffffff;
-  opacity: 0.7;
-  font-size: 0.85rem;
-  line-height: 1;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
   padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: inherit;
+  font-size: 1rem;
+  line-height: 1;
   cursor: pointer;
 }
 
 .tagRemoveButton:hover {
-  opacity: 1;
+  background: rgb(var(--kb-accent-rgb) / 0.25);
 }
 
-/* Input chico donde se escribe la próxima etiqueta */
 .tagInput {
   flex: 1;
-  min-width: 6rem;
-  background: transparent;
+  min-width: 9rem;
+  padding: 4px;
   border: none;
   outline: none;
-  color: #ffffff;
-  font-size: 0.9rem;
-  font-family: inherit;
-  padding: 0.15rem 0.2rem;
+  background: transparent;
+  color: var(--kb-text);
+  font: inherit;
+  font-size: var(--kb-fs-sm);
 }
 
 .tagInput::placeholder {
-  color: #94a3b8;
+  color: var(--kb-text-subtle);
+}
+
+.suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  color: var(--kb-text-muted);
+  font-size: var(--kb-fs-xs);
+}
+
+.suggestion {
+  padding: 4px 10px;
+  border: 1px dashed var(--kb-border-strong);
+  border-radius: var(--kb-radius-pill);
+  background: transparent;
+  color: var(--kb-text-secondary);
+  font: inherit;
+  font-size: var(--kb-fs-xs);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--kb-dur-fast) var(--kb-ease);
+}
+
+.suggestion:hover {
+  border-style: solid;
+  border-color: var(--kb-accent);
+  color: var(--kb-accent-text);
+}
+
+.generalError {
+  composes: kb-alert kb-alert-danger from global;
+}
+
+/* ---------- Pie ---------- */
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 24px 18px;
+  border-top: 1px solid var(--kb-border);
+}
+
+.hint {
+  color: var(--kb-text-subtle);
+  font-size: var(--kb-fs-xs);
+}
+
+.hint kbd {
+  padding: 1px 6px;
+  border: 1px solid var(--kb-border);
+  border-radius: 5px;
+  background: var(--kb-surface-inset);
+  font-family: inherit;
+}
+
+.footerActions {
+  display: flex;
+  gap: 10px;
+}
+
+.cancelButton {
+  composes: kb-btn kb-btn-ghost from global;
 }
 
 .publishButton {
-  flex-shrink: 0;
-  background-color: #2563eb;
-  color: #ffffff;
-  border: none;
-  border-radius: 0.4rem;
-  padding: 0.75rem 1.6rem;
-  font-size: 0.95rem;
-  font-weight: 700;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: background-color 0.15s ease;
+  composes: kb-btn kb-btn-primary from global;
+  min-width: 120px;
 }
 
-.publishButton:hover {
-  background-color: #1d4ed8;
+.spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgb(255 255 255 / 0.4);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
 }
 
-.publishButton:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
+@media (max-width: 560px) {
+  .overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .modal {
+    max-height: 92dvh;
+    border-radius: var(--kb-radius-xl) var(--kb-radius-xl) 0 0;
+  }
+
+  .hint {
+    display: none;
+  }
+
+  .footer {
+    justify-content: flex-end;
+  }
 }
 
-/*
-  min-height fijo reservado siempre (con o sin mensaje), para que el
-  cálculo de alto del .body no cambie cuando aparece un error.
-  1.1rem alcanza para una línea de texto a este tamaño de fuente;
-  los mensajes de error que usamos son cortos y entran en una sola
-  línea dentro del ancho del modal.
-*/
-.errorText {
-  margin: 0;
-  min-height: 1.1rem;
-  font-size: 0.85rem;
-  line-height: 1.1rem;
-  color: #f87171;
-  flex-shrink: 0;
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes popIn {
+  from { opacity: 0; transform: translateY(12px) scale(0.97); }
+  to   { opacity: 1; transform: none; }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }

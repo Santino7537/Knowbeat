@@ -1,84 +1,274 @@
-.card{
-    width: 100%;
-    height: 100%;
-    border-radius: 10px;
-    background: #334155;
-    overflow: hidden;
-    display: flex;
-    flex-direction: row;
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-}
-
-.section{
-    width: 50%;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    box-sizing: border-box;
-    padding: 2rem;
-}
-
-#change_section{
-    background: #1e293b;
-}
-
-section h2{
-  color: white;
-}
-
-section p{
-  color: #94a3b8;
-}
-
-section label{
-  color: #94a3b8;
-}
-
 .form {
-    width: 80%;
-    display: flex;
-    flex-direction: column;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
-.input{
-    width: 100%;
-    padding: 0.5rem;
-    margin-bottom: 1rem;
-    border-radius: 4px;
-    border: none;
+.formHead h2 {
+  margin: 0 0 4px;
+  font-size: var(--kb-fs-xl);
 }
 
-.button {
-    padding: 0.7rem 1.5rem;
-    background-color: #3b82f6;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    align-self: center;
+.formHead p {
+  margin: 0;
+  color: var(--kb-text-muted);
 }
 
-.button:hover{
-        background-color: #4faeee;
+/* ---------- Campo ---------- */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
+.label {
+  color: var(--kb-text-secondary);
+  font-size: var(--kb-fs-sm);
+  font-weight: 600;
+}
+
+.control {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 6px 0 14px;
+  border: 1px solid var(--kb-border);
+  border-radius: var(--kb-radius-lg);
+  background: var(--kb-surface-inset);
+  transition: border-color var(--kb-dur-fast) var(--kb-ease), box-shadow var(--kb-dur-fast) var(--kb-ease);
+}
+
+.control:hover {
+  border-color: var(--kb-border-strong);
+}
+
+.control:focus-within {
+  border-color: var(--kb-accent);
+  box-shadow: var(--kb-ring);
+}
+
+.controlError,
+.controlError:hover {
+  border-color: var(--kb-danger);
+}
+
+.controlError:focus-within {
+  border-color: var(--kb-danger);
+  box-shadow: 0 0 0 3px var(--kb-danger-soft);
+}
+
+.fieldIcon {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  color: var(--kb-text-subtle);
+  transition: color var(--kb-dur-fast) var(--kb-ease);
+}
+
+.control:focus-within .fieldIcon {
+  color: var(--kb-accent-text);
+}
+
+.input {
+  flex: 1;
+  min-width: 0;
+  padding: 13px 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--kb-text);
+  font: inherit;
+}
+
+.input::placeholder {
+  color: var(--kb-text-subtle);
+}
+
+/* Botón para mostrar/ocultar la contraseña */
+.eye {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--kb-text-muted);
+  cursor: pointer;
+  transition: background-color var(--kb-dur-fast) var(--kb-ease), color var(--kb-dur-fast) var(--kb-ease);
+}
+
+.eye:hover {
+  background: rgb(var(--kb-tint-rgb) / 0.07);
+  color: var(--kb-text);
+}
+
+.eye[aria-pressed="true"] {
+  color: var(--kb-accent-text);
+}
+
+.eye svg {
+  width: 20px;
+  height: 20px;
+}
+
+.error {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  color: var(--kb-danger);
+  font-size: 0.8rem;
+  font-weight: 500;
+  animation: shake 0.35s var(--kb-ease);
+}
+
+.error::before {
+  content: "!";
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 15px;
+  height: 15px;
+  margin-top: 1px;
+  border-radius: 50%;
+  background: var(--kb-danger);
+  color: #ffffff;
+  font-size: 0.62rem;
+  font-weight: 800;
+}
+
+.hint {
+  color: var(--kb-warning);
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.inlineLink {
+  align-self: flex-start;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--kb-accent-text);
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* ---------- Fuerza de contraseña ---------- */
+.strength {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 8px 12px;
+}
+
+.strengthBar {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 4px;
+}
+
+.strengthBar span {
+  height: 5px;
+  border-radius: 999px;
+  background: var(--kb-surface-3);
+  transition: background-color var(--kb-dur) var(--kb-ease);
+}
+
+.tone_weak .on  { background: var(--kb-danger-strong); }
+.tone_ok .on    { background: #f59e0b; }
+.tone_good .on  { background: var(--kb-success-strong); }
+.tone_great .on { background: var(--kb-accent); }
+
+.strengthLabel {
+  color: var(--kb-text-muted);
+  font-size: var(--kb-fs-xs);
+  font-weight: 700;
+}
+
+.rules {
+  display: flex;
+  grid-column: 1 / -1;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--kb-text-subtle);
+  font-size: var(--kb-fs-xs);
+}
+
+.ruleOk {
+  color: var(--kb-success);
+}
+
+/* ---------- Varios ---------- */
 .forgot_password {
-  margin-bottom: 1rem;
+  margin-top: -6px;
+  text-align: right;
 }
 
 .forgot_password a {
-  color: #85898b;
+  color: var(--kb-accent-text);
+  font-size: var(--kb-fs-sm);
+  font-weight: 500;
   text-decoration: none;
-  font-size: 0.9rem;
 }
 
 .forgot_password a:hover {
   text-decoration: underline;
 }
 
-.password_strength {
-  font-size: 0.9rem;
-  margin-bottom: 1rem;
+.alert {
+  composes: kb-alert kb-alert-danger from global;
+  animation: shake 0.35s var(--kb-ease);
+}
+
+.button {
+  composes: kb-btn kb-btn-primary kb-btn-lg from global;
+  width: 100%;
+  margin-top: 4px;
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgb(255 255 255 / 0.4);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.switchText {
+  margin: 0;
+  color: var(--kb-text-muted);
+  font-size: var(--kb-fs-sm);
+  text-align: center;
+}
+
+.linkButton {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--kb-accent-text);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.linkButton:hover {
+  text-decoration: underline;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes shake {
+  0%, 100% { transform: none; }
+  25%      { transform: translateX(-4px); }
+  75%      { transform: translateX(4px); }
 }

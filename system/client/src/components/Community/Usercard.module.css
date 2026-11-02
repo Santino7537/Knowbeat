@@ -1,142 +1,84 @@
-/*
-  TAMAÑO DE LA CARD
-  Diseño de referencia: 468 x 100 px (pantalla de 1024 x 768), mismo ancho
-  que las publicaciones.
-
-  ANCHO: igual que PostCard: 100% de la columna, con tope en 29.25rem (468 / 16).
-
-  ALTO: acá SÍ es fijo (100px de diseño), así que uso aspect-ratio 468 / 100:
-  el alto se deriva del ancho y la proporción se conserva en cualquier tamaño.
-  overflow: hidden evita que un texto largo estire la card.
-
-  container-type: inline-size habilita cqw en los hijos (1cqw = 1% del ancho de
-  la card). Todos los valores son los mismos que en PostCard, para que el avatar
-  y los textos se vean idénticos: px del diseño / 468 * 100.
-*/
 .card {
-  container-type: inline-size;
+  display: block;
   width: 100%;
-  max-width: 29.25rem;
-  aspect-ratio: 468 / 100;
-  background-color: #1e293b;
-  border: 0.0625rem solid #334155;
-  border-radius: 0.6rem; /* esquinas muy levemente curvadas, igual que las publicaciones */
-  box-sizing: border-box;
-  overflow: hidden;
+  border: 1px solid var(--kb-border);
+  border-radius: var(--kb-radius-xl);
+  background: var(--kb-surface);
+  box-shadow: var(--kb-shadow-sm);
+  animation: cardIn var(--kb-dur-slow) var(--kb-ease) both;
 }
 
-/*
-  Cuando la card es un enlace (<a>): los enlaces son "inline" por defecto y así
-  ignorarían el ancho y el aspect-ratio, por eso display: block. También se
-  quita el subrayado y el color azul del enlace.
-  Hover: el borde pasa a azul 3B82F6 (el mismo del foco de los campos), para que
-  se note que se puede hacer clic. Foco de teclado: anillo del mismo color.
-  Va después de .card para ganar por orden (misma especificidad).
-*/
 .cardLink {
-  display: block;
   color: inherit;
   text-decoration: none;
-  cursor: pointer;
-  transition: border-color 0.15s ease;
+  transition: border-color var(--kb-dur) var(--kb-ease), transform var(--kb-dur) var(--kb-ease), box-shadow var(--kb-dur) var(--kb-ease);
 }
 
 .cardLink:hover {
-  border-color: #3b82f6;
+  border-color: rgb(var(--kb-accent-rgb) / 0.5);
+  box-shadow: var(--kb-shadow-md);
+  transform: translateY(-2px);
 }
 
 .cardLink:focus-visible {
-  outline: 0.125rem solid #3b82f6;
-  outline-offset: 0.125rem;
+  outline: none;
+  box-shadow: var(--kb-ring);
 }
 
-/* Todo en una fila, centrado verticalmente: avatar | texto | racha */
 .inner {
   display: flex;
   align-items: center;
-  gap: 2.1cqw; /* ~10px entre avatar y texto */
-  height: 100%;
-  padding: 0 4.7cqw; /* ~22px a los costados, igual que PostCard */
-  box-sizing: border-box;
+  gap: 14px;
+  padding: 16px 18px;
 }
 
-/* Mismo tamaño que en la publicación: 58px -> 12.39cqw */
-.avatar {
-  flex-shrink: 0;
-  width: 12.39cqw;
-  aspect-ratio: 1 / 1;
-  border-radius: 50%;
-  background-color: #d9d9d9;
-  object-fit: cover;
-}
-
-/*
-  flex: 1 hace que el bloque de texto ocupe todo el espacio libre y empuje
-  la racha al extremo derecho. min-width: 0 permite que los textos largos
-  se corten en vez de desbordar la card.
-*/
 .userInfo {
-  flex: 1;
-  min-width: 0;
   display: flex;
+  flex: 1;
   flex-direction: column;
-  gap: 0.4cqw;
+  gap: 2px;
+  min-width: 0;
 }
 
 .username {
-  font-size: 4.5cqw;
-  font-weight: 700;
-  line-height: 1.2;
-  color: #ffffff;
-  white-space: nowrap;
   overflow: hidden;
+  color: var(--kb-text);
+  font-weight: 700;
   text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-/*
-  La biografía puede ser larga y la card tiene alto fijo, así que se limita a
-  2 líneas con "..." (entran con holgura: nombre + 2 líneas ocupan ~13.5cqw
-  de los ~21cqw de alto de la card).
-*/
 .biography {
-  font-size: 3.2cqw;
-  font-weight: 600;
-  line-height: 1.2;
-  color: #94a3b8;
-  overflow-wrap: anywhere;
   display: -webkit-box;
+  overflow: hidden;
+  color: var(--kb-text-muted);
+  font-size: var(--kb-fs-sm);
+  line-height: 1.4;
+  overflow-wrap: anywhere;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
   line-clamp: 2;
-  overflow: hidden;
 }
 
-/*
-  Círculo de la racha (~35px en el diseño -> 7.5cqw). Con 1 o 2 dígitos es un
-  círculo perfecto; si la racha crece (100, 1000...) min-width deja que se
-  ensanche y el border-radius (la mitad del alto) lo convierte en una píldora,
-  así el número nunca se sale del círculo.
-  Color apagado cuando la racha es 0.
-*/
 .streak {
-  flex-shrink: 0;
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  min-width: 7.5cqw;
-  height: 7.5cqw;
-  margin-left: 2.1cqw;
-  padding: 0 1cqw;
-  box-sizing: border-box;
-  border-radius: 3.75cqw;
-  background-color: #2a3952;
-  color: #ffffff;
-  font-size: 3.6cqw;
+  gap: 4px;
+  flex-shrink: 0;
+  padding: 6px 12px;
+  border-radius: var(--kb-radius-pill);
+  background: var(--kb-surface-2);
+  color: var(--kb-text-muted);
+  font-size: var(--kb-fs-sm);
   font-weight: 700;
-  line-height: 1;
 }
 
-/* Racha mayor a 0. Va después de .streak para ganar por orden. */
 .streakActive {
-  background-color: #3ebcca;
+  background: var(--kb-warning-soft);
+  color: var(--kb-warning);
+}
+
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: none; }
 }

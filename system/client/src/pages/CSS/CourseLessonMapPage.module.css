@@ -2,21 +2,18 @@
   height: 100vh;
   height: 100dvh;
   width: 100%;
-  box-sizing: border-box;
   overflow: hidden;
-  background: #0f172a;
-  color: #e2e8f0;
+  color: var(--kb-text);
 }
 
 .courseMain {
   display: flex;
   flex-direction: column;
-  width: calc(100% - 260px);
+  width: calc(100% - var(--kb-sidebar-width));
   min-width: 0;
   height: 100%;
   min-height: 0;
-  box-sizing: border-box;
-  margin-left: 260px;
+  margin-left: var(--kb-sidebar-width);
   padding: 20px 36px 24px;
 }
 
@@ -30,6 +27,12 @@
   margin-bottom: 14px;
 }
 
+.courseTitle {
+  margin: 0;
+  color: var(--kb-text);
+  font-size: var(--kb-fs-xl);
+}
+
 .courseTitleWrap {
   display: flex;
   align-items: center;
@@ -41,47 +44,38 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
   width: clamp(92px, 10vw, 170px);
   height: clamp(92px, 10vw, 170px);
   min-width: 92px;
-  color: #fff;
-  flex-shrink: 0;
+  color: var(--kb-text);
+  filter: drop-shadow(0 0 22px rgb(var(--kb-accent-rgb) / 0.35));
 }
 
 .courseTitleIcon svg {
   display: block;
   width: 100%;
   height: 100%;
-  fill: #fff;
+  fill: currentColor;
 }
 
 .srOnly {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
+  composes: kb-sr-only from global;
 }
 
 .backButton {
+  composes: kb-btn kb-btn-secondary from global;
   flex: 0 0 auto;
-  padding: 10px 14px;
-  border: 1px solid #475569;
-  border-radius: 8px;
-  background: transparent;
-  color: #e2e8f0;
-  font-size: 0.95rem;
-  font-weight: 600;
-  cursor: pointer;
 }
 
-.backButton:hover {
-  border-color: #3b82f6;
-  color: #93c5fd;
+.backButton::before {
+  content: "←";
+  font-size: 1.05em;
+  transition: transform var(--kb-dur) var(--kb-ease);
+}
+
+.backButton:hover::before {
+  transform: translateX(-3px);
 }
 
 .mapSection {
@@ -92,37 +86,25 @@
   min-height: 0;
 }
 
-.lightMode {
-  background: #f8fafc;
-  color: #0f172a;
+/* Mensajes de estado (cargando, error, curso completado) */
+.mapSection > p {
+  margin: 0 0 12px;
+  color: var(--kb-text-muted);
+  font-size: var(--kb-fs-sm);
 }
 
-.lightMode .backButton {
-  border-color: #cbd5e1;
-  color: #334155;
-}
-
-.lightMode .courseTitleIcon svg {
-  fill: #0f172a;
-}
-
-.lightMode .backButton:hover {
-  border-color: #2563eb;
-  color: #1d4ed8;
+.mapSection > p[role="alert"] {
+  color: var(--kb-danger);
 }
 
 @media (max-width: 1024px) {
   .courseMain {
-    width: calc(100% - 220px);
-    margin-left: 220px;
     padding: 30px;
   }
 }
 
 @media (max-width: 768px) {
   .courseMain {
-    width: 100%;
-    margin-left: 0;
     padding: 16px 18px 20px;
   }
 

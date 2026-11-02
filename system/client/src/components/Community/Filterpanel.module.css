@@ -1,90 +1,73 @@
-/*
-  TAMAÑO DEL PANEL
-  Diseño de referencia: 228 x 300 px (pantalla de 1024 x 768).
-
-  ANCHO: el mismo que ya tenía el marcador de posición: 228 / 1024 = 22.27vw,
-  con tope en 14.25rem (228 / 16). flex-shrink: 0 impide que la columna de
-  publicaciones lo aplaste.
-
-  ALTO: fijo en el diseño (300px), así que uso aspect-ratio 228 / 300: el alto
-  se deriva del ancho y la proporción se conserva en cualquier tamaño. El campo
-  de etiquetas es el que absorbe el espacio sobrante (flex: 1), así que si algo
-  cambia ligeramente, lo que se ajusta es ese rectángulo y no se rompe nada.
-
-  Medidas internas en cqw (1cqw = 1% del ancho del panel): px del diseño / 228 * 100.
-*/
+/* Panel de filtros lateral (tamaño natural, ya no proporción fija) */
 .panel {
-  container-type: inline-size;
+  position: sticky;
+  top: 0;
   flex-shrink: 0;
-  width: 22.27vw;
-  max-width: 14.25rem;
-  aspect-ratio: 228 / 300;
-  background-color: #1e293b;
-  border: 0.0625rem solid #334155;
-  border-radius: 0.6rem;
-  box-sizing: border-box;
-  overflow: hidden;
+  width: 272px;
+  border: 1px solid var(--kb-border);
+  border-radius: var(--kb-radius-xl);
+  background: var(--kb-surface);
+  box-shadow: var(--kb-shadow-sm);
 }
 
 .inner {
   display: flex;
   flex-direction: column;
-  height: 100%;
-  padding: 9.5cqw 7.7cqw 8.5cqw;
-  box-sizing: border-box;
+  padding: 20px;
 }
 
-/* "Filtros": texto importante */
 .title {
-  margin: 0;
-  font-size: 9.5cqw;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 6px;
+  color: var(--kb-text);
+  font-size: var(--kb-fs-lg);
   font-weight: 700;
-  line-height: 1.2;
-  color: #ffffff;
 }
 
-/* "Contenido Visible" y "Etiquetas": texto normal, más chico que el título */
+.title svg {
+  width: 18px;
+  height: 18px;
+  color: var(--kb-accent-text);
+}
+
 .subtitle {
   display: block;
-  margin: 5.6cqw 0 0;
-  font-size: 6.4cqw;
-  font-weight: 700;
-  line-height: 1.2;
-  color: #94a3b8;
+  margin: 18px 0 8px;
+  color: var(--kb-text-muted);
+  font-size: var(--kb-fs-sm);
+  font-weight: 600;
 }
 
-/* El segundo subtítulo lleva más aire arriba, como en la imagen */
-.tagsTitle {
-  margin-top: 8.3cqw;
-}
-
-/* ---------- Checkboxes ---------- */
+/* ---------- Tipos ---------- */
 .options {
   display: flex;
   flex-direction: column;
-  gap: 4.9cqw;
-  margin-top: 3.1cqw;
+  gap: 4px;
 }
 
-/* Etiqueta a la izquierda (con sangría) y cuadrado al extremo derecho */
 .option {
   position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 5.6cqw;
-  padding-left: 6.1cqw;
+  padding: 9px 12px;
+  border-radius: var(--kb-radius);
   cursor: pointer;
+  transition: background-color var(--kb-dur-fast) var(--kb-ease);
+}
+
+.option:hover {
+  background: rgb(var(--kb-tint-rgb) / 0.05);
 }
 
 .optionLabel {
-  font-size: 5.2cqw;
-  font-weight: 700;
-  line-height: 1;
-  color: #94a3b8;
+  color: var(--kb-text-secondary);
+  font-size: var(--kb-fs-sm);
+  font-weight: 600;
 }
 
-/* Input real: invisible pero funcional (foco, teclado y lectores de pantalla) */
 .checkboxInput {
   position: absolute;
   width: 0;
@@ -93,83 +76,63 @@
   opacity: 0;
 }
 
-/* Cuadrado que se ve: 2A3952 desmarcado, celeste al marcar */
 .checkbox {
-  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 5.4cqw;
-  height: 5.4cqw;
-  border-radius: 0.9cqw;
-  background-color: #2a3952;
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--kb-border-strong);
+  border-radius: 6px;
   color: #ffffff;
-  transition: background-color 0.15s ease;
+  transition: all var(--kb-dur-fast) var(--kb-ease);
 }
 
-/* Marcado. Va después de .checkbox para ganar por orden. */
 .checkboxChecked {
-  background-color: #3ebcca;
+  border-color: var(--kb-accent-strong);
+  background: var(--kb-accent-strong);
 }
 
-/* Anillo de foco solo al navegar con teclado */
 .checkboxInput:focus-visible + .checkbox {
-  outline: 0.125rem solid #3b82f6;
-  outline-offset: 0.125rem;
+  box-shadow: var(--kb-ring);
 }
 
 .checkIcon {
-  width: 80%;
-  height: 80%;
+  width: 14px;
+  height: 14px;
 }
 
 /* ---------- Etiquetas ---------- */
-/*
-  Rectángulo de 2A3952. flex: 1 + min-height: 0 hacen que ocupe todo el alto
-  que sobra hasta el final del panel, y overflow-y: auto muestra la scrollbar
-  cuando hay más etiquetas de las que entran (igual que en el modal).
-  El borde es del mismo color que el fondo (invisible) para que, al enfocar,
-  pase a azul 3B82F6 sin que el contenido se mueva.
-*/
+.tagsTitle {
+  margin-top: 18px;
+}
+
 .tagsField {
-  flex: 1;
-  min-height: 0;
-  margin-top: 8.3cqw;
+  composes: kb-input from global;
   display: flex;
   flex-wrap: wrap;
-  align-content: flex-start;
   align-items: center;
-  gap: 2cqw;
-  padding: 2.5cqw 3cqw;
-  background-color: #2a3952;
-  border: 0.0625rem solid #2a3952;
-  border-radius: 1.2cqw;
-  box-sizing: border-box;
+  gap: 6px;
+  min-height: 44px;
+  max-height: 140px;
+  padding: 6px 8px;
   overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: #334155 transparent;
-  transition: border-color 0.15s ease;
 }
 
-.tagsField:focus-within {
-  border-color: #3b82f6;
-}
-
-/* Etiqueta confirmada: encapsulada con borde 2563EB */
 .tagChip {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 1.5cqw;
+  gap: 4px;
   max-width: 100%;
-  padding: 0.8cqw 2.2cqw;
-  border: 0.0625rem solid #2563eb;
-  border-radius: 1.2cqw;
-  font-size: 4.6cqw;
-  line-height: 1.2;
-  color: #ffffff;
+  padding: 3px 6px 3px 10px;
+  border-radius: var(--kb-radius-pill);
+  background: var(--kb-accent-soft-strong);
+  color: var(--kb-accent-text);
+  font-size: var(--kb-fs-xs);
+  font-weight: 600;
 }
 
-/* Una etiqueta muy larga se corta con "..." en vez de romper el panel */
 .tagText {
   min-width: 0;
   overflow: hidden;
@@ -178,32 +141,65 @@
 }
 
 .tagRemoveButton {
-  padding: 0;
+  padding: 0 2px;
   border: none;
   background: none;
-  color: #ffffff;
-  opacity: 0.7;
-  font-size: 4.8cqw;
+  color: inherit;
+  font-size: 1rem;
   line-height: 1;
   cursor: pointer;
 }
 
-.tagRemoveButton:hover {
-  opacity: 1;
-}
-
 .tagInput {
   flex: 1;
-  min-width: 28cqw;
-  padding: 0.8cqw 0.5cqw;
+  min-width: 7rem;
+  padding: 4px;
   border: none;
   outline: none;
   background: transparent;
-  color: #ffffff;
-  font-family: inherit;
-  font-size: 5cqw;
+  color: var(--kb-text);
+  font: inherit;
+  font-size: var(--kb-fs-sm);
 }
 
 .tagInput::placeholder {
-  color: #94a3b8;
+  color: var(--kb-text-subtle);
+}
+
+.popular {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.popularTag {
+  padding: 5px 11px;
+  border: 1px solid var(--kb-border);
+  border-radius: var(--kb-radius-pill);
+  background: var(--kb-surface-inset);
+  color: var(--kb-text-secondary);
+  font: inherit;
+  font-size: var(--kb-fs-xs);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--kb-dur-fast) var(--kb-ease);
+}
+
+.popularTag:hover {
+  border-color: rgb(var(--kb-accent-rgb) / 0.5);
+  color: var(--kb-accent-text);
+}
+
+.popularTagActive,
+.popularTagActive:hover {
+  border-color: var(--kb-accent-strong);
+  background: var(--kb-accent-strong);
+  color: #ffffff;
+}
+
+@media (max-width: 1100px) {
+  .panel {
+    position: static;
+    width: 100%;
+  }
 }

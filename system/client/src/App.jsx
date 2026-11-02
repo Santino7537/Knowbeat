@@ -12,6 +12,8 @@ import Messages from './pages/Messages.jsx';
 
 import Login_register from './pages/login_register.jsx'
 import { AuthProvider, useAuth } from './context/AuthContext.jsx'
+import { ThemeProvider } from './context/ThemeContext.jsx'
+import { ToastProvider } from './context/ToastContext.jsx'
 import { useEffect } from "react";
 import { Navigate, Outlet, Routes, Route, useLocation } from "react-router-dom";
 import './App.css'
@@ -28,6 +30,8 @@ const getPageTitle = (pathname) => {
   if (/^\/courses\/[^/]+\/lessons$/.test(normalizedPath)) return "Lecciones del curso";
   if (normalizedPath === "/exercises") return "Ejercicios";
   if (normalizedPath === "/exercises/seventh-chords") return "Notas de acordes de séptima";
+  if (normalizedPath === "/community") return "Comunidad";
+  if (normalizedPath === "/messages") return "Mensajes";
   if (/^\/user\/[^/]+$/.test(normalizedPath)) return "Perfil";
 
   return "KnowBeat";
@@ -52,14 +56,24 @@ function ProtectedRoutes() {
   return <Outlet />;
 }
 
+// Envuelve las rutas con una key por pathname: cada navegación remonta el
+// contenedor y dispara la animación de entrada definida en styles/base.css.
+function RouteTransition({ children }) {
+  const { pathname } = useLocation();
+  return <div key={pathname} className="kb-route">{children}</div>;
+}
+
 function App() {
   return (
       // AuthProvider envuelve todo el árbol: el fetch del token
       // ocurre una sola vez aquí y el resultado queda disponible
       // en cualquier componente via useAuth()
     <>
+      <ThemeProvider>
+      <ToastProvider>
       <AuthProvider>
         <DocumentTitle />
+        <RouteTransition>
         <Routes>
           <Route path="/Login" element={<Login_register />} />
           <Route path="/" element={<Landing />} />
@@ -76,7 +90,10 @@ function App() {
           </Route>
           <Route path="/community" element={<Community/>} />
       </Routes>
+        </RouteTransition>
       </AuthProvider>
+      </ToastProvider>
+      </ThemeProvider>
     </>
   )
 }

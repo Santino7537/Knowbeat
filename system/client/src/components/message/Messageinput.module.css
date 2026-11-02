@@ -1,49 +1,63 @@
-/* La píldora (fondo, borde, redondeo) la dibuja este contenedor, NO el textarea.
-   Motivo: la scrollbar de un textarea siempre se pega al borde derecho de su propia caja,
-   que en una píldora queda fuera de la curva. Con el textarea por dentro de un contenedor
-   con padding, la scrollbar queda a esa distancia del borde, dentro de la forma. */
-   .field {
-    --line: 1.5rem;                 /* alto de una línea de texto */
-    --border: 2px;                  /* los bordes finos quedan en px a propósito: en rem pueden verse borrosos */
-  
-    display: block;
-    box-sizing: border-box;
-    width: 100%;                    /* el ancho (390px) lo define el contenedor en Messages.module.css */
-    /* Vertical: (50px totales - 24px de línea - 4px de bordes) / 2 = 11px → 1 línea = 50px.
-       Derecha: 1rem de aire para la scrollbar (alcanza para librar la curva).
-       Izquierda: 1.5rem para que el texto no toque la curva. */
-    padding: 0.6875rem 1rem 0.6875rem 1.5rem;
-    background: #1e293b;
-    border: var(--border) solid #334155;
-    /* Se pidió 100%, pero 100% produce una elipse. 9999px da la píldora del diseño
-       y se mantiene como píldora al crecer a 2 o 3 líneas. */
-    border-radius: 9999px;
-    cursor: text;
-    transition: border-color 0.15s;
-  }
-  
-  /* El foco se ve en el contenedor: focus-within se activa cuando el textarea de adentro
-     tiene el foco. El borde azul sigue siendo un indicador de foco visible. */
-  .field:focus-within { border-color: #7b9ccc; }
-  
-  .input {
-    display: block;                 /* quita el hueco inferior que los textarea inline dejan por defecto */
-    box-sizing: border-box;
-    width: 100%;
-    padding: 0;                     /* el aire lo pone el contenedor */
-    margin: 0;
-    font: inherit;
-    font-size: 1rem;
-    line-height: var(--line);
-    color: #ffffff;
-    background: transparent;        /* se ve el fondo del contenedor */
-    border: none;
-    outline: none;                  /* el foco se muestra en .field */
-    resize: none;                   /* el tamaño lo controla el código, no el usuario */
-    overflow-y: auto;
-    max-height: calc(3 * var(--line)); /* máximo 3 líneas; después aparece la scrollbar */
-    scrollbar-width: thin;
-    scrollbar-color: #334155 transparent;
-  }
-  
-  .input::placeholder { color: #94a3b8; }
+.field {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 8px 8px 20px;
+  border: 1px solid var(--kb-border);
+  border-radius: 26px;
+  background: var(--kb-surface);
+  box-shadow: var(--kb-shadow-md);
+  cursor: text;
+  transition: border-color var(--kb-dur-fast) var(--kb-ease), box-shadow var(--kb-dur-fast) var(--kb-ease);
+}
+
+.field:focus-within {
+  border-color: var(--kb-accent);
+  box-shadow: var(--kb-shadow-md), var(--kb-ring);
+}
+
+.input {
+  --line: 1.5rem;
+  display: block;
+  flex: 1;
+  max-height: calc(3 * var(--line));
+  margin: 0 0 4px;
+  padding: 4px 0;
+  overflow-y: auto;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--kb-text);
+  font: inherit;
+  line-height: var(--line);
+  resize: none;
+}
+
+.input::placeholder {
+  color: var(--kb-text-subtle);
+}
+
+.send {
+  composes: kb-btn kb-btn-primary kb-btn-icon from global;
+  width: 40px;
+  height: 40px;
+}
+
+.send svg {
+  width: 18px;
+  height: 18px;
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgb(255 255 255 / 0.4);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

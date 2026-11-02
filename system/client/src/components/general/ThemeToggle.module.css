@@ -1,0 +1,41 @@
+.toggle {
+  composes: kb-btn kb-btn-icon from global;
+  position: relative;
+  overflow: hidden;
+  border-color: var(--kb-border-subtle);
+  background: rgb(var(--kb-tint-rgb) / 0.04);
+  color: var(--kb-text-secondary);
+}
+
+.toggle:hover:not(:disabled) {
+  background: var(--kb-accent-soft);
+  border-color: rgb(var(--kb-accent-rgb) / 0.4);
+  color: var(--kb-accent-text);
+}
+
+.sun,
+.moon {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  transition:
+    transform var(--kb-dur-slow) var(--kb-ease),
+    opacity var(--kb-dur) var(--kb-ease);
+}
+
+.sun {
+  fill: currentColor;
+  stroke: currentColor;
+  stroke-width: 1.8;
+}
+
+.moon {
+  fill: currentColor;
+}
+
+/* En oscuro se ve la luna; en claro, el sol */
+.dark .sun  { opacity: 0; transform: rotate(-90deg) scale(0.4); }
+.dark .moon { opacity: 1; transform: rotate(0) scale(1); }
+
+.light .sun  { opacity: 1; transform: rotate(0) scale(1); }
+.light .moon { opacity: 0; transform: rotate(90deg) scale(0.4); }

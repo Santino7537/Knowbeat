@@ -6,50 +6,40 @@
   gap: 0.4rem;
 }
 
-/*
-  No me diste colores para este componente, así que reutilicé la paleta:
-  mismo fondo/borde que los campos, azul 2563EB para la página activa
-  (con el mismo hover 1d4ed8 de los demás botones azules).
-*/
+/* Botones pill del sistema: superficie neutra y azul para la página activa. */
 .pageButton {
-  min-width: 2.25rem;
-  height: 2.25rem;
-  padding: 0 0.6rem;
-  background-color: #1e293b;
-  border: 0.0625rem solid #334155;
-  border-radius: 0.4rem;
-  color: #ffffff;
-  font-family: inherit;
-  font-size: 0.9rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.15s ease, border-color 0.15s ease;
+  composes: kb-btn from global;
+  min-width: 2.4rem;
+  height: 2.4rem;
+  padding: 0 0.8rem;
+  border-color: var(--kb-border);
+  background: var(--kb-surface);
+  color: var(--kb-text-secondary);
 }
 
 .pageButton:hover:not(:disabled) {
-  border-color: #3b82f6;
+  border-color: var(--kb-accent);
+  color: var(--kb-accent-text);
 }
 
 /* Anterior/Siguiente en los extremos */
 .pageButton:disabled {
-  color: #94a3b8;
-  opacity: 0.5;
-  cursor: not-allowed;
+  opacity: 0.4;
 }
 
 /* Página actual. Va después de .pageButton para ganar por orden. */
 .pageButtonActive {
-  background-color: #2563eb;
-  border-color: #2563eb;
+  composes: kb-btn-active from global;
 }
 
 .pageButtonActive:hover:not(:disabled) {
-  background-color: #1d4ed8;
-  border-color: #1d4ed8;
+  border-color: var(--kb-accent-hover);
+  background: var(--kb-accent-hover);
+  color: var(--kb-on-accent);
 }
 
 .ellipsis {
   min-width: 1.5rem;
   text-align: center;
-  color: #94a3b8;
+  color: var(--kb-text-muted);
 }

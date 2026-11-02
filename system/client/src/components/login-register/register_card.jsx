@@ -1,137 +1,154 @@
-import { useState } from 'react'
+import { useState } from 'react';
+import api, { getErrorField, getErrorMessage } from '../../api/client';
+import AuthField from './AuthField.jsx';
 import styles from './form_card.module.css';
-import axios from 'axios'
-import { useFieldErrors } from "../general/use_field_error.jsx";
-import { FieldError } from "../general/field_error.jsx";
 
-function Register_card({ onAuthSuccess, switchToLogin }){
-    const [password, setPassword] = useState("");
-    const [username, setUsername] = useState("");
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+// Reglas de contraseña que se muestran como checklist
+const RULES = [
+    { id: "len", label: "8 caracteres o más", test: (p) => p.length >= 8 },
+    { id: "upper", label: "Una mayúscula", test: (p) => /[A-Z]/.test(p) },
+    { id: "num", label: "Un número", test: (p) => /[0-9]/.test(p) },
+    { id: "sym", label: "Un símbolo", test: (p) => /[^A-Za-z0-9]/.test(p) },
+];
+
+const STRENGTH = [
+    { label: "", tone: "none" },
+    { label: "Muy débil", tone: "weak" },
+    { label: "Débil", tone: "weak" },
+    { label: "Aceptable", tone: "ok" },
+    { label: "Fuerte", tone: "good" },
+    { label: "Muy fuerte", tone: "great" },
+];
+
+function Register_card({ onAuthSuccess, switchToLogin }) {
     const [email, setEmail] = useState("");
-    const { errors, setError, setErrors, clearError } = useFieldErrors();
+    const [username, setUsername] = useState("");
+    const [password, setPassword] = useState("");
+    const [errors, setErrors] = useState({});
+    const [generalError, setGeneralError] = useState("");
+    const [loading, setLoading] = useState(false);
 
-    // Validación del lado del cliente — devuelve true si todo está OK
+    const clear = (field) => {
+        setErrors((prev) => ({ ...prev, [field]: undefined }));
+        setGeneralError("");
+    };
+
+    const passed = RULES.filter((r) => r.test(password)).length;
+    const score = password ? passed + 1 : 0;
+    const strength = STRENGTH[score];
+
     function validateForm() {
-        const newErrors = {};
-        if (!email.trim()) newErrors.email = "El correo electrónico es obligatorio";
-        if (!username.trim()) newErrors.username = "El nombre de usuario es obligatorio";
-        if (!password) newErrors.password = "La contraseña es obligatoria";
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
+        const next = {};
+        if (!email.trim()) next.email = "Ingresá tu correo electrónico.";
+        else if (!EMAIL_RE.test(email.trim())) next.email = "Ese correo no parece válido (ejemplo: nombre@mail.com).";
+        if (!username.trim()) next.username = "Elegí un nombre de usuario.";
+        else if (username.trim().length < 3) next.username = "El nombre de usuario debe tener al menos 3 caracteres.";
+        else if (/\s/.test(username.trim())) next.username = "El nombre de usuario no puede tener espacios.";
+        if (!password) next.password = "Creá una contraseña.";
+        else if (password.length < 8) next.password = "La contraseña debe tener al menos 8 caracteres.";
+        setErrors(next);
+        return Object.keys(next).length === 0;
     }
 
-    async function fetchRegister() {
-        if (!validateForm()) return;
-        
+    async function fetchRegister(event) {
+        event.preventDefault();
+        setGeneralError("");
+        if (!validateForm() || loading) return;
+
+        setLoading(true);
         try {
-            const response = await axios.post("http://localhost:3000/register", {
-                password, username, email,
+            const { data } = await api.post("/register", {
+                password,
+                username: username.trim(),
+                email: email.trim(),
             });
-            await onAuthSuccess(response.data.token);
-        }
-        catch (err) {
-            // Errores del servidor → mismo sistema, distintos mensajes
+            await onAuthSuccess(data.token);
+        } catch (err) {
             const status = err.response?.status;
+            const message = getErrorMessage(err, "No pudimos crear tu cuenta. Probá de nuevo.");
+
             if (status === 409) {
-                // El servidor indica que el correo ya existe
-                setError("email", "Este correo ya está registrado");
-            } else if (status === 422) {
-                // El servidor devuelve qué campos son inválidos (ejemplo)
-                const serverErrors = err.response?.data?.errors ?? {};
-                setErrors(serverErrors); // { email: "...", username: "..." }
+                // El backend usa 409 tanto para usuario como para email repetidos:
+                // miramos el mensaje para marcar el campo correcto.
+                const field = getErrorField(err);
+                if (field === "username") {
+                    setErrors({ username: "Ese nombre de usuario ya está en uso. Probá con otro." });
+                } else if (field === "email") {
+                    setErrors({ email: "Ya existe una cuenta con ese correo. ¿Querés iniciar sesión?" });
+                } else {
+                    setGeneralError(message);
+                }
+            } else if (status === 422 && err.response?.data?.errors) {
+                setErrors(err.response.data.errors);
             } else {
-                setError("general", "Ocurrió un error. Intentá de nuevo.");
+                setGeneralError(message);
             }
+        } finally {
+            setLoading(false);
         }
     }
-
-    function checkPasswordStrength(password) {
-        let score = 0;
-        if (password.length > 0) score++;
-        if (password.length >= 8) score++;
-        if (/[A-Z]/.test(password)) score++;
-        if (/[0-9]/.test(password)) score++;
-        if (/[^A-Za-z0-9]/.test(password)) score++;
-        return score;
-    }
-
-    const strength = checkPasswordStrength(password);
-
-    const getColor = (score) => {
-        switch (score) {
-        case 0: return "transparent";
-        case 1: return "red";
-        case 2: return "orange";
-        case 3: return "gold";
-        case 4: return "green";
-        case 5: return "darkgreen";
-        default: return "black";
-        }
-    };
-
-    const getLabel = (score) => {
-        switch (score) {
-        case 0: return "---"
-        case 1: return "Muy débil";
-        case 2: return "Débil";
-        case 3: return "Aceptable";
-        case 4: return "Fuerte";
-        case 5: return "Muy fuerte";
-        default: return "";
-        }
-    };
 
     return (
-        <>
-            <div className={styles.card}>
-                <section className={styles.section} id={styles.change_section}>
-                    <h2>¿Ya tienes una cuenta?</h2>
-                    <p>Inicia Sesión acá</p>
-                    <button type="button" className={styles.button} onClick={switchToLogin}>
-                    Iniciar Sesión
-                    </button>
-                </section>
-                <section className={styles.section}>
-                    <h2>Registrate</h2>
-                    <form className={styles.form}>
-
-                    <label htmlFor="email">Correo electrónico</label>
-                    <input
-                        type="email" id="email"
-                        className={`${styles.input} ${errors.email ? styles.input_error : ""}`}
-                        placeholder="ejemplo@mail.com"
-                        onChange={(e) => { setEmail(e.target.value); clearError("email"); }}/>
-                    <FieldError message={errors.email}/>
-
-                    <label htmlFor="usuario">Usuario</label>
-                    <input
-                        type="text" id="usuario"
-                        className={`${styles.input} ${errors.username ? styles.input_error : ""}`}
-                        placeholder="Nombre de usuario"
-                        onChange={(e) => { setUsername(e.target.value); clearError("username"); }}/>
-                    <FieldError message={errors.username}/>
-                    
-                    <label htmlFor="contraseña">Contraseña</label>
-                    <input
-                        type="password" id="contraseña"
-                        className={`${styles.input} ${errors.password ? styles.input_error : ""}`}
-                        onChange={(e) => { setPassword(e.target.value); clearError("password"); }}/>
-                    <FieldError message={errors.password}/>
-
-                    <div className={styles.password_strength} style={{ color: getColor(strength) }}>
-                        {getLabel(strength)}
-                    </div>
-
-                    {errors.general && <FieldError message={errors.general} />}
-
-                    <button type="button" className={styles.button} onClick={() => fetchRegister()}>
-                        Registrarse
-                    </button>
-                    </form>
-                </section>
+        <form className={styles.form} onSubmit={fetchRegister} noValidate>
+            <div className={styles.formHead}>
+                <h2>Creá tu cuenta 🎶</h2>
+                <p>Es gratis y no hace falta saber nada de música.</p>
             </div>
-        </> 
-  );
+
+            <AuthField
+                id="register-email" label="Correo electrónico" type="email" icon="mail"
+                value={email} autoComplete="email" placeholder="nombre@mail.com"
+                onChange={(e) => { setEmail(e.target.value); clear("email"); }}
+                error={errors.email}
+            >
+                {errors.email?.includes("iniciar sesión") && (
+                    <button type="button" className={styles.inlineLink} onClick={switchToLogin}>Ir a iniciar sesión →</button>
+                )}
+            </AuthField>
+            <AuthField
+                id="register-username" label="Nombre de usuario" icon="user"
+                value={username} autoComplete="username" placeholder="Así te van a ver en la comunidad"
+                onChange={(e) => { setUsername(e.target.value); clear("username"); }}
+                error={errors.username}
+            />
+            <AuthField
+                id="register-password" label="Contraseña" type="password" icon="lock"
+                value={password} autoComplete="new-password" placeholder="Mínimo 8 caracteres"
+                onChange={(e) => { setPassword(e.target.value); clear("password"); }}
+                error={errors.password}
+            >
+                {password && (
+                    <div className={styles.strength}>
+                        <div className={`${styles.strengthBar} ${styles[`tone_${strength.tone}`]}`} aria-hidden="true">
+                            {[1, 2, 3, 4, 5].map((n) => <span key={n} className={n <= score ? styles.on : ""} />)}
+                        </div>
+                        <span className={styles.strengthLabel}>{strength.label}</span>
+                        <ul className={styles.rules}>
+                            {RULES.map((r) => (
+                                <li key={r.id} className={r.test(password) ? styles.ruleOk : ""}>
+                                    {r.test(password) ? "✓" : "○"} {r.label}
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                )}
+            </AuthField>
+
+            {generalError && <div className={styles.alert} role="alert">{generalError}</div>}
+
+            <button type="submit" className={styles.button} disabled={loading}>
+                {loading && <span className={styles.spinner} aria-hidden="true" />}
+                {loading ? "Creando cuenta…" : "Crear cuenta"}
+            </button>
+
+            <p className={styles.switchText}>
+                ¿Ya tenés cuenta?{" "}
+                <button type="button" className={styles.linkButton} onClick={switchToLogin}>Iniciá sesión</button>
+            </p>
+        </form>
+    );
 }
 
-export default Register_card
+export default Register_card;

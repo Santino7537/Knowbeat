@@ -1,0 +1,188 @@
+/* =====================================================================
+   KNOWBEAT · DESIGN TOKENS
+   ---------------------------------------------------------------------
+   Única fuente de verdad para colores, tipografía, radios, sombras y
+   movimiento. Todo el resto del CSS debe usar estas variables en vez de
+   valores sueltos, así el modo claro/oscuro funciona en toda la app.
+
+   - Oscuro es el tema por defecto (:root).
+   - Claro se activa con <html data-theme="light"> (lo maneja ThemeContext).
+   - Prefijo --kb- para no chocar con variables locales de los módulos.
+   ===================================================================== */
+
+:root {
+  color-scheme: dark;
+
+  /* ---------- Fondos ---------- */
+  --kb-bg: #0f172a;               /* fondo de página (app) */
+  --kb-bg-deep: #050b18;          /* fondo más profundo (landing, perfil) */
+  --kb-bg-elevated: #111c33;      /* menús, dropdowns */
+  --kb-sidebar-bg: linear-gradient(160deg, rgba(15, 23, 42, 0.96) 0%, rgba(24, 35, 56, 0.96) 100%);
+
+  /* ---------- Superficies ---------- */
+  --kb-surface: #1e293b;          /* cards, paneles */
+  --kb-surface-2: #2a3952;        /* chips, campos internos, burbujas */
+  --kb-surface-3: #334155;        /* hover de superficies */
+  --kb-surface-inset: #17243a;    /* inputs y opciones */
+  --kb-surface-glass: rgba(15, 23, 42, 0.72);
+  --kb-overlay: rgba(2, 6, 23, 0.62);
+
+  /* Tinte neutro para hovers/bordes translúcidos (blanco en oscuro, tinta en claro) */
+  --kb-tint-rgb: 255 255 255;
+
+  /* ---------- Bordes ---------- */
+  --kb-border: #334155;
+  --kb-border-strong: #475569;
+  --kb-border-subtle: rgba(255, 255, 255, 0.07);
+
+  /* ---------- Texto ---------- */
+  --kb-text: #f8fafc;             /* títulos y texto principal */
+  --kb-text-secondary: #cbd5e1;   /* cuerpo */
+  --kb-text-muted: #94a3b8;       /* metadatos, labels */
+  --kb-text-subtle: #64748b;      /* placeholder, deshabilitado */
+
+  /* ---------- Marca ---------- */
+  --kb-accent: #3b82f6;           /* azul principal */
+  --kb-accent-rgb: 59 130 246;
+  --kb-accent-strong: #2563eb;    /* fondo de botón primario */
+  --kb-accent-hover: #1d4ed8;
+  --kb-accent-text: #6bb8ff;      /* links, eyebrows, acentos de texto (celeste Knowbeat) */
+  --kb-accent-glow: #6bb8ff;
+  --kb-accent-soft: rgba(59, 130, 246, 0.14);
+  --kb-accent-soft-strong: rgba(59, 130, 246, 0.24);
+  --kb-on-accent: #ffffff;
+  --kb-gradient-accent: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  --kb-gradient-brand: linear-gradient(120deg, #6bb8ff 0%, #3b82f6 45%, #818cf8 100%);
+
+  --kb-teal: #3ebcca;             /* checkbox marcado, racha activa */
+  --kb-bubble: #7b9ccc;           /* burbujas de chat */
+  --kb-bubble-text: #ffffff;
+
+  /* ---------- Semánticos ---------- */
+  --kb-danger: #f87171;
+  --kb-danger-strong: #ef4444;
+  --kb-danger-soft: rgba(239, 68, 68, 0.16);
+  --kb-success: #4ade80;
+  --kb-success-strong: #22c55e;
+  --kb-success-soft: rgba(34, 197, 94, 0.14);
+  --kb-warning: #fdba74;
+  --kb-warning-soft: rgba(251, 146, 60, 0.16);
+  --kb-info: #60a5fa;
+  --kb-purple: #c084fc;
+  --kb-purple-soft: rgba(168, 85, 247, 0.18);
+  --kb-placeholder: #d9d9d9;      /* relleno de avatar sin foto */
+
+  /* ---------- Tipografía ---------- */
+  --kb-font-display: "Outfit", "Inter", system-ui, sans-serif;
+  --kb-font-body: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+
+  --kb-fs-micro: 0.7rem;    /* 11px */
+  --kb-fs-xs: 0.75rem;      /* 12px  badges, contadores */
+  --kb-fs-sm: 0.875rem;     /* 14px  botones, nav, captions */
+  --kb-fs-md: 1rem;         /* 16px  cuerpo */
+  --kb-fs-lg: 1.125rem;     /* 18px  feature heading */
+  --kb-fs-xl: 1.5rem;       /* 24px  section title */
+  --kb-fs-2xl: 2.2rem;      /* títulos de página */
+
+  --kb-tracking-label: 0.14em;    /* mayúsculas tipo "label" */
+
+  /* ---------- Radios ---------- */
+  --kb-radius-xs: 4px;
+  --kb-radius-sm: 8px;
+  --kb-radius: 12px;
+  --kb-radius-lg: 18px;
+  --kb-radius-xl: 24px;
+  --kb-radius-pill: 999px;
+
+  /* ---------- Sombras (fuertes en oscuro, como pide el sistema) ---------- */
+  --kb-shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.25);
+  --kb-shadow-md: 0 8px 24px rgba(0, 0, 0, 0.4);
+  --kb-shadow-lg: 0 18px 48px rgba(0, 0, 0, 0.5);
+  --kb-shadow-glow: 0 10px 30px rgba(37, 99, 235, 0.35);
+  --kb-ring: 0 0 0 3px rgba(59, 130, 246, 0.35);
+
+  /* ---------- Movimiento ---------- */
+  --kb-ease: cubic-bezier(0.22, 1, 0.36, 1);   /* salida suave (la que ya usaba la landing) */
+  --kb-ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --kb-dur-fast: 150ms;
+  --kb-dur: 250ms;
+  --kb-dur-slow: 450ms;
+
+  /* ---------- Layout ---------- */
+  --kb-sidebar-width: 260px;
+}
+
+@media (max-width: 1024px) {
+  :root { --kb-sidebar-width: 220px; }
+}
+
+/* Sidebar minimizada (la clase la pone Sidebar.jsx en <html>) */
+html.kb-sidebar-collapsed { --kb-sidebar-width: 84px; }
+
+@media (max-width: 768px) {
+  :root,
+  html.kb-sidebar-collapsed { --kb-sidebar-width: 0px; }
+}
+
+/* =====================================================================
+   TEMA CLARO
+   ===================================================================== */
+
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  --kb-bg: #f4f7fb;
+  --kb-bg-deep: #eef3fa;
+  --kb-bg-elevated: #ffffff;
+  --kb-sidebar-bg: linear-gradient(160deg, rgba(255, 255, 255, 0.97) 0%, rgba(238, 243, 250, 0.97) 100%);
+
+  --kb-surface: #ffffff;
+  --kb-surface-2: #eef2f8;
+  --kb-surface-3: #e2e8f0;
+  --kb-surface-inset: #f5f8fc;
+  --kb-surface-glass: rgba(255, 255, 255, 0.78);
+  --kb-overlay: rgba(15, 23, 42, 0.38);
+
+  --kb-tint-rgb: 15 23 42;
+
+  --kb-border: #e2e8f0;
+  --kb-border-strong: #cbd5e1;
+  --kb-border-subtle: rgba(15, 23, 42, 0.07);
+
+  --kb-text: #0f172a;
+  --kb-text-secondary: #334155;
+  --kb-text-muted: #64748b;
+  --kb-text-subtle: #94a3b8;
+
+  --kb-accent: #2563eb;
+  --kb-accent-rgb: 37 99 235;
+  --kb-accent-strong: #2563eb;
+  --kb-accent-hover: #1d4ed8;
+  --kb-accent-text: #1d4ed8;
+  --kb-accent-glow: #3b82f6;
+  --kb-accent-soft: rgba(37, 99, 235, 0.09);
+  --kb-accent-soft-strong: rgba(37, 99, 235, 0.16);
+  --kb-gradient-brand: linear-gradient(120deg, #2563eb 0%, #3b82f6 45%, #6366f1 100%);
+
+  --kb-teal: #0e9aa8;
+  --kb-bubble: #4f7cc0;
+
+  --kb-danger: #dc2626;
+  --kb-danger-strong: #dc2626;
+  --kb-danger-soft: rgba(220, 38, 38, 0.1);
+  --kb-success: #15803d;
+  --kb-success-strong: #16a34a;
+  --kb-success-soft: rgba(22, 163, 74, 0.1);
+  --kb-warning: #c2410c;
+  --kb-warning-soft: rgba(234, 88, 12, 0.1);
+  --kb-info: #2563eb;
+  --kb-purple: #7e22ce;
+  --kb-purple-soft: rgba(126, 34, 206, 0.1);
+  --kb-placeholder: #cbd5e1;
+
+  --kb-shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.06);
+  --kb-shadow-md: 0 8px 24px rgba(15, 23, 42, 0.08);
+  --kb-shadow-lg: 0 18px 48px rgba(15, 23, 42, 0.14);
+  --kb-shadow-glow: 0 10px 26px rgba(37, 99, 235, 0.25);
+  --kb-ring: 0 0 0 3px rgba(37, 99, 235, 0.25);
+}

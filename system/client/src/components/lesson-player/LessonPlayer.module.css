@@ -5,8 +5,8 @@
   height: 100vh;
   height: 100dvh;
   overflow: hidden;
-  background: #0f172a;
-  color: #e2e8f0;
+  background: transparent;
+  color: var(--kb-text);
 }
 
 .topBar {
@@ -19,24 +19,14 @@
   padding: 22px 28px 16px;
 }
 
-.exitButton,
-.secondaryButton,
-.nextButton,
-.checkButton,
 .option {
   font: inherit;
 }
 
 .exitButton {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
+  composes: kb-btn kb-btn-ghost from global;
   justify-self: start;
-  padding: 8px 10px;
-  border: 0;
-  background: transparent;
-  color: #a9bad0;
-  cursor: pointer;
+  padding: 0.5rem 0.85rem;
 }
 
 .exitButton span:first-child {
@@ -54,19 +44,20 @@
   height: 8px;
   overflow: hidden;
   border-radius: 999px;
-  background: #26364f;
+  background: var(--kb-surface-3);
 }
 
 .progressFill {
   height: 100%;
   border-radius: inherit;
-  background: #3b82f6;
-  transition: width 180ms ease;
+  background: var(--kb-gradient-brand);
+  box-shadow: 0 0 12px rgb(var(--kb-accent-rgb) / 0.5);
+  transition: width var(--kb-dur-fast) var(--kb-ease);
 }
 
 .progressText,
 .lessonLabel {
-  color: #9aabc1;
+  color: var(--kb-text-muted);
   font-size: 0.82rem;
 }
 
@@ -110,7 +101,7 @@
 
 .slideTitle {
   margin: 0 0 28px;
-  color: #f8fafc;
+  color: var(--kb-text);
   font-size: clamp(1.7rem, 3.3vw, 2.65rem);
   line-height: 1.15;
 }
@@ -123,14 +114,14 @@
 .textBlock p,
 .exerciseDescription {
   margin: 0;
-  color: #c3d0e0;
+  color: var(--kb-text-secondary);
   font-size: clamp(1rem, 1.35vw, 1.15rem);
   line-height: 1.75;
 }
 
 .blockHeading {
   margin: 0 0 7px;
-  color: #93c5fd;
+  color: var(--kb-accent-text);
   font-size: 1.08rem;
 }
 
@@ -145,9 +136,9 @@
   max-height: min(58vh, 590px);
   margin: 0;
   overflow: hidden;
-  border: 2px solid #1e3a5f;
-  border-radius: 14px;
-  background: #0b1425;
+  border: 2px solid var(--kb-border);
+  border-radius: var(--kb-radius-lg);
+  background: var(--kb-surface-inset);
 }
 
 .imageFrame img {
@@ -167,7 +158,7 @@
 
 .imageFallback {
   margin: 12px 0 0;
-  color: #9aabc1;
+  color: var(--kb-text-muted);
 }
 
 .exerciseSlide {
@@ -192,7 +183,7 @@
 
 .question {
   padding: 20px 0;
-  border-top: 1px solid #26364f;
+  border-top: 1px solid var(--kb-border);
 }
 
 .questionPrompt {
@@ -200,7 +191,7 @@
   align-items: flex-start;
   gap: 12px;
   margin: 0 0 16px;
-  color: #f1f5f9;
+  color: var(--kb-text);
   font-size: 1.1rem;
   line-height: 1.5;
 }
@@ -212,8 +203,8 @@
   width: 30px;
   height: 30px;
   border-radius: 50%;
-  background: #1e3a5f;
-  color: #bfdbfe;
+  background: var(--kb-accent-soft-strong);
+  color: var(--kb-accent-text);
   font-size: 0.9rem;
 }
 
@@ -225,50 +216,43 @@
 .option {
   width: 100%;
   padding: 12px 15px;
-  border: 1px solid #334155;
-  border-radius: 9px;
-  background: #17243a;
-  color: #dbe6f3;
+  border: 1px solid var(--kb-border);
+  border-radius: var(--kb-radius);
+  background: var(--kb-surface-inset);
+  color: var(--kb-text-secondary);
   text-align: left;
   cursor: pointer;
-  transition: border-color 140ms ease, background 140ms ease;
+  transition: border-color var(--kb-dur-fast) var(--kb-ease), background var(--kb-dur-fast) var(--kb-ease);
 }
 
 .option:hover:not(:disabled) {
-  border-color: #3b82f6;
+  border-color: var(--kb-accent);
 }
 
 .selectedOption {
-  border-color: #60a5fa;
-  background: #1e3a5f;
+  border-color: var(--kb-accent);
+  background: var(--kb-accent-soft-strong);
 }
 
 .correctOption {
-  border-color: #34d399;
-  background: #12352f;
+  border-color: var(--kb-success-strong);
+  background: var(--kb-success-soft);
 }
 
 .incorrectOption {
-  border-color: #f87171;
-  background: #3b2029;
+  border-color: var(--kb-danger);
+  background: var(--kb-danger-soft);
 }
 
 .checkButton,
 .secondaryButton,
 .nextButton {
   min-height: 44px;
-  padding: 10px 20px;
-  border-radius: 9px;
-  cursor: pointer;
-  font-weight: 650;
-  transition: background 140ms ease, border-color 140ms ease, opacity 140ms ease;
 }
 
 .checkButton {
+  composes: kb-btn kb-btn-primary from global;
   margin-top: 14px;
-  border: 1px solid #2563eb;
-  background: #1d4ed8;
-  color: #fff;
 }
 
 .feedback {
@@ -277,12 +261,12 @@
 }
 
 .correctFeedback {
-  color: #6ee7b7;
+  color: var(--kb-success);
 }
 
 .incorrectFeedback,
 .saveError {
-  color: #fca5a5;
+  color: var(--kb-danger);
 }
 
 .navigation {
@@ -309,38 +293,18 @@
 }
 
 .secondaryButton {
-  border: 1px solid #42536a;
-  background: transparent;
-  color: #dbe6f3;
+  composes: kb-btn kb-btn-secondary from global;
 }
 
 .nextButton {
-  border: 1px solid #2563eb;
-  background: #2563eb;
-  color: #fff;
+  composes: kb-btn kb-btn-primary from global;
 }
 
-.nextButton:hover:not(:disabled),
-.checkButton:hover:not(:disabled) {
-  background: #1d4ed8;
-}
-
-.secondaryButton:hover:not(:disabled) {
-  border-color: #60a5fa;
-}
-
-.exitButton:focus-visible,
-.secondaryButton:focus-visible,
-.nextButton:focus-visible,
-.checkButton:focus-visible,
 .option:focus-visible {
-  outline: 3px solid #93c5fd;
+  outline: 3px solid var(--kb-accent);
   outline-offset: 3px;
 }
 
-.nextButton:disabled,
-.secondaryButton:disabled,
-.checkButton:disabled,
 .option:disabled {
   cursor: not-allowed;
   opacity: 0.55;
@@ -361,13 +325,14 @@
 
 .completion h1 {
   margin: 0;
-  color: #f8fafc;
+  color: var(--kb-text);
   font-size: clamp(2rem, 5vw, 3.2rem);
 }
 
 .eyebrow {
+  composes: kb-eyebrow from global;
   margin: 0;
-  color: #60a5fa;
+  color: var(--kb-accent-text);
   font-size: 0.8rem;
   font-weight: 700;
   letter-spacing: 0.14em;
@@ -378,17 +343,17 @@
   align-items: center;
   gap: 16px;
   margin: 0;
-  color: #c3d0e0;
+  color: var(--kb-text-secondary);
 }
 
 .score strong {
-  color: #93c5fd;
+  color: var(--kb-accent-text);
   font-size: 1.4rem;
 }
 
 .completionMessage {
   margin: 0;
-  color: #a9bad0;
+  color: var(--kb-text-muted);
   line-height: 1.6;
 }
 

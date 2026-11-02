@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import axios from 'axios';
+import api, { getErrorMessage } from '../api/client';
+import { useAuth } from '../context/AuthContext.jsx';
+import Avatar from '../components/general/Avatar.jsx';
 import Sidebar from '../components/Sidebar';
-import CreatePostModal from '../components/Community/Createpostmodal';
-import PostCard from '../components/Community/PostCard';
+import CreatePostModal, { POST_KINDS } from '../components/Community/Createpostmodal';
+import PostCard from '../components/Community/Postcard';
 import FolderCard from '../components/Community/Foldercard';
 import UserCard from '../components/Community/Usercard';
 import FilterPanel from '../components/Community/Filterpanel';
@@ -30,7 +32,14 @@ const CONTENT_TYPES = [
 ];
 
 export default function Community() {
+  const { loggedUser } = useAuth();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalKind, setModalKind] = useState(null);
+
+  const openComposer = (kind = null) => {
+    setModalKind(kind);
+    setIsModalOpen(true);
+  };
 
   // --- Búsqueda ---
   // `search` es lo que el usuario está escribiendo (cambia en cada tecla).
@@ -112,10 +121,7 @@ export default function Community() {
 
         // Respuesta esperada: una clave por cada tipo pedido, por ejemplo
         // { threads: { data, pagination }, folders: {...}, users: {...} }
-        const response = await axios.get(COMMUNITY_SEARCH_ENDPOINT, {
-          params,
-          withCredentials: true,
-        });
+        const response = await api.get(COMMUNITY_SEARCH_ENDPOINT, { params });
         const { threads, folders, users } = response.data;
 
         const threadList = threads?.data ?? [];
@@ -136,9 +142,7 @@ export default function Community() {
         // allSettled (y no all): si un usuario falla, el resto igual se muestra.
         const results = await Promise.allSettled(
           missingIds.map((userId) =>
-            axios.get(`${USER_BY_ID_ENDPOINT}/${userId}`, {
-              withCredentials: true,
-            })
+            api.get(`${USER_BY_ID_ENDPOINT}/${userId}`)
           )
         );
         results.forEach((result, index) => {
@@ -197,7 +201,7 @@ export default function Community() {
         if (cancelled) return;
         setItems([]);
         setTotalPages(0);
-        setLoadError('No se pudo cargar el contenido.');
+        setLoadError(getErrorMessage(error, 'No se pudo cargar el contenido de la comunidad.'));
       } finally {
         if (!cancelled) setIsLoading(false);
       }
@@ -260,61 +264,73 @@ export default function Community() {
       <Sidebar />
 
       <main className={styles.mainArea} ref={mainRef}>
-        <div className={styles.topBar}>
+        <header className={styles.pageHeader}>
+          <div>
+            <h1>Comunidad</h1>
+            <p>Preguntá, compartí tus avances y aprendé con otros músicos.</p>
+          </div>
+
           <div className={styles.searchWrapper}>
-            <svg
-              className={styles.searchIcon}
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              aria-hidden="true"
-            >
+            <svg className={styles.searchIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
               <circle cx="11" cy="11" r="7" />
               <line x1="21" y1="21" x2="16.65" y2="16.65" />
             </svg>
             <input
-              type="text"
+              type="search"
               className={styles.searchInput}
-              placeholder="Busca algo..."
+              placeholder="Buscar publicaciones, carpetas o personas"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              // Enter busca de inmediato, sin esperar los 400ms
               onKeyDown={(e) => {
                 if (e.key === 'Enter') applyQuery(search);
               }}
+              aria-label="Buscar en la comunidad"
             />
+            {search && (
+              <button type="button" className={styles.clearSearch} onClick={() => setSearch('')} aria-label="Borrar búsqueda">×</button>
+            )}
           </div>
-
-          <button
-            type="button"
-            className={styles.addButton}
-            onClick={() => setIsModalOpen(true)}
-            aria-label="Crear publicación"
-          >
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              aria-hidden="true"
-            >
-              <line x1="12" y1="5" x2="12" y2="19" />
-              <line x1="5" y1="12" x2="19" y2="12" />
-            </svg>
-          </button>
-        </div>
+        </header>
 
         <div className={styles.columns}>
           {/* Columna central: contenido + paginación */}
           <section className={styles.feed} aria-busy={isLoading}>
+            {/* Caja para publicar: invita a participar */}
+            <div className={styles.composer}>
+              <div className={styles.composerTop}>
+                <Avatar name={loggedUser?.username ?? 'Vos'} src={loggedUser?.picture} size={44} />
+                <button type="button" className={styles.composerInput} onClick={() => openComposer()}>
+                  ¿Qué estás practicando hoy{loggedUser?.username ? `, ${loggedUser.username}` : ''}?
+                </button>
+              </div>
+              <div className={styles.composerKinds}>
+                {POST_KINDS.map((k) => (
+                  <button key={k.id} type="button" className={styles.composerKind} onClick={() => openComposer(k.id)}>
+                    {k.label}
+                  </button>
+                ))}
+                <button type="button" className={styles.composerPublish} onClick={() => openComposer()}>
+                  Publicar
+                </button>
+              </div>
+            </div>
+
             {isFirstLoad && (
-              <p className={styles.statusText}>Cargando...</p>
+              <div className={styles.skeletonList} aria-label="Cargando publicaciones">
+                {[0, 1, 2].map((n) => (
+                  <div key={n} className={styles.skeleton}>
+                    <div className={styles.skeletonHead}><span className={styles.skCircle} /><span className={styles.skLine} /></div>
+                    <span className={styles.skLineWide} />
+                    <span className={styles.skLineWide} />
+                    <span className={styles.skLineShort} />
+                  </div>
+                ))}
+              </div>
             )}
 
             {loadError && (
-              <div className={styles.statusBox}>
+              <div className={styles.statusBox} role="alert">
+                <h2>No se pudo cargar</h2>
                 <p className={styles.statusText}>{loadError}</p>
                 <button
                   type="button"
@@ -327,7 +343,15 @@ export default function Community() {
             )}
 
             {emptyMessage && (
-              <p className={styles.statusText}>{emptyMessage}</p>
+              <div className={styles.statusBox}>
+                <h2>{isFiltering ? 'Sin resultados' : 'Todavía no hay publicaciones'}</h2>
+                <p className={styles.statusText}>{emptyMessage}</p>
+                {!isFiltering && visibleTypes.length > 0 && (
+                  <button type="button" className={styles.retryButton} onClick={() => openComposer()}>
+                    Crear la primera publicación
+                  </button>
+                )}
+              </div>
             )}
 
             {items.length > 0 && (
@@ -370,6 +394,7 @@ export default function Community() {
 
       <CreatePostModal
         isOpen={isModalOpen}
+        initialKind={modalKind}
         onClose={() => setIsModalOpen(false)}
         onPostCreated={handlePostCreated}
       />

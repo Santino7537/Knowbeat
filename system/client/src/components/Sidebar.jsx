@@ -1,6 +1,19 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
+import BrandLogo from "./general/BrandLogo.jsx";
+import ThemeToggle from "./general/ThemeToggle.jsx";
+import Avatar from "./general/Avatar.jsx";
+
+const COLLAPSE_KEY = "kb-sidebar-collapsed";
+
+function readCollapsed() {
+  try {
+    return localStorage.getItem(COLLAPSE_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
 import "./Sidebar.css";
 
 const navIcons = {
@@ -49,6 +62,19 @@ const Sidebar = () => {
   const location = useLocation();
   const { loggedUser } = useAuth();
   const [profileImageError, setProfileImageError] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(readCollapsed);
+
+  // La clase va en <html> para que TODAS las páginas lean el nuevo ancho
+  // (--kb-sidebar-width) y se acomoden con una transición.
+  useEffect(() => {
+    document.documentElement.classList.toggle("kb-sidebar-collapsed", collapsed);
+    try {
+      localStorage.setItem(COLLAPSE_KEY, collapsed ? "1" : "0");
+    } catch {
+      // sin persistencia
+    }
+  }, [collapsed]);
 
   const profilePath = loggedUser?.username
     ? `/user/${encodeURIComponent(loggedUser.username)}`
@@ -58,20 +84,69 @@ const Sidebar = () => {
     setProfileImageError(false);
   }, [loggedUser?.picture]);
 
+  // En mobile la sidebar es un panel deslizable: se cierra al navegar o con Escape
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [location.pathname]);
+
+  useEffect(() => {
+    if (!mobileOpen) return undefined;
+    const onKey = (event) => event.key === "Escape" && setMobileOpen(false);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [mobileOpen]);
+
   const items = [
-    { name: "Comunidad", path: "/community" },
-    { name: "Aprender", path: "/courses" },
-    { name: "Ejercicios", path: "/exercises" },
-    { name: "Carpetas", path: "/folders" },
-    { name: "Mensajes", path: "/messages" },
+    { name: "Comunidad", path: "/community", icon: navIcons.comunidad },
+    { name: "Aprender", path: "/courses", icon: navIcons.aprender },
+    { name: "Ejercicios", path: "/exercises", icon: navIcons.ejercicios },
+    { name: "Carpetas", path: "/folders", icon: navIcons.carpetas },
+    { name: "Mensajes", path: "/messages", icon: navIcons.mensajes },
   ];
 
   const profileImage = loggedUser?.picture && String(loggedUser.picture).trim();
 
+  // "Aprender" también queda activo dentro de /courses/... (catálogo, lecciones)
+  const isActive = (path) =>
+    location.pathname === path || (path !== "/" && location.pathname.startsWith(`${path}/`));
+
   return (
-    <aside className="sidebar" aria-label="Sidebar principal">
+    <>
+    <button
+      type="button"
+      className={`sidebar-mobile-toggle ${mobileOpen ? "is-open" : ""}`}
+      onClick={() => setMobileOpen((open) => !open)}
+      aria-label={mobileOpen ? "Cerrar menú" : "Abrir menú"}
+      aria-expanded={mobileOpen}
+    >
+      <span></span><span></span><span></span>
+    </button>
+
+    <div
+      className={`sidebar-backdrop ${mobileOpen ? "visible" : ""}`}
+      onClick={() => setMobileOpen(false)}
+      aria-hidden="true"
+    />
+
+    <aside className={`sidebar ${mobileOpen ? "open" : ""} ${collapsed ? "is-collapsed" : ""}`} aria-label="Sidebar principal">
+      <button
+        type="button"
+        className="sidebar-collapse"
+        onClick={() => setCollapsed((c) => !c)}
+        aria-label={collapsed ? "Expandir menú lateral" : "Minimizar menú lateral"}
+        aria-expanded={!collapsed}
+        title={collapsed ? "Expandir menú" : "Minimizar menú"}
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d="M15 5l-7 7 7 7" />
+        </svg>
+      </button>
+
       <div className="sidebar-brand">
-        <img className="sidebar-logo" src="/Logo.png" alt="Knowbeat" />
+        <button type="button" className="sidebar-logo-button" onClick={() => navigate("/")} aria-label="Ir al inicio">
+          <BrandLogo className="sidebar-logo" />
+          <BrandLogo variant="mark" className="sidebar-mark" label="" />
+        </button>
       </div>
 
       <div className="sidebar-divider"></div>
@@ -82,9 +157,10 @@ const Sidebar = () => {
           <button
             key={item.path}
             type="button"
-            className={`nav-item ${location.pathname === item.path ? "active" : ""}`}
+            className={`nav-item ${isActive(item.path) ? "active" : ""}`}
             onClick={() => navigate(item.path)}
-            aria-current={location.pathname === item.path ? "page" : undefined}
+            aria-current={isActive(item.path) ? "page" : undefined}
+            title={collapsed ? item.name : undefined}
           >
             <span className="nav-icon" aria-hidden="true">{item.icon}</span>
             <span className="nav-text">{item.name}</span>
@@ -103,15 +179,16 @@ const Sidebar = () => {
             aria-label={loggedUser?.username ? `Ir al perfil de ${loggedUser.username}` : "Ir al perfil"}
             title={loggedUser?.username ? `Perfil de ${loggedUser.username}` : "Perfil"}
           >
-            <span className="profile-avatar" aria-hidden="true">
-              {profileImage && !profileImageError ? (
-                <img src={profileImage} alt="" onError={() => setProfileImageError(true)} />
-              ) : (
-                navIcons.profileFallback
-              )}
-            </span>
+            <Avatar
+              name={loggedUser?.username || "Perfil"}
+              src={profileImage && !profileImageError ? profileImage : null}
+              size={36}
+              className="profile-avatar-img"
+            />
             <span className="profile-name">{loggedUser?.username || "Perfil"}</span>
           </button>
+
+          <ThemeToggle className="sidebar-theme-toggle" />
 
           <button
             type="button"
@@ -125,6 +202,7 @@ const Sidebar = () => {
         </div>
       </div>
     </aside>
+    </>
   );
 };
 

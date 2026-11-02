@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
-import styles from './UserCard.module.css';
+import Avatar from '../general/Avatar.jsx';
+import styles from './Usercard.module.css';
 
 /*
   Props:
@@ -18,16 +19,7 @@ export default function UserCard({ user }) {
   // El contenido es el mismo se pueda hacer clic o no, así que se arma una sola vez.
   const content = (
     <div className={styles.inner}>
-      {picture ? (
-        <img
-          className={styles.avatar}
-          src={picture}
-          alt={`Foto de ${username ?? 'usuario'}`}
-        />
-      ) : (
-        // Círculo gris de relleno cuando el usuario no tiene foto
-        <div className={styles.avatar} aria-hidden="true" />
-      )}
+      <Avatar name={username ?? ''} src={picture} size={52} />
 
       <div className={styles.userInfo}>
         <span className={styles.username}>
@@ -44,10 +36,9 @@ export default function UserCard({ user }) {
             ? `${styles.streak} ${styles.streakActive}`
             : styles.streak
         }
-        role="img"
         aria-label={`Racha de ${streak} ${streak === 1 ? 'día' : 'días'}`}
       >
-        {streak}
+        {streak} {streak === 1 ? 'día' : 'días'}
       </span>
     </div>
   );

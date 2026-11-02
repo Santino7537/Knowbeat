@@ -1,5 +1,7 @@
 import { useState } from 'react';
-import styles from './FilterPanel.module.css';
+import styles from './Filterpanel.module.css';
+
+const POPULAR_TAGS = ['Guitarra', 'Piano', 'Teoría', 'Armonía', 'Acordes', 'Escalas', 'Ritmo', 'Dudas'];
 
 /*
   Panel de filtros (controlado: el estado vive en la página, porque la página
@@ -46,11 +48,14 @@ export default function FilterPanel({
   return (
     <aside className={styles.panel}>
       <div className={styles.inner}>
-        <h2 className={styles.title}>Filtros</h2>
+        <h2 className={styles.title}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M3 5h18l-7 8v6l-4 2v-8z" /></svg>
+          Filtros
+        </h2>
 
         {/* Qué tipos de contenido se muestran en la página */}
         <h3 className={styles.subtitle} id="filterVisibleTitle">
-          Contenido Visible
+          Mostrar
         </h3>
         <div
           className={styles.options}
@@ -124,11 +129,32 @@ export default function FilterPanel({
             id="filterTagInput"
             type="text"
             className={styles.tagInput}
-            placeholder={tags.length === 0 ? 'Agrega una etiqueta' : ''}
+            placeholder={tags.length === 0 ? 'Buscar por etiqueta…' : ''}
             value={tagInput}
             onChange={(e) => setTagInput(e.target.value)}
             onKeyDown={handleTagKeyDown}
           />
+        </div>
+
+        {/* Etiquetas populares: un clic y se agregan al filtro */}
+        <h3 className={styles.subtitle}>Populares</h3>
+        <div className={styles.popular}>
+          {POPULAR_TAGS.map((tag) => {
+            const active = tags.some((t) => t.toLowerCase() === tag.toLowerCase());
+            return (
+              <button
+                key={tag}
+                type="button"
+                className={`${styles.popularTag} ${active ? styles.popularTagActive : ''}`}
+                aria-pressed={active}
+                onClick={() => onTagsChange(active
+                  ? tags.filter((t) => t.toLowerCase() !== tag.toLowerCase())
+                  : [...tags, tag])}
+              >
+                #{tag}
+              </button>
+            );
+          })}
         </div>
       </div>
     </aside>

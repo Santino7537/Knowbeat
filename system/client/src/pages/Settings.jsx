@@ -1,8 +1,20 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import axios from "axios";
 
 import styles from "./CSS/Settings.module.css";
 import Sidebar from "../components/Sidebar";
+import { useTheme } from "../context/ThemeContext.jsx";
+import { useToast } from "../context/ToastContext.jsx";
+import { getErrorMessage } from "../api/client";
+
+// Etiquetas legibles para las claves de notificaciones que vienen del backend
+const notificationLabels = {
+  streak_reminders: { title: "Recordatorios de racha", description: "Te avisamos para que no pierdas tu racha diaria" },
+  emails: { title: "Correos electrónicos", description: "Novedades y resúmenes en tu casilla" },
+  mentions: { title: "Menciones", description: "Cuando alguien te menciona en la comunidad" },
+  likes: { title: "Me gusta", description: "Cuando a alguien le gusta tu publicación" },
+  community_announcements: { title: "Anuncios de la comunidad", description: "Avisos importantes del equipo de Knowbeat" }
+};
 
 const defaultSettings = {
   privacy: {
@@ -95,20 +107,28 @@ const Settings = () => {
   //   }
   // };
 
-  const [settings, setSettings] = useState(mergeSettings(savedSettings));
+  const { theme, setTheme } = useTheme();
+  const toast = useToast();
+
+  // El tema real lo maneja ThemeContext (para toda la app); acá solo
+  // reflejamos ese valor en la configuración que se guarda en el backend.
+  const [settings, setSettings] = useState(() => {
+    const merged = mergeSettings(savedSettings);
+    return {
+      ...merged,
+      appearance: { ...merged.appearance, dark_mode: theme === "dark" }
+    };
+  });
 
   /* ======================================================
-     MODO OSCURO
+     MODO OSCURO / CLARO
   ====================================================== */
 
-  useEffect(() => {
-    if (settings.appearance.dark_mode) {
-      document.body.classList.remove("light-mode");
-    } else {
-      document.body.classList.add("light_mode");
-    }
-    return () => document.body.classList.remove("light-mode");
-  }, [settings.appearance.dark_mode]);
+  const handleThemeChange = (nextTheme) => {
+    if (nextTheme === theme) return;
+    setTheme(nextTheme);
+    handleToggle("appearance", "dark_mode", nextTheme === "dark");
+  };
 
 
   const updateConfig = async (body) => {
@@ -134,13 +154,7 @@ const Settings = () => {
 
     } catch (error) {
 
-      console.error(
-        "Error actualizando configuración:"
-      );
-
-      console.error(
-        error.response?.data || error
-      );
+      toast.error(getErrorMessage(error, "No se pudo guardar el cambio en tu cuenta."));
 
     }
 
@@ -219,19 +233,15 @@ const Settings = () => {
   ====================================================== */
 
   return (
-    <div style={{ display: "flex" }}>
+    <div className={styles.settings_layout}>
 
       {/* SIDEBAR */}
       <Sidebar />
 
       {/* CONTENIDO PRINCIPAL */}
-      <div style={{ marginLeft: "260px", width: "100%" }}>
+      <div className={styles.settings_main}>
 
-        <div
-          className={`${styles.settings_page} ${
-            !settings.appearance.dark_mode ? styles.light_mode : ""
-          }`}
-        >
+        <div className={styles.settings_page}>
 
           <div className={styles.settings_container}>
 
@@ -247,21 +257,21 @@ const Settings = () => {
             <div className={styles.settings_tabs}>
 
               <button
-                  className={activeTab === "notificaciones" ? styles.active : ""}
+                  className={`${styles.tab} ${activeTab === "notificaciones" ? styles.active : ""}`}
                 onClick={() => setActiveTab("notificaciones")}
               >
                 Notificaciones
               </button>
 
               <button
-                className={activeTab === "privacidad" ? styles.active : ""}
+                className={`${styles.tab} ${activeTab === "privacidad" ? styles.active : ""}`}
                 onClick={() => setActiveTab("privacidad")}
               >
                 Privacidad
               </button>
 
               <button
-                className={activeTab === "apariencia" ? styles.active : ""}
+                className={`${styles.tab} ${activeTab === "apariencia" ? styles.active : ""}`}
                 onClick={() => setActiveTab("apariencia")}
               >
                 Apariencia
@@ -330,7 +340,10 @@ const Settings = () => {
                   ([key, value]) => (
                     <div className={styles.setting_item} key={key}>
                       <div>
-                        <h3>{key.replaceAll("_", " ")}</h3>
+                        <h3>{notificationLabels[key]?.title || key.replaceAll("_", " ")}</h3>
+                        {notificationLabels[key]?.description && (
+                          <p>{notificationLabels[key].description}</p>
+                        )}
                       </div>
 
                       <label className={styles.switch}>
@@ -359,26 +372,40 @@ const Settings = () => {
               <div className={styles.settings_card}>
                 <h2>Apariencia</h2>
 
-                <div className={styles.setting_item}>
+                <div className={styles.setting_item_column}>
                   <div>
-                    <h3>Modo Oscuro</h3>
-                    <p>Cambiá entre tema claro y oscuro</p>
+                    <h3>Tema</h3>
+                    <p>Elegí cómo querés ver Knowbeat. Se aplica en toda la app.</p>
                   </div>
 
-                  <label className={styles.switch}>
-                    <input
-                      type="checkbox"
-                      checked={settings.appearance.dark_mode}
-                      onChange={(e) =>
-                        handleToggle(
-                          "appearance",
-                          "dark_mode",
-                          e.target.checked
-                        )
-                      }
-                    />
-                    <span className={styles.slider}></span>
-                  </label>
+                  <div className={styles.theme_options} role="radiogroup" aria-label="Tema">
+                    {[
+                      { value: "dark", label: "Oscuro" },
+                      { value: "light", label: "Claro" }
+                    ].map((option) => (
+                      <button
+                        key={option.value}
+                        type="button"
+                        role="radio"
+                        aria-checked={theme === option.value}
+                        className={`${styles.theme_option} ${theme === option.value ? styles.theme_option_active : ""}`}
+                        onClick={() => handleThemeChange(option.value)}
+                      >
+                        <span className={`${styles.theme_preview} ${styles[`preview_${option.value}`]}`} aria-hidden="true">
+                          <span className={styles.preview_sidebar}></span>
+                          <span className={styles.preview_body}>
+                            <span className={styles.preview_line}></span>
+                            <span className={styles.preview_line_short}></span>
+                            <span className={styles.preview_button}></span>
+                          </span>
+                        </span>
+                        <span className={styles.theme_label}>
+                          <span className={styles.theme_radio} aria-hidden="true"></span>
+                          {option.label}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
               </div>

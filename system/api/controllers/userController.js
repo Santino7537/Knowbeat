@@ -129,7 +129,8 @@ const getUserById = async (req, res) => {
   const UserId = req.params.id
 
   try {
-    let [user] = await db.query('SELECT * FROM User WHERE eliminated = 0 && id = ?', [UserId]);
+    // Solo datos públicos del perfil (antes SELECT * devolvía también el hash de la contraseña y el email)
+    let [user] = await db.query('SELECT id, username, picture, biography, streak FROM User WHERE eliminated = 0 && id = ?', [UserId]);
     if (user.length === 1) {
       user = user[0]
       user.picture = getPublicFileUrl("profiles", user.picture);
