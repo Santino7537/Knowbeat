@@ -92,6 +92,7 @@ services:
 
     volumes:
       - mysql_data:/var/lib/mysql
+      - mysql_socket:/var/run/mysqld
       - ./mysql/init:/docker-entrypoint-initdb.d
 
     healthcheck:
@@ -120,6 +121,40 @@ services:
       mysql:
         condition: service_healthy
     restart: unless-stopped
+
+  backup-worker:
+    build:
+      context: .
+      dockerfile: backup/Dockerfile
+    environment:
+      SQL_DATABASE_SOCKET_PATH: /mysql-socket/mysqld.sock
+      SQL_DATABASE_NAME: ${SQL_DATABASE_NAME}
+      SQL_ROOT_PASSWORD: ${SQL_ROOT_PASSWORD}
+      MONGO_DATABASE_HOST: mongo
+      MONGO_DATABASE_PORT: 27017
+      MONGO_DATABASE_NAME: ${MONGO_DATABASE_NAME}
+      MONGO_ROOT_USER: ${MONGO_ROOT_USER}
+      MONGO_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
+      MINIO_ENDPOINT: http://minio:9000
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+      BACKUP_TIME_ZONE: America/Argentina/Buenos_Aires
+      BACKUP_DAY_OF_WEEK: ${BACKUP_DAY_OF_WEEK:-0}
+      BACKUP_SCHEDULE_HOUR: ${BACKUP_SCHEDULE_HOUR:-3}
+      BACKUP_SCHEDULE_MINUTE: ${BACKUP_SCHEDULE_MINUTE:-0}
+      BACKUP_RETENTION_WEEKS: ${BACKUP_RETENTION_WEEKS:-8}
+      BACKUP_DIR: /backups
+    volumes:
+      - backup_data:/backups
+      - mysql_socket:/mysql-socket
+    depends_on:
+      mysql:
+        condition: service_healthy
+      mongo:
+        condition: service_started
+      minio:
+        condition: service_started
+    restart: unless-stopped
   
   ffmpeg:
     image: jrottenberg/ffmpeg:6.1-alpine
@@ -137,4 +172,8 @@ volumes:
 
   mysql_data:
 
+  mysql_socket:
+
   minio_data:
+
+  backup_data:

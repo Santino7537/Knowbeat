@@ -62,3 +62,53 @@ inicialización desde cero. El worker valida el esquema al arrancar y falla
 explícitamente si `snapshot_at` o el índice único por `table_name` no existen.
 Si el contenedor termina al arrancar, revisar sus logs: entre las causas posibles está
 un volumen MySQL inicializado antes de actualizar la tabla `DVV`.
+
+### Backups y restores
+
+`docker compose up -d --build backup-worker` construye e inicia el worker. Cada domingo
+a las 03:00 de `America/Argentina/Buenos_Aires` guarda en el volumen Docker `backup_data`
+una copia de la base MySQL, la base MongoDB y los buckets de MinIO. Conserva los 8
+backups completos más recientes. Se puede ajustar el día (`BACKUP_DAY_OF_WEEK`, de
+`0` domingo a `6` sábado), la hora (`BACKUP_SCHEDULE_HOUR`), los minutos
+(`BACKUP_SCHEDULE_MINUTE`) y la retención (`BACKUP_RETENTION_WEEKS`) en `.env`; luego
+recrear el worker para aplicar los cambios. Un backup iniciado después del horario
+semanal espera hasta la semana siguiente.
+El worker reutiliza las variables existentes del `.env`. MongoDB y MinIO usan sus
+endpoints internos de Compose (`mongo:27017` y `http://minio:9000`), ya que los valores
+`localhost` y los puertos publicados en `.env` son para conexiones desde el host. MySQL
+usa el socket local de `root` compartido entre los dos contenedores: el usuario de
+aplicación definido en `.env` no tiene permisos suficientes para un backup completo.
+
+El worker escribe logs JSON en stdout/stderr. Consultarlos con
+`docker compose logs --tail=100 backup-worker` o seguirlos con
+`docker compose logs -f backup-worker`. Cada backup terminado incluye un manifiesto con
+checksums SHA-256; los backups incompletos no se publican ni reemplazan los anteriores.
+La retención elimina copias viejas solo después de completar una nueva.
+MinIO respalda los objetos actuales de cada bucket, no el historial de versiones ni la
+configuración avanzada del bucket; al restaurar se restablece el acceso público de
+`profiles`, `courses` y `posts`, y se dejan privados los demás.
+
+Para listar los puntos disponibles:
+
+```sh
+docker compose run --rm backup-worker list
+```
+
+Para restaurar uno, primero detener manualmente la API y confirmar que el ID elegido es
+el correcto. El restore valida el manifiesto y los checksums, y exige el flag explícito
+`--confirm-replace`:
+
+```sh
+docker compose run --rm backup-worker restore 2026-11-08T06-00-00-000Z --confirm-replace
+```
+
+El restore elimina y recrea las bases MySQL y MongoDB configuradas, y reemplaza los
+buckets de MinIO. No genera una copia previa del estado actual; si una etapa falla, la
+restauración puede quedar parcial y no hay rollback automático. El backup se hace con
+la aplicación activa: cada servicio se respalda de forma consistente por separado, pero
+los tres respaldos podrían reflejar instantes distintos. Los archivos no están cifrados.
+
+`backup_data` es un volumen local del host, no una copia externa. Un fallo o pérdida del
+host puede destruir tanto los datos como sus backups; copiar periódicamente el volumen
+a otro medio/servidor y restringir el acceso al host es responsabilidad del operador.
+`docker compose down -v` también elimina este volumen.
