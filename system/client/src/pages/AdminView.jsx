@@ -4,6 +4,7 @@ import api, { getErrorMessage } from "../api/client";
 import Sidebar from "../components/Sidebar.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 import styles from "./CSS/AdminView.module.css";
+import { useLanguage } from "../context/LanguageContext.jsx"; // <-- Importar el hook de idioma
 
 const TABS = [
   { id: "users", label: "Usuarios" },
@@ -52,6 +53,8 @@ function isAuthorizationError(error) {
 }
 
 export default function AdminView() {
+  const { t } = useLanguage(); // <-- Consumir la función de traducción
+
   const navigate = useNavigate();
   const { loggedUser, adminAuthorization, clearAdminAuthorization } = useAuth();
   const [users, setUsers] = useState([]);
@@ -160,6 +163,11 @@ export default function AdminView() {
     if (isAuthorizationError(requestError)) clearAdminAuthorization();
     setActionError(getErrorMessage(requestError, fallback));
   };
+
+  const deleteUser = async (id, role) => {
+    if (role === 2) {
+      alert(t("admin.alerts.cant_delete_admin"));
+      return;
 
   const handleRoleChange = async (user, roleId) => {
     setActionError("");
@@ -325,8 +333,32 @@ export default function AdminView() {
             <button type="button" className={styles.refreshButton} onClick={loadData}>
               Actualizar datos
             </button>
+
+          <div className={styles.filter_row}>
+            <select
+              className={styles.role_select}
+              value={roleFilter}
+              onChange={(e) =>
+                setRoleFilter(e.target.value)
+              }
+            >
+              <option value="all">
+                {t("admin.users_section.filters.all")}
+              </option>
+
+              <option value="1">
+                {t("admin.users_section.filters.users")}
+              </option>
+
+              <option value="2">
+                {t("admin.users_section.filters.admins")}
+              </option>
+
+              <option value="3">
+                {t("admin.users_section.filters.mods")}
+              </option>
+            </select>
           </div>
-        </header>
 
         <section className={styles.statsGrid} aria-label="Resumen">
           <article className={styles.statCard}>
@@ -808,15 +840,23 @@ export default function AdminView() {
                 onClick={() => setSelectedUser(null)}
                 disabled={Boolean(busyAction)}
               >
-                Cancelar
+                {t("admin.modal.cancel")}
               </button>
               <button
-                type="button"
-                className={styles.deleteButton}
-                onClick={handleDeleteUser}
-                disabled={Boolean(busyAction)}
+                className={
+                  styles.confirm_delete_btn
+                }
+                onClick={async () => {
+                  await deleteUser(
+                    selectedUser.id,
+                    selectedUser.role_id
+                  );
+
+                  setShowDeleteModal(false);
+                  setSelectedUser(null);
+                }}
               >
-                {busyAction ? "Procesando…" : "Confirmar eliminación"}
+                {t("admin.modal.confirm")}
               </button>
             </div>
           </section>

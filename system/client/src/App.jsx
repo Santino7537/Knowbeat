@@ -16,6 +16,7 @@ import Login_register from './pages/login_register.jsx'
 import { AuthProvider, useAuth } from './context/AuthContext.jsx'
 import { ThemeProvider } from './context/ThemeContext.jsx'
 import { ToastProvider } from './context/ToastContext.jsx'
+import { LanguageProvider } from './context/LanguageContext';
 import { useEffect, useState } from "react";
 import { Navigate, Outlet, Routes, Route, useLocation } from "react-router-dom";
 import './App.css'
@@ -139,6 +140,7 @@ function App() {
       <ThemeProvider>
       <ToastProvider>
       <AuthProvider>
+      <LanguageProvider>
         <DocumentTitle />
         <RouteTransition>
         <Routes>
@@ -161,8 +163,9 @@ function App() {
             <Route path="/user/:username" element={<UserProfile />} />
             <Route path="/community" element={<Community/>} />
           </Route>
-      </Routes>
+        </Routes>
         </RouteTransition>
+      </LanguageProvider>
       </AuthProvider>
       </ToastProvider>
       </ThemeProvider>

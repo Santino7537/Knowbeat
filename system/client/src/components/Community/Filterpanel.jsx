@@ -1,19 +1,9 @@
 import { useState } from 'react';
+import { useLanguage } from '../../context/LanguageContext.jsx'; // <-- Importar hook de idioma
 import styles from './Filterpanel.module.css';
 
 const POPULAR_TAGS = ['Guitarra', 'Piano', 'Teoría', 'Armonía', 'Acordes', 'Escalas', 'Ritmo', 'Dudas'];
 
-/*
-  Panel de filtros (controlado: el estado vive en la página, porque la página
-  es quien lo necesita para pedir los datos al backend).
-
-  Props:
-  - typeOptions: [{ value, label }] los tipos de contenido que se pueden mostrar
-  - visibleTypes: array con los `value` marcados
-  - onToggleType(value): se llama al marcar/desmarcar un tipo
-  - tags: array de etiquetas activas
-  - onTagsChange(nextTags): se llama al agregar o quitar una etiqueta
-*/
 export default function FilterPanel({
   typeOptions,
   visibleTypes,
@@ -21,12 +11,9 @@ export default function FilterPanel({
   tags,
   onTagsChange,
 }) {
-  // Lo que el usuario está escribiendo en el campo de etiquetas.
-  // Es local porque a la página solo le importan las etiquetas ya confirmadas.
+  const { t } = useLanguage(); // <-- Consumir la función de traducción
   const [tagInput, setTagInput] = useState('');
 
-  // Igual que en el modal de crear publicación: al presionar Enter, lo
-  // escrito se convierte en una etiqueta (sin duplicados, sin importar mayúsculas).
   const handleTagKeyDown = (e) => {
     if (e.key !== 'Enter') return;
     e.preventDefault();
@@ -50,12 +37,12 @@ export default function FilterPanel({
       <div className={styles.inner}>
         <h2 className={styles.title}>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M3 5h18l-7 8v6l-4 2v-8z" /></svg>
-          Filtros
+          {t('filter_panel.title')}
         </h2>
 
         {/* Qué tipos de contenido se muestran en la página */}
         <h3 className={styles.subtitle} id="filterVisibleTitle">
-          Mostrar
+          {t('filter_panel.show_title')}
         </h3>
         <div
           className={styles.options}
@@ -69,11 +56,6 @@ export default function FilterPanel({
               <label key={option.value} className={styles.option}>
                 <span className={styles.optionLabel}>{option.label}</span>
 
-                {/*
-                  El <input> real está oculto pero sigue siendo el que recibe
-                  el foco y el teclado (accesible). El cuadrado que se ve es
-                  el <span> siguiente, que se pinta según el estado.
-                */}
                 <input
                   type="checkbox"
                   className={styles.checkboxInput}
@@ -107,9 +89,9 @@ export default function FilterPanel({
           })}
         </div>
 
-        {/* Etiquetas: mismo funcionamiento que en el modal de crear publicación */}
+        {/* Etiquetas */}
         <label className={`${styles.subtitle} ${styles.tagsTitle}`} htmlFor="filterTagInput">
-          Etiquetas
+          {t('filter_panel.tags_title')}
         </label>
         <div className={styles.tagsField}>
           {tags.map((tag, index) => (
@@ -119,7 +101,7 @@ export default function FilterPanel({
                 type="button"
                 className={styles.tagRemoveButton}
                 onClick={() => handleRemoveTag(index)}
-                aria-label={`Quitar etiqueta ${tag}`}
+                aria-label={`${t('filter_panel.remove_tag_aria')} ${tag}`}
               >
                 ×
               </button>
@@ -129,15 +111,15 @@ export default function FilterPanel({
             id="filterTagInput"
             type="text"
             className={styles.tagInput}
-            placeholder={tags.length === 0 ? 'Buscar por etiqueta…' : ''}
+            placeholder={tags.length === 0 ? t('filter_panel.tag_input_placeholder') : ''}
             value={tagInput}
             onChange={(e) => setTagInput(e.target.value)}
             onKeyDown={handleTagKeyDown}
           />
         </div>
 
-        {/* Etiquetas populares: un clic y se agregan al filtro */}
-        <h3 className={styles.subtitle}>Populares</h3>
+        {/* Etiquetas populares */}
+        <h3 className={styles.subtitle}>{t('filter_panel.popular_title')}</h3>
         <div className={styles.popular}>
           {POPULAR_TAGS.map((tag) => {
             const active = tags.some((t) => t.toLowerCase() === tag.toLowerCase());

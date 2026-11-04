@@ -5,6 +5,7 @@ import styles from "./CSS/Settings.module.css";
 import Sidebar from "../components/Sidebar";
 import { useTheme } from "../context/ThemeContext.jsx";
 import { useToast } from "../context/ToastContext.jsx";
+import { useLanguage } from "../context/LanguageContext.jsx"; // <-- 1. Importar el hook de idioma
 import { getErrorMessage } from "../api/client";
 
 // Etiquetas legibles para las claves de notificaciones que vienen del backend
@@ -67,56 +68,25 @@ const Settings = () => {
   const storedUser = JSON.parse(localStorage.getItem("user") || "null");
   const savedSettings = storedUser?.configuration || storedUser;
 
-
   /* ======================================================
      TAB ACTIVA
   ====================================================== */
 
-  const [activeTab, setActiveTab] =
-    useState("privacidad");
-
-  /* ======================================================
-     CONFIGURACIÓN
-  ====================================================== */
-
-  // const defaultSettings = {
-  //   privacidad: {
-  //     cuenta_privada: false,
-  //     visibilidad_progreso: "todos",
-  //     mensajeria_restringida: false,
-  //     mostrar_actividad: true
-  //   },
-
-  //   preferencia: {
-  //     notacion: "americana",
-  //     ejercicios_microfono: true,
-  //     ejercicios_escucha: true,
-
-  //     notificaciones: {
-  //       recordatorio_racha: true,
-  //       emails: true,
-  //       menciones: true,
-  //       likes: true,
-  //       avisos_comunidad: true
-  //     }
-  //   },
-
-  //   apariencia: {
-  //     idioma: "es-AR",
-  //     modo_oscuro: true
-  //   }
-  // };
+  const [activeTab, setActiveTab] = useState("privacidad");
 
   const { theme, setTheme } = useTheme();
+  const { language, changeLanguage, t } = useLanguage(); // <-- 2. Consumir idioma y función de traducción
   const toast = useToast();
 
-  // El tema real lo maneja ThemeContext (para toda la app); acá solo
-  // reflejamos ese valor en la configuración que se guarda en el backend.
   const [settings, setSettings] = useState(() => {
     const merged = mergeSettings(savedSettings);
     return {
       ...merged,
-      appearance: { ...merged.appearance, dark_mode: theme === "dark" }
+      appearance: {
+        ...merged.appearance,
+        dark_mode: theme === "dark",
+        language: language // Sincronizamos con el contexto actual
+      }
     };
   });
 
@@ -130,11 +100,19 @@ const Settings = () => {
     handleToggle("appearance", "dark_mode", nextTheme === "dark");
   };
 
+  /* ======================================================
+     CAMBIO DE IDIOMA
+  ====================================================== */
+
+  const handleLanguageChange = (nextLang) => {
+    if (nextLang === language) return;
+    changeLanguage(nextLang);
+    handleToggle("appearance", "language", nextLang);
+  };
 
   const updateConfig = async (body) => {
-
     try {
-      const response = await axios.patch(
+      await axios.patch(
         "http://localhost:3000/user/update/config/",
         body,
         {
@@ -143,13 +121,9 @@ const Settings = () => {
           }
         }
       );
-
     } catch (error) {
-
-      toast.error(getErrorMessage(error, "No se pudo guardar el cambio en tu cuenta."));
-
+      toast.error(getErrorMessage(error, t("settings.errors.save_failed")));
     }
-
   };
 
   /* ======================================================
@@ -217,10 +191,6 @@ const Settings = () => {
   };
 
   /* ======================================================
-     LOADING
-  ====================================================== */
-
-  /* ======================================================
      RENDER
   ====================================================== */
 
@@ -240,8 +210,8 @@ const Settings = () => {
             {/* HEADER */}
             <div className={styles.settings_header}>
               <div>
-                <h1>Configuración</h1>
-                <p>Administrá tu cuenta y preferencias</p>
+                <h1>{t("settings.title")}</h1>
+                <p>{t("settings.subtitle")}</p>
               </div>
             </div>
 
@@ -249,24 +219,24 @@ const Settings = () => {
             <div className={styles.settings_tabs}>
 
               <button
-                  className={`${styles.tab} ${activeTab === "notificaciones" ? styles.active : ""}`}
+                className={`${styles.tab} ${activeTab === "notificaciones" ? styles.active : ""}`}
                 onClick={() => setActiveTab("notificaciones")}
               >
-                Notificaciones
+                {t("settings.tabs.notifications")}
               </button>
 
               <button
                 className={`${styles.tab} ${activeTab === "privacidad" ? styles.active : ""}`}
                 onClick={() => setActiveTab("privacidad")}
               >
-                Privacidad
+                {t("settings.tabs.privacy")}
               </button>
 
               <button
                 className={`${styles.tab} ${activeTab === "apariencia" ? styles.active : ""}`}
                 onClick={() => setActiveTab("apariencia")}
               >
-                Apariencia
+                {t("settings.tabs.appearance")}
               </button>
 
             </div>
@@ -274,12 +244,12 @@ const Settings = () => {
             {/* PRIVACIDAD */}
             {activeTab === "privacidad" && (
               <div className={styles.settings_card}>
-                <h2>Privacidad</h2>
+                <h2>{t("settings.privacy.title")}</h2>
 
                 <div className={styles.setting_item}>
                   <div>
-                    <h3>Cuenta Privada</h3>
-                    <p>Solo seguidores aprobados podrán ver tu perfil</p>
+                    <h3>{t("settings.privacy.private_account")}</h3>
+                    <p>{t("settings.privacy.private_desc")}</p>
                   </div>
 
                   <label className={styles.switch}>
@@ -300,8 +270,8 @@ const Settings = () => {
 
                 <div className={styles.setting_item}>
                   <div>
-                    <h3>Mostrar Actividad</h3>
-                    <p>Mostrar actividad reciente</p>
+                    <h3>{t("settings.privacy.show_activity")}</h3>
+                    <p>{t("settings.privacy.activity_desc")}</p>
                   </div>
 
                   <label className={styles.switch}>
@@ -326,7 +296,7 @@ const Settings = () => {
             {/* NOTIFICACIONES */}
             {activeTab === "notificaciones" && (
               <div className={styles.settings_card}>
-                <h2>Notificaciones</h2>
+                <h2>{t("settings.tabs.notifications")}</h2>
 
                 {Object.entries(settings.preferences.notifications).map(
                   ([key, value]) => (
@@ -362,18 +332,48 @@ const Settings = () => {
             {/* APARIENCIA */}
             {activeTab === "apariencia" && (
               <div className={styles.settings_card}>
-                <h2>Apariencia</h2>
+                <h2>{t("settings.tabs.appearance")}</h2>
 
+                {/* SELECTOR DE IDIOMA */}
                 <div className={styles.setting_item_column}>
                   <div>
-                    <h3>Tema</h3>
-                    <p>Elegí cómo querés ver Knowbeat. Se aplica en toda la app.</p>
+                    <h3>{t("settings.appearance.language_title")}</h3>
+                    <p>{t("settings.appearance.language_desc")}</p>
+                  </div>
+
+                  <div className={styles.theme_options} role="radiogroup" aria-label="Idioma">
+                    {[
+                      { value: "es-AR", label: "Español (Argentina)" },
+                      { value: "en-US", label: "English (US)" }
+                    ].map((option) => (
+                      <button
+                        key={option.value}
+                        type="button"
+                        role="radio"
+                        aria-checked={language === option.value}
+                        className={`${styles.theme_option} ${language === option.value ? styles.theme_option_active : ""}`}
+                        onClick={() => handleLanguageChange(option.value)}
+                      >
+                        <span className={styles.theme_label}>
+                          <span className={styles.theme_radio} aria-hidden="true"></span>
+                          {option.label}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* SELECTOR DE TEMA */}
+                <div className={styles.setting_item_column}>
+                  <div>
+                    <h3>{t("settings.appearance.theme_title")}</h3>
+                    <p>{t("settings.appearance.theme_desc")}</p>
                   </div>
 
                   <div className={styles.theme_options} role="radiogroup" aria-label="Tema">
                     {[
-                      { value: "dark", label: "Oscuro" },
-                      { value: "light", label: "Claro" }
+                      { value: "dark", label: t("settings.appearance.dark") },
+                      { value: "light", label: t("settings.appearance.light") }
                     ].map((option) => (
                       <button
                         key={option.value}
