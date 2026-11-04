@@ -32,6 +32,8 @@ export default function PostCard({ post }) {
   const [isLiked, setIsLiked] = useState(false);
   const [likes, setLikes] = useState(likes_count);
   const [likeBurst, setLikeBurst] = useState(0);
+  const [isLikeStatusLoaded, setIsLikeStatusLoaded] = useState(false);
+  const [isLikeUpdating, setIsLikeUpdating] = useState(false);
 
   const [isCommentsOpen, setIsCommentsOpen] = useState(false);
   const [comments, setComments] = useState([]);
@@ -45,6 +47,25 @@ export default function PostCard({ post }) {
   const [hasHiddenContent, setHasHiddenContent] = useState(false);
   const textRef = useRef(null);
   const commentInputRef = useRef(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    setIsLikeStatusLoaded(false);
+    setLikes(likes_count);
+
+    api.get(`/community/like/thread/${id}`)
+      .then(({ data }) => {
+        if (!cancelled) setIsLiked(Boolean(data?.liked));
+      })
+      .catch((error) => {
+        if (!cancelled) toast.error(getErrorMessage(error, 'No se pudo consultar tu me gusta.'));
+      })
+      .finally(() => {
+        if (!cancelled) setIsLikeStatusLoaded(true);
+      });
+
+    return () => { cancelled = true; };
+  }, [id, likes_count, toast]);
 
   // ¿El texto está cortado? Solo en ese caso mostramos "Ver más"
   useLayoutEffect(() => {
@@ -65,26 +86,21 @@ export default function PostCard({ post }) {
 
   // ── Me gusta ────────────────────────────────────────────────────────────
   const handleLike = async () => {
-    if (isLiked) {
-      toast.info('Ya le diste me gusta a esta publicación.');
-      return;
-    }
-    setIsLiked(true);
-    setLikes((prev) => prev + 1);
-    setLikeBurst((n) => n + 1);
+    if (!isLikeStatusLoaded || isLikeUpdating) return;
+    const nextLiked = !isLiked;
+    setIsLiked(nextLiked);
+    setLikes((prev) => prev + (nextLiked ? 1 : -1));
+    if (nextLiked) setLikeBurst((n) => n + 1);
+    setIsLikeUpdating(true);
 
     try {
       await api.patch(`/community/like/thread/${id}`);
     } catch (error) {
-      const message = getErrorMessage(error, 'No se pudo registrar tu me gusta.');
-      // Si el servidor dice que ya tenía like, dejamos el corazón marcado
-      if (/ya has dado like/i.test(message)) {
-        setLikes((prev) => prev - 1);
-        return;
-      }
-      setIsLiked(false);
-      setLikes((prev) => prev - 1);
-      toast.error(message);
+      setIsLiked(!nextLiked);
+      setLikes((prev) => prev + (nextLiked ? -1 : 1));
+      toast.error(getErrorMessage(error, 'No se pudo actualizar tu me gusta.'));
+    } finally {
+      setIsLikeUpdating(false);
     }
   };
 
@@ -196,6 +212,7 @@ export default function PostCard({ post }) {
           type="button"
           className={`${styles.action} ${isLiked ? styles.liked : ''}`}
           onClick={handleLike}
+          disabled={!isLikeStatusLoaded || isLikeUpdating}
           aria-pressed={isLiked}
           aria-label={isLiked ? 'Te gusta' : 'Me gusta'}
         >

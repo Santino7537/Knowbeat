@@ -6,6 +6,9 @@ const { getPublicFileUrl } = require('./bucketController');
 const MAX_LIMIT = 50;
 
 const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const normalizeTags = (tags) => (Array.isArray(tags) ? tags : [tags])
+	.map(tag => String(tag ?? '').trim())
+	.filter(Boolean);
 
 const parsePagination = (query) => {
     let { page, limit } = query;
@@ -81,7 +84,7 @@ const searchUsers = async (req, res) => {
 const searchThreads = async (req, res) => {
 	const pagination = parsePagination(req.query);
 	const query = String(req.query.query ?? req.query.q ?? '').trim();
-	const tags = String(req.query.tags ?? '').trim();
+	const tags = normalizeTags(req.query.tags);
 
 	try {
 		const db = getDb();
@@ -90,7 +93,18 @@ const searchThreads = async (req, res) => {
 			const expression = { $regex: escapeRegex(query), $options: 'i' };
 			filter.$or = [{ title: expression }, { text: expression }];
 		}
-		if (tags) filter.tags = { $elemMatch: { $regex: `^${escapeRegex(tags)}$`, $options: 'i' } };
+		if (tags.length > 0) {
+			const threadIdsByTag = await Promise.all(tags.map(async tag => {
+				const matchingTags = await db.collection('Tag').find({
+					name: { $regex: `^${escapeRegex(tag)}$`, $options: 'i' }
+				}).project({ _id: 1 }).toArray();
+				const tagIds = matchingTags.map(({ _id }) => _id);
+
+				return db.collection('ThreadTags').distinct('thread_id', { tag_id: { $in: tagIds } });
+			}));
+
+			filter.$and = threadIdsByTag.map(threadIds => ({ _id: { $in: threadIds } }));
+		}
 
 		const order = { likes_count: -1, created_at: -1 };
 		const [threads, total] = await Promise.all([
@@ -136,7 +150,7 @@ const runSearch = (controller, request) => new Promise((resolve, reject) => {
 
 const searchCommunity = async (req, res) => {
 	const query = String(req.query.query ?? req.query.q ?? '').trim();
-	const tags = String(req.query.tags ?? '').trim();
+	const tags = normalizeTags(req.query.tags);
 	const types = String(req.query.types ?? 'folders,users,threads')
 		.split(',')
 		.map(type => type.trim().toLowerCase())
@@ -182,7 +196,6 @@ const createThread = async (req, res) => {
       author_id: userId,
       title,
 	  text,
-	  tags,
 	  likes_count: 0,
 	  created_at: new Date(),
     });
@@ -194,7 +207,7 @@ const createThread = async (req, res) => {
 
 	// Antes: forEach(async ...) sin await. Si createTag fallaba, el error quedaba sin
 	// capturar y Node cerraba el proceso de la API. Ahora se espera y cae en el catch.
-	await Promise.all(newTags.map(tag => createTag(tag, req)));
+	const threadTags = await Promise.all(newTags.map(tag => createTag(tag, req)));
 
     req.actions_data["create-thread"] = {
       entity: "Thread",
@@ -203,6 +216,21 @@ const createThread = async (req, res) => {
       "old_dvh": null,
       "new_dvh": null
     };
+
+	for (const threadTag of threadTags) {
+		const reslt = await db.collection("ThreadTags").insertOne({
+			thread_id: threadId,
+			tag_id: threadTag.id
+		});
+
+		req.actions_data[`create-thread-${threadId}-tag-${threadTag.name}`] = {
+			entity: "ThreadTags",
+			record_id: reslt.insertedId,
+			action: "insert",
+			"old_dvh": null,
+			"new_dvh": null
+		};
+	}
 
     return res.status(201).json({ threadId });
   } catch (err) {
@@ -322,7 +350,7 @@ const createTag = async (name, req) => {
 		"new_dvh": null
 	};
 
-	return { _id: result.insertedId, name: normalizedName };
+	return { id: result.insertedId, name: normalizedName };
 };
 
 const likePublication = (publication_type) => {
@@ -344,21 +372,28 @@ const likePublication = (publication_type) => {
 						return res.status(404).json({ message: 'Hilo no encontrado' });
 					}
 
-					const old_thread_like = await db.collection('ThreadLikes').findOne({ thread_id: new ObjectId(publicationId), user_id: userId });
-
+					const old_thread_like = await db.collection('ThreadLikes').findOne({ thread_id: new ObjectId(publicationId), author_id: userId });
 					if (old_thread_like) {
-						return res.status(400).json({ message: 'Ya has dado like a este hilo' });
+						await db.collection('Thread').updateOne(
+							{ _id: new ObjectId(publicationId) },
+							{ $inc: { likes_count: -1 } }
+						);
+
+						await db.collection('ThreadLikes').deleteOne({
+							thread_id: new ObjectId(publicationId),
+							author_id: userId
+						});
+					} else {
+						await db.collection('Thread').updateOne(
+							{ _id: new ObjectId(publicationId) },
+							{ $inc: { likes_count: 1 } }
+						);
+
+						await db.collection('ThreadLikes').insertOne({
+							thread_id: new ObjectId(publicationId),
+							author_id: userId
+						});
 					}
-
-					await db.collection('Thread').updateOne(
-						{ _id: new ObjectId(publicationId) },
-						{ $inc: { likes_count: 1 } }
-					);
-
-					await db.collection('ThreadLikes').insertOne({
-						thread_id: new ObjectId(publicationId),
-						user_id: userId
-					});
 
 					break;
 				case 'response':
@@ -368,21 +403,29 @@ const likePublication = (publication_type) => {
 						return res.status(404).json({ message: 'Respuesta no encontrada' });
 					}
 
-					const old_response_like = await db.collection('ResponseLikes').findOne({ response_id: new ObjectId(publicationId), user_id: userId });
+					const old_response_like = await db.collection('ResponseLikes').findOne({ response_id: new ObjectId(publicationId), author_id: userId });
 
 					if (old_response_like) {
-						return res.status(400).json({ message: 'Ya has dado like a esta respuesta' });
+						await db.collection('Response').updateOne(
+							{ _id: new ObjectId(publicationId) },
+							{ $inc: { likes_count: -1 } }
+						);
+
+						await db.collection('ResponseLikes').deleteOne({
+							response_id: new ObjectId(publicationId),
+							author_id: userId
+						});
+					} else {
+						await db.collection('Response').updateOne(
+							{ _id: new ObjectId(publicationId) },
+							{ $inc: { likes_count: 1 } }
+						);
+
+						await db.collection('ResponseLikes').insertOne({
+							response_id: new ObjectId(publicationId),
+							author_id: userId
+						});
 					}
-
-					await db.collection('Response').updateOne(
-						{ _id: new ObjectId(publicationId) },
-						{ $inc: { likes_count: 1 } }
-					);
-
-					await db.collection('ResponseLikes').insertOne({
-						response_id: new ObjectId(publicationId),
-						user_id: userId
-					});
 					
 					break;
 			}
@@ -395,4 +438,42 @@ const likePublication = (publication_type) => {
     };
 }
 
-module.exports = { searchCommunity, searchThread, createThread, createResponse, searchResponses, likePublication };
+const getPublicationLike = (publication_type) => {
+	return async (req, res) => {
+		const publicationId = req.params.publication_id;
+		const userId = req.user.user_id;
+		const publicationConfig = {
+			thread: { publicationCollection: 'Thread', likesCollection: 'ThreadLikes', idField: 'thread_id' },
+			response: { publicationCollection: 'Response', likesCollection: 'ResponseLikes', idField: 'response_id' }
+		}[publication_type];
+
+		if (!publicationConfig) {
+			return res.status(400).json({ message: 'El tipo de publicación es inválido' });
+		}
+		if (!ObjectId.isValid(publicationId)) {
+			return res.status(400).json({ message: 'La id de la publicación es inválida' });
+		}
+
+		try {
+			const db = getDb();
+			const objectId = new ObjectId(publicationId);
+			const publication = await db.collection(publicationConfig.publicationCollection).findOne({ _id: objectId });
+
+			if (!publication) {
+				return res.status(404).json({ message: 'Publicación no encontrada' });
+			}
+
+			const like = await db.collection(publicationConfig.likesCollection).findOne({
+				[publicationConfig.idField]: objectId,
+				author_id: userId
+			});
+
+			return res.status(200).json({ liked: Boolean(like) });
+		} catch (error) {
+			console.error(`Error al consultar el like de la publicación (${publication_type}):`, error);
+			return res.status(500).json({ message: 'Error al consultar el like de la publicación' });
+		}
+	};
+};
+
+module.exports = { searchCommunity, searchThread, createThread, createResponse, searchResponses, likePublication, getPublicationLike };

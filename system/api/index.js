@@ -9,7 +9,7 @@ const { getCourses, getUserProgress, registerCourse, updateUserProgress } = requ
 const { getUserStats, getUserScoreHistory, changeGoal } = require('./controllers/streakController');
 const { createFolder, updateFolder, deleteFolder, getFolderFiles } = require('./controllers/folderController');
 const { uploadFileInFolder, deleteFileFromFolder, getFileUrlFromFolder } = require('./controllers/fileController');
-const { searchCommunity, searchThread, createThread, createResponse, searchResponses, likePublication } = require('./controllers/communityController');
+const { searchCommunity, searchThread, createThread, createResponse, searchResponses, likePublication, getPublicationLike } = require('./controllers/communityController');
 const { getFriendshipRequests, getFriends, sendFriendRequest, acceptFriendRequest, rejectFriendRequest, cancelFriendRequest, deleteFriendship } = require('./controllers/friendshipController');
 const { getMessages, sendMessage, markMessagesAsRead } = require('./controllers/chatController');
 
@@ -80,6 +80,8 @@ server.get('/community/search', checkToken, isAuth, searchCommunity);
 server.get('/community/search/thread/:thread_id', checkToken, isAuth, searchThread);
 server.post('/community/create/thread', postResponseLog, checkToken, isAuth, createThread);
 server.post('/community/create/response/:thread_id', postResponseLog, checkToken, isAuth, createResponse);
+server.get('/community/like/thread/:publication_id', checkToken, isAuth, getPublicationLike('thread'));
+server.get('/community/like/response/:publication_id', checkToken, isAuth, getPublicationLike('response'));
 server.patch('/community/like/thread/:publication_id', postResponseLog, checkToken, isAuth, likePublication('thread'));
 server.patch('/community/like/response/:publication_id', postResponseLog, checkToken, isAuth, likePublication('response'));
 server.get('/community/search/thread/:thread_id/responses', checkToken, isAuth, searchResponses);
@@ -125,10 +127,12 @@ httpServer.listen(PORT, async () => {
   console.log('La API está corriendo en el puerto ', PORT);
   initSocket(httpServer, allowedOrigins);
 
+  try {
+    await connectMongo();
+  } catch (err) { console.error("Failed to start MongoDB:", err); }
 
   await require('./config/createRoles')();
   await require('./config/createPermissions')();
   await require('./config/createAdmin')();
   await require('./config/createCourses')();
-  await require('./config/initUserDailyScore')();
 });

@@ -108,7 +108,6 @@ const register = async (req, res) => {
     );
     dbResult = result;
   } catch (error) {
-    console.log(error);
     return res.status(500).json({ error: 'Error al crear usuario' });
   }
 
@@ -350,7 +349,7 @@ const changeConfig = async (req, res) => {
     // Recalcular DVH
     delete userPayload.dvh;
 
-    const newDvh = ComputeDVHFromObject(userPayload);
+    const newDvh = computeDVHFromObject(userPayload);
 
     userPayload.dvh = newDvh;
 

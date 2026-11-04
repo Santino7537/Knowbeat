@@ -134,9 +134,6 @@ const Settings = () => {
   const updateConfig = async (body) => {
 
     try {
-
-      console.log("Enviando:", body);
-
       const response = await axios.patch(
         "http://localhost:3000/user/update/config/",
         body,
@@ -145,11 +142,6 @@ const Settings = () => {
             Authorization: `Bearer ${token}`
           }
         }
-      );
-
-      console.log(
-        "Configuración actualizada:",
-        response.data
       );
 
     } catch (error) {
