@@ -97,8 +97,8 @@ const Sidebar = () => {
   }, [mobileOpen]);
 
   const items = [
-    { name: "Comunidad", path: "/community", icon: navIcons.comunidad },
     { name: "Aprender", path: "/courses", icon: navIcons.aprender },
+    { name: "Comunidad", path: "/community", icon: navIcons.comunidad },
     { name: "Ejercicios", path: "/exercises", icon: navIcons.ejercicios },
     { name: "Carpetas", path: "/folders", icon: navIcons.carpetas },
     { name: "Mensajes", path: "/messages", icon: navIcons.mensajes },

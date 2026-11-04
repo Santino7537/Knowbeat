@@ -6,7 +6,7 @@ const { login, register, getUserById, getUserByUsername, getUserByToken, getUser
 const { changeRole, deleteUser, getReports, getReportDetail, resolveReport } = require('./controllers/adminController');
 
 const { getCourses, getUserProgress, registerCourse, updateUserProgress } = require('./controllers/coursesController');
-const { getUserStats, changeGoal } = require('./controllers/streakController');
+const { getUserStats, getUserScoreHistory, changeGoal } = require('./controllers/streakController');
 const { createFolder, updateFolder, deleteFolder, getFolderFiles } = require('./controllers/folderController');
 const { uploadFileInFolder, deleteFileFromFolder, getFileUrlFromFolder } = require('./controllers/fileController');
 const { searchCommunity, searchThread, createThread, createResponse, searchResponses, likePublication } = require('./controllers/communityController');
@@ -106,6 +106,7 @@ server.patch('/user/update/progress/:id', postResponseLog, checkToken, isAuth, u
 
 // Streak & Score
 server.get('/user/get/stats', checkToken, isAuth, getUserStats)
+server.get('/user/get/score/history', checkToken, isAuth, getUserScoreHistory)
 server.patch('/user/update/goal', postResponseLog, checkToken, isAuth, changeGoal)
 
 // Moderators
@@ -124,12 +125,10 @@ httpServer.listen(PORT, async () => {
   console.log('La API está corriendo en el puerto ', PORT);
   initSocket(httpServer, allowedOrigins);
 
-   try {
-     await connectMongo();
-   } catch (err) { console.error("Failed to start MongoDB:", err); }
 
   await require('./config/createRoles')();
   await require('./config/createPermissions')();
   await require('./config/createAdmin')();
   await require('./config/createCourses')();
+  await require('./config/initUserDailyScore')();
 });

@@ -5,7 +5,7 @@ import BrandLogo from "../general/BrandLogo.jsx";
 import styles from "./flip_card.module.css";
 
 const PERKS = [
-  "Cursos de guitarra y piano paso a paso",
+  "Cursos de diversos instrumentos desde 0",
   "Ejercicios para practicar a tu ritmo",
   "Una comunidad para compartir y preguntar",
 ];

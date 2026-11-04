@@ -15,7 +15,7 @@
   gap: 24px;
   width: 100%;
   min-width: 0;
-  max-width: 1180px;
+  max-width: none;
   margin: 0 auto;
   margin-left: var(--kb-sidebar-width);
   padding: 28px clamp(16px, 4vw, 48px) 72px;
@@ -246,23 +246,46 @@
   font-size: var(--kb-fs-sm);
 }
 
-/* ---------- Paneles (editar / solicitudes) ---------- */
-.editPanel {
-  display: grid;
-  gap: 20px;
-  padding: 26px 28px;
+/* ---------- Modales del perfil ---------- */
+.profileModal {
+  width: min(680px, calc(100% - 32px));
+  max-width: none;
+  max-height: min(90dvh, 780px);
+  margin: auto;
+  padding: 0;
+  overflow: auto;
   border: 1px solid rgb(var(--kb-accent-rgb) / 0.3);
   border-radius: var(--kb-radius-xl);
   background: var(--kb-surface);
-  box-shadow: var(--kb-shadow-md);
+  color: var(--kb-text);
+  box-shadow: var(--kb-shadow-lg);
   animation: popIn var(--kb-dur) var(--kb-ease);
 }
 
-.editPanelHeading,
-.formActions {
+.profileModal::backdrop {
+  background: rgb(7 15 18 / 0.68);
+  backdrop-filter: blur(4px);
+}
+
+.profileModalHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 16px;
+  padding: 22px 28px;
+  border-bottom: 1px solid var(--kb-border);
+}
+
+.modalBody {
+  display: grid;
+  gap: 20px;
+  padding: 24px 28px 28px;
+}
+
+.formActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
   gap: 16px;
 }
 
@@ -487,6 +510,19 @@
     grid-template-columns: minmax(0, 1fr);
     justify-items: start;
     padding: 0 20px 22px;
+  }
+
+  .profileModal {
+    width: calc(100% - 20px);
+    max-height: 92dvh;
+  }
+
+  .profileModalHeader {
+    padding: 18px 20px;
+  }
+
+  .modalBody {
+    padding: 20px;
   }
 
   .formGrid {

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useAuth } from "../context/AuthContext.jsx";
@@ -8,6 +8,7 @@ import AddFriendIcon from "../assets/add-friend.svg";
 import RemoveFriendIcon from "../assets/remove-friend.svg";
 import Avatar from "../components/general/Avatar.jsx";
 import MusicStaff from "../components/general/MusicStaff.jsx";
+import DailyScoreActivity from "../components/profile/DailyScoreActivity.jsx";
 import { useToast } from "../context/ToastContext.jsx";
 import { getErrorMessage } from "../api/client";
 import styles from "./CSS/UserProfile.module.css";
@@ -205,9 +206,49 @@ function FriendRequestItem({ request, onAccept, onReject }) {
   );
 }
 
+function ProfileModal({ title, onClose, children }) {
+  const dialogRef = useRef(null);
+
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return undefined;
+
+    if (!dialog.open) dialog.showModal();
+    return () => {
+      if (dialog.open) dialog.close();
+    };
+  }, []);
+
+  return (
+    <dialog
+      ref={dialogRef}
+      className={styles.profileModal}
+      aria-labelledby="profile-modal-title"
+      onClose={onClose}
+      onClick={(event) => {
+        if (event.target === event.currentTarget) onClose();
+      }}
+    >
+      <header className={styles.profileModalHeader}>
+        <h2 id="profile-modal-title" className={styles.contentTitle}>{title}</h2>
+        <button
+          className={styles.closeButton}
+          type="button"
+          onClick={onClose}
+          aria-label="Cerrar ventana"
+          autoFocus
+        >
+          ×
+        </button>
+      </header>
+      {children}
+    </dialog>
+  );
+}
+
 // ── FriendRequestsPanel ───────────────────────────────────────────────────────
 
-function FriendRequestsPanel({ onClose }) {
+function FriendRequestsPanel() {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading]   = useState(true);
 
@@ -235,12 +276,7 @@ function FriendRequestsPanel({ onClose }) {
   };
 
   return (
-    <section className={styles.editPanel} aria-label="Solicitudes de amistad">
-      <div className={styles.editPanelHeading}>
-        <h2 className={styles.contentTitle}>Solicitudes de amistad</h2>
-        <button className={styles.closeButton} type="button" onClick={onClose} aria-label="Cerrar">×</button>
-      </div>
-
+    <div className={styles.modalBody}>
       {loading ? (
         <p className={styles.requestsEmpty}>Cargando…</p>
       ) : requests.length === 0 ? (
@@ -257,7 +293,7 @@ function FriendRequestsPanel({ onClose }) {
           ))}
         </div>
       )}
-    </section>
+    </div>
   );
 }
 
@@ -350,7 +386,7 @@ function ProfileHeader({
 
 // ── Estadísticas rápidas ──────────────────────────────────────────────────────
 
-function ProfileStats({ isOwner, streak, streakLoading, streakError, courses, progressVisible }) {
+function ProfileStats({ isOwner, streak, streakLoading, streakError, score, courses, progressVisible }) {
   const completed = courses.reduce(
     (sum, c) => sum + Math.max(0, Math.min(Number(c.total_lessons) || 0, (Number(c.current_lesson) || 1) - 1)),
     0
@@ -360,6 +396,14 @@ function ProfileStats({ isOwner, streak, streakLoading, streakError, courses, pr
     <section className={styles.stats} aria-label="Estadísticas">
       {isOwner && (
         <StreakDisplay streak={streak} loading={streakLoading} error={streakError} />
+      )}
+      {score !== null && score !== undefined && (
+        <div className={styles.statCard}>
+          <div>
+            <strong>{score}</strong>
+            <span>score total</span>
+          </div>
+        </div>
       )}
       <div className={styles.statCard}>
         <div>
@@ -385,16 +429,23 @@ export default function UserProfile() {
   const { loggedUser, refreshUser } = useAuth();
   const toast = useToast();
 
-  const [profileUser, setProfileUser]   = useState(null);
-  const [loading, setLoading]           = useState(true);
-  const [error, setError]               = useState("");
-  const [panel, setPanel]               = useState(null); // null | "edit" | "requests"
-  const [, setIsMenuOpen]               = useState(false);
-  const [saving, setSaving]             = useState(false);
-  const [form, setForm]                 = useState({ username: "", email: "", biography: "", password: "" });
-  const [streak, setStreak]             = useState(null);
-  const [streakLoading, setStreakLoading] = useState(true);
-  const [streakError, setStreakError]   = useState("");
+  const [profileUser, setProfileUser]       = useState(null);
+  const [loading, setLoading]                 = useState(true);
+  const [error, setError]                     = useState("");
+  const [panel, setPanel]                     = useState(null); // null | "edit" | "requests"
+  const [, setIsMenuOpen]                     = useState(false);
+  const [saving, setSaving]                   = useState(false);
+  const [form, setForm]                       = useState({ username: "", email: "", biography: "", password: "" });
+  const [streak, setStreak]                   = useState(null);
+  const [streakLoading, setStreakLoading]     = useState(true);
+  const [streakError, setStreakError]         = useState("");
+  const [score, setScore]                     = useState(null);
+  const [scoreGoal, setScoreGoal]             = useState(null);
+  const [goalInput, setGoalInput]             = useState("");
+  const [goalError, setGoalError]             = useState("");
+  const [goalLoading, setGoalLoading]         = useState(false);
+  const [scoreHistory, setScoreHistory]       = useState([]);
+  const [scoreHistoryLoading, setScoreHistoryLoading] = useState(true);
 
   const isOwner =
     loggedUser && profileUser &&
@@ -407,7 +458,7 @@ export default function UserProfile() {
     return !(total > 0 && done === total);
   });
 
-  // Fetch racha (solo si es dueño)
+  // Fetch racha, score y objetivo (solo si es dueño)
   useEffect(() => {
     if (!isOwner) return;
     let mounted = true;
@@ -415,14 +466,46 @@ export default function UserProfile() {
     (async () => {
       try {
         const { data } = await axios.get(`${API}/user/get/stats`, { headers: authHeaders() });
-        const v = Number(data.streak);
-        if (!Number.isFinite(v) || v < 0) throw new Error("Valor inválido");
-        if (mounted) { setStreak(v); setStreakError(""); }
+        const streakValue = Number(data.streak);
+        const totalScore = Number(data.score);
+        const goalValue = data.score_goal === null || data.score_goal === undefined ? null : Number(data.score_goal);
+
+        if (!Number.isFinite(streakValue) || streakValue < 0) throw new Error("Valor inválido");
+        if (mounted) {
+          setStreak(streakValue);
+          setStreakError("");
+          setScore(Number.isFinite(totalScore) ? totalScore : 0);
+          setScoreGoal(Number.isFinite(goalValue) ? goalValue : null);
+          setGoalInput(Number.isFinite(goalValue) ? String(goalValue) : "");
+        }
       } catch (err) {
-        console.error("Error racha:", err.response?.data ?? err.message);
-        if (mounted) setStreakError("Racha no disponible");
+        console.error("Error stats:", err.response?.data ?? err.message);
+        if (mounted) {
+          setStreakError("Racha no disponible");
+          setScore(0);
+          setScoreGoal(null);
+        }
       } finally {
         if (mounted) setStreakLoading(false);
+      }
+    })();
+
+    return () => { mounted = false; };
+  }, [isOwner]);
+
+  useEffect(() => {
+    if (!isOwner) return;
+    let mounted = true;
+
+    (async () => {
+      try {
+        const { data } = await axios.get(`${API}/user/get/score/history?days=7`, { headers: authHeaders() });
+        if (mounted) setScoreHistory(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.error("Error historial de score:", err.response?.data ?? err.message);
+        if (mounted) setScoreHistory([]);
+      } finally {
+        if (mounted) setScoreHistoryLoading(false);
       }
     })();
 
@@ -471,6 +554,34 @@ export default function UserProfile() {
   const handleFormChange = (e) => {
     const { name, value } = e.target;
     setForm(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleGoalSave = async (e) => {
+    e.preventDefault();
+    const nextGoal = Number(goalInput);
+
+    if (!Number.isInteger(nextGoal) || nextGoal <= 0 || nextGoal > 5000) {
+      setGoalError("La meta diaria debe ser un número entero entre 1 y 5000.");
+      return;
+    }
+
+    setGoalLoading(true);
+    setGoalError("");
+    try {
+      const { data } = await axios.patch(
+        `${API}/user/update/goal`,
+        { score_goal: nextGoal },
+        { headers: authHeaders() }
+      );
+      const normalized = Number(data.score_goal ?? nextGoal);
+      setScoreGoal(Number.isFinite(normalized) ? normalized : nextGoal);
+      setGoalInput(String(normalized));
+      toast.success("Meta diaria actualizada.");
+    } catch (err) {
+      setGoalError(getErrorMessage(err, "No se pudo actualizar la meta diaria."));
+    } finally {
+      setGoalLoading(false);
+    }
   };
 
   const handleProfileSave = async (e) => {
@@ -535,36 +646,50 @@ export default function UserProfile() {
           streak={streak}
           streakLoading={streakLoading}
           streakError={streakError}
+          score={score}
           courses={coursesInProgress}
           progressVisible={profileUser.progressVisible !== false}
         />
 
-        {/* Panel editar perfil */}
-        {isOwner && panel === "edit" && (
-          <form className={styles.editPanel} onSubmit={handleProfileSave}>
-            <div className={styles.editPanelHeading}>
-              <h2 className={styles.contentTitle}>Editar perfil</h2>
-              <button className={styles.closeButton} type="button" onClick={() => setPanel(null)} aria-label="Cerrar edición">×</button>
-            </div>
-            <div className={styles.formGrid}>
-              <label>Nombre de usuario<input name="username" value={form.username} onChange={handleFormChange} required minLength="3" /></label>
-              <label>Email<input name="email" type="email" value={form.email} onChange={handleFormChange} required /></label>
-              <label className={styles.fullField}>Biografía<textarea name="biography" value={form.biography} onChange={handleFormChange} maxLength="240" rows="3" placeholder="Contale a la comunidad quién sos" /></label>
-              <label className={styles.fullField}>
-                <span className={styles.fieldLabel}>Nueva contraseña <small>(opcional)</small></span>
-                <input name="password" type="password" value={form.password} onChange={handleFormChange} minLength="8" />
-              </label>
-            </div>
-            <div className={styles.formActions}>
-              {error && <p className={styles.formError}>{error}</p>}
-              <button className={styles.saveButton} type="submit" disabled={saving}>{saving ? "Guardando..." : "Guardar cambios"}</button>
-            </div>
-          </form>
+        {isOwner && (
+          <DailyScoreActivity
+            history={scoreHistory}
+            scoreGoal={scoreGoal}
+            loading={scoreHistoryLoading}
+            goalInput={goalInput}
+            goalError={goalError}
+            goalLoading={goalLoading}
+            onGoalInputChange={setGoalInput}
+            onGoalSubmit={handleGoalSave}
+          />
         )}
 
-        {/* Panel solicitudes */}
+        {/* Modal editar perfil */}
+        {isOwner && panel === "edit" && (
+          <ProfileModal title="Editar perfil" onClose={() => setPanel(null)}>
+            <form className={styles.modalBody} onSubmit={handleProfileSave}>
+              <div className={styles.formGrid}>
+                <label>Nombre de usuario<input name="username" value={form.username} onChange={handleFormChange} required minLength="3" /></label>
+                <label>Email<input name="email" type="email" value={form.email} onChange={handleFormChange} required /></label>
+                <label className={styles.fullField}>Biografía<textarea name="biography" value={form.biography} onChange={handleFormChange} maxLength="240" rows="3" placeholder="Contale a la comunidad quién sos" /></label>
+                <label className={styles.fullField}>
+                  <span className={styles.fieldLabel}>Nueva contraseña <small>(opcional)</small></span>
+                  <input name="password" type="password" value={form.password} onChange={handleFormChange} minLength="8" />
+                </label>
+              </div>
+              <div className={styles.formActions}>
+                {error && <p className={styles.formError}>{error}</p>}
+                <button className={styles.saveButton} type="submit" disabled={saving}>{saving ? "Guardando..." : "Guardar cambios"}</button>
+              </div>
+            </form>
+          </ProfileModal>
+        )}
+
+        {/* Modal solicitudes */}
         {isOwner && panel === "requests" && (
-          <FriendRequestsPanel onClose={() => setPanel(null)} />
+          <ProfileModal title="Solicitudes de amistad" onClose={() => setPanel(null)}>
+            <FriendRequestsPanel />
+          </ProfileModal>
         )}
 
         {/* Cursos */}

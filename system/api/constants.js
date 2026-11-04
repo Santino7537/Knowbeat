@@ -6,7 +6,7 @@ const USER_PERMISSIONS = ['user-get-user', 'user-get-user-username', 'user-get-u
   'user-update-config', 'user-update-profile', 'user-create-folder', 
   'user-update-folder', 'user-delete-folder', 'user-get-folder-files', 'user-upload-file', 'user-delete-file', 
   'user-get-file', 'course-get-courses', 'user-get-progress', 'user-register-course', 'user-update-progress',
-  'user-get-stats', 'user-update-goal', 'user-report', 'community-search', 'community-search-thread',
+  'user-get-stats', 'user-get-score-history', 'user-update-goal', 'user-report', 'community-search', 'community-search-thread',
   'community-create-thread', 'community-create-response', 'community-like-thread', 'community-like-response', 'community-search-responses',
   'friend', 'friend-request', 'friend-request-accept', 'friend-request-reject', 'friend-request-cancel', 'friend-delete', 'friend-list', 'friend-requests',
   'chat', 'chat-send', 'chat-messages', 'chat-read'];
@@ -80,6 +80,7 @@ const ALLOWED_CONFIGS = {
 };
 
 const PENALTY_DATE = new Date("2000-01-01");
+const MAX_DAILY_GOAL = 5000;
 
 const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50 MB
 
@@ -115,6 +116,7 @@ module.exports = {
     REPORT_REASONS,
     LOG_ACTIONS,
     PENALTY_DATE,
+    MAX_DAILY_GOAL,
     MAX_FILE_SIZE,
     VALID_FILES_FORMATS,
     FILES_CONSTANTS,
