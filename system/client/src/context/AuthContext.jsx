@@ -3,6 +3,9 @@ import axios from "axios";
 
 // ── Contexto ──────────────────────────────────────────────────────────────────
 const AuthContext = createContext(null);
+const getAuthenticatedHeaders = () => ({
+  Authorization: `Bearer ${localStorage.getItem("token")}`
+});
 
 // ── Provider ──────────────────────────────────────────────────────────────────
 // Envuelve toda la app. Gestiona el usuario logueado y lo expone a cualquier
@@ -13,12 +16,14 @@ export function AuthProvider({ children }) {
   // {...} → usuario logueado
   const [loggedUser, setLoggedUser] = useState(null);
   const [loadingAuth, setLoadingAuth] = useState(true);
+  const [adminAuthorization, setAdminAuthorization] = useState(null);
 
   // Llama al endpoint con el token guardado en localStorage.
   // Se exporta para poder refrescar manualmente si el usuario edita su perfil.
   const refreshUser = useCallback(async () => {
     const token = localStorage.getItem("token");
     if (!token) {
+      setAdminAuthorization(null);
       setLoggedUser(false);
       setLoadingAuth(false);
       return false;
@@ -34,6 +39,7 @@ export function AuthProvider({ children }) {
       console.warn("Sesión inválida:", err.response?.data ?? err.message);
       if (err.response?.status === 401 || err.response?.status === 404) {
         localStorage.removeItem("token");
+        setAdminAuthorization(null);
       }
       setLoggedUser(false);
       return false;
@@ -47,8 +53,79 @@ export function AuthProvider({ children }) {
     refreshUser();
   }, [refreshUser]);
 
+  const verifyAdminPassword = useCallback(async (password) => {
+    const { data } = await axios.post(
+      "http://localhost:3000/admin/reauth",
+      { password },
+      { headers: getAuthenticatedHeaders() }
+    );
+    const expiresAt = Date.parse(data.expires_at);
+    if (typeof data.authorization !== "string"
+      || !/^[a-f0-9]{64}$/i.test(data.authorization)
+      || !Number.isFinite(expiresAt)) {
+      throw new Error("La respuesta de autorización administrativa no es válida.");
+    }
+
+    const authorization = { token: data.authorization, expiresAt };
+    setAdminAuthorization(authorization);
+    return authorization;
+  }, []);
+
+  const validateAdminAuthorization = useCallback(async () => {
+    if (!adminAuthorization || adminAuthorization.expiresAt <= Date.now()) {
+      setAdminAuthorization(null);
+      return false;
+    }
+
+    try {
+      await axios.get("http://localhost:3000/admin/session", {
+        headers: {
+          ...getAuthenticatedHeaders(),
+          "X-Admin-Authorization": adminAuthorization.token
+        }
+      });
+      return true;
+    } catch {
+      setAdminAuthorization(null);
+      return false;
+    }
+  }, [adminAuthorization]);
+
+  const clearAdminAuthorization = useCallback(() => {
+    setAdminAuthorization(null);
+  }, []);
+
+  const logout = useCallback(async () => {
+    try {
+      if (localStorage.getItem("token")) {
+        await axios.post(
+          "http://localhost:3000/user/logout",
+          {},
+          { headers: getAuthenticatedHeaders() }
+        );
+      }
+    } catch (error) {
+      console.error("No se pudo invalidar la autorización administrativa:", error.response?.data ?? error.message);
+    } finally {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      setAdminAuthorization(null);
+      setLoggedUser(false);
+    }
+  }, []);
+
   return (
-    <AuthContext.Provider value={{ loggedUser, loadingAuth, refreshUser, setLoggedUser }}>
+    <AuthContext.Provider value={{
+      loggedUser,
+      loadingAuth,
+      refreshUser,
+      setLoggedUser,
+      adminAuthorization,
+      verifyAdminPassword,
+      validateAdminAuthorization,
+      clearAdminAuthorization,
+      logout
+    }}>
       {children}
     </AuthContext.Provider>
   );

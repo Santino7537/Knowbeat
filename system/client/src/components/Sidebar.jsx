@@ -54,13 +54,18 @@ const navIcons = {
       <title>profile_round [#1342]</title>
       <path d="M16.563 18H3.438c-.706 0-1.228-.697-.961-1.338C3.713 13.698 6.617 12 10 12s6.288 1.698 7.524 4.662c.267.641-.255 1.338-.961 1.338M5.917 6c0-2.206 1.832-4 4.083-4s4.083 1.794 4.083 4-1.831 4-4.083 4c-2.251 0-4.083-1.794-4.083-4m14.039 11.636c-.742-3.359-3.064-5.838-6.119-6.963 1.619-1.277 2.563-3.342 2.216-5.603-.402-2.623-2.63-4.722-5.318-5.028C7.023-.381 3.875 2.449 3.875 6c0 1.89.894 3.574 2.289 4.673-3.057 1.125-5.377 3.604-6.12 6.963C-.226 18.857.779 20 2.054 20h15.892c1.276 0 2.28-1.143 2.01-2.364" fillRule="evenodd" stroke="none" fill="currentColor"/>
     </svg>
+  ),
+  administracion: (
+    <svg viewBox="0 0 347.971 347.971" fill="#ffffff" stroke="#ffffff" aria-hidden="true">
+      <path d="M317.308,54.367C257.945,54.367,212.46,37.403,173.997,0C135.522,37.403,90.034,54.367,30.663,54.367 c0,97.406-20.158,236.937,143.334,293.604C337.465,291.304,317.308,151.773,317.308,54.367z M62.886,85.378 c35.75-3.721,66.89-13.996,94.797-31.282v109.059H64.467C61.94,137.053,62.403,110.301,62.886,85.378z M236.384,274.832 c-12.451,12.023-27.895,22.469-46.086,31.234V195.779h88.215c-1.878,8.498-4.223,16.811-7.193,24.828 C263.426,242.02,251.99,259.762,236.384,274.832z" />
+    </svg>
   )
 };
 
 const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { loggedUser } = useAuth();
+  const { loggedUser, logout } = useAuth();
   const [profileImageError, setProfileImageError] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(readCollapsed);
@@ -103,6 +108,9 @@ const Sidebar = () => {
     { name: "Carpetas", path: "/folders", icon: navIcons.carpetas },
     { name: "Mensajes", path: "/messages", icon: navIcons.mensajes },
   ];
+  if (loggedUser?.role === "Administrator") {
+    items.push({ name: "Administración", path: "/admin", icon: navIcons.administracion, admin: true });
+  }
 
   const profileImage = loggedUser?.picture && String(loggedUser.picture).trim();
 
@@ -157,7 +165,7 @@ const Sidebar = () => {
           <button
             key={item.path}
             type="button"
-            className={`nav-item ${isActive(item.path) ? "active" : ""}`}
+            className={`nav-item ${item.admin ? "admin-nav-item" : ""} ${isActive(item.path) ? "active" : ""}`}
             onClick={() => navigate(item.path)}
             aria-current={isActive(item.path) ? "page" : undefined}
             title={collapsed ? item.name : undefined}
@@ -200,6 +208,25 @@ const Sidebar = () => {
             <span className="nav-icon" aria-hidden="true">{navIcons.config}</span>
           </button>
         </div>
+        {loggedUser && (
+          <button
+            type="button"
+            className="sidebar-logout nav-item"
+            onClick={async () => {
+              await logout();
+              navigate("/", { replace: true });
+            }}
+            title={collapsed ? "Cerrar sesión" : undefined}
+          >
+            <span className="nav-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M10 17l5-5-5-5M15 12H3" />
+                <path d="M12 3h6a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-6" />
+              </svg>
+            </span>
+            <span className="nav-text">Cerrar sesión</span>
+          </button>
+        )}
       </div>
     </aside>
     </>

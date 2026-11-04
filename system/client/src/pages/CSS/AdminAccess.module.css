@@ -1,0 +1,139 @@
+.layout {
+  display: flex;
+  min-height: 100vh;
+  color: var(--kb-text);
+}
+
+.main {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 24px;
+  min-width: 0;
+  margin-left: var(--kb-sidebar-width);
+  padding: 28px clamp(16px, 4vw, 48px) 72px;
+  transition: margin-left var(--kb-dur-slow) var(--kb-ease);
+}
+
+.backButton {
+  composes: kb-btn kb-btn-secondary from global;
+}
+
+.card {
+  display: grid;
+  gap: 16px;
+  width: min(100%, 520px);
+  margin: auto;
+  padding: clamp(24px, 5vw, 42px);
+  border: 1px solid var(--kb-border);
+  border-radius: var(--kb-radius-xl);
+  background:
+    radial-gradient(420px 220px at 100% 0%, rgb(var(--kb-accent-rgb) / 0.1), transparent 70%),
+    var(--kb-surface);
+  box-shadow: var(--kb-shadow-md);
+}
+
+.icon {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border: 1px solid rgb(var(--kb-accent-rgb) / 0.25);
+  border-radius: 16px;
+  background: var(--kb-accent-soft);
+  color: var(--kb-accent-text);
+}
+
+.icon svg {
+  width: 28px;
+  height: 28px;
+}
+
+.eyebrow {
+  margin: 0;
+  color: var(--kb-accent-text);
+  font-size: var(--kb-fs-xs);
+  font-weight: 700;
+  letter-spacing: var(--kb-tracking-label);
+  text-transform: uppercase;
+}
+
+.card h1 {
+  margin: 0;
+  font-size: clamp(1.7rem, 4vw, 2.2rem);
+  letter-spacing: -0.03em;
+}
+
+.description {
+  margin: 0;
+  color: var(--kb-text-muted);
+  line-height: 1.6;
+}
+
+.form {
+  display: grid;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.form label {
+  color: var(--kb-text-secondary);
+  font-size: var(--kb-fs-sm);
+  font-weight: 600;
+}
+
+.form input {
+  width: 100%;
+  padding: 0.8rem 0.95rem;
+  border: 1px solid var(--kb-border);
+  border-radius: var(--kb-radius);
+  background: var(--kb-surface-inset);
+  color: var(--kb-text);
+  font: inherit;
+}
+
+.form input:focus {
+  outline: none;
+  border-color: var(--kb-accent);
+  box-shadow: var(--kb-ring);
+}
+
+.error {
+  margin: 0;
+  color: var(--kb-danger);
+  font-size: var(--kb-fs-sm);
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.cancelButton {
+  composes: kb-btn kb-btn-secondary from global;
+}
+
+.submitButton {
+  composes: kb-btn kb-btn-primary from global;
+}
+
+@media (max-width: 600px) {
+  .main {
+    padding: 20px 14px 40px;
+  }
+
+  .card {
+    margin-block: 4vh auto;
+  }
+
+  .actions {
+    flex-direction: column-reverse;
+  }
+
+  .actions button {
+    width: 100%;
+  }
+}

@@ -4,6 +4,7 @@ const cors = require('cors');
 
 const { login, register, getUserById, getUserByUsername, getUserByToken, getUsers, getConfig, changeConfig, changeProfile, reportUser } = require('./controllers/userController');
 const { changeRole, deleteUser, getReports, getReportDetail, resolveReport } = require('./controllers/adminController');
+const { verifyAdminPassword, getAdminSession, revokeAdminSession, logout } = require('./controllers/adminAccessController');
 
 const { getCourses, getUserProgress, registerCourse, updateUserProgress } = require('./controllers/coursesController');
 const { getUserStats, getUserScoreHistory, changeGoal } = require('./controllers/streakController');
@@ -22,6 +23,7 @@ const { checkFilesUpload } = require('./middlewares/checkFiles');
 const { checkRequestDataSize } = require('./middlewares/checkReq');
 const isAuth = require('./middlewares/isAuth');
 const checkToken = require('./middlewares/checkToken');
+const requireAdminAccess = require('./middlewares/requireAdminAccess');
 
 const server = express();
 const httpServer = createServer(server);
@@ -47,7 +49,7 @@ server.use(cors({ // No permite solicitudes de otros orígenes que no estén en 
     }
   },
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Admin-Authorization'],
   credentials: true
 }));
 
@@ -58,9 +60,10 @@ server.get('/', (req, res) => { res.status(200).send('Bienvenido a la API de Kno
 // Users
 server.post('/register', postResponseLog, register);
 server.post('/login', postResponseLog, login);
+server.post('/user/logout', postResponseLog, checkToken, logout);
 server.get('/user/get/user/:id', checkToken, isAuth, getUserById);
 server.get('/user/get/user/username/:username', checkToken, isAuth, getUserByUsername);
-server.get('/user/get/users', checkToken, isAuth, getUsers);
+server.get('/user/get/users', checkToken, isAuth, requireAdminAccess, getUsers);
 server.get('/user/get/config', checkToken, isAuth, getConfig);
 server.patch('/user/update/config', postResponseLog, checkToken, isAuth, changeConfig);
 
@@ -109,26 +112,39 @@ server.get('/user/get/stats', checkToken, isAuth, getUserStats)
 server.get('/user/get/score/history', checkToken, isAuth, getUserScoreHistory)
 server.patch('/user/update/goal', postResponseLog, checkToken, isAuth, changeGoal)
 
-// Moderators
-server.get('/admin/reports', postResponseLog, checkToken, isAuth, getReports);
-server.get('/admin/reports/:id', postResponseLog, checkToken, isAuth, getReportDetail);
-server.patch('/admin/reports/:id', postResponseLog, checkToken, isAuth, resolveReport);
+// Administrative re-authentication and temporary access
+server.post('/admin/reauth', postResponseLog, checkToken, verifyAdminPassword);
+server.get('/admin/session', checkToken, requireAdminAccess, getAdminSession);
+server.delete('/admin/session', checkToken, revokeAdminSession);
 
-// Admins
-server.patch('/user/update/role/:id', postResponseLog, checkToken, isAuth, changeRole);
-server.patch('/user/delete/user/:id', postResponseLog, checkToken, isAuth, deleteUser);
+// Administrative endpoints
+server.get('/admin/reports', postResponseLog, checkToken, isAuth, requireAdminAccess, getReports);
+server.get('/admin/reports/:id', postResponseLog, checkToken, isAuth, requireAdminAccess, getReportDetail);
+server.patch('/admin/reports/:id', postResponseLog, checkToken, isAuth, requireAdminAccess, resolveReport);
+server.patch('/user/update/role/:id', postResponseLog, checkToken, isAuth, requireAdminAccess, changeRole);
+server.patch('/user/delete/user/:id', postResponseLog, checkToken, isAuth, requireAdminAccess, deleteUser);
 
 // Token
 server.get('/token/get/user', checkToken, getUserByToken)
 
-httpServer.listen(PORT, async () => {
-  console.log('La API está corriendo en el puerto ', PORT);
-  initSocket(httpServer, allowedOrigins);
-
-
+const startServer = async () => {
+  // try {
+  //   await connectMongo();
+  // } catch (err) { console.error("Failed to start MongoDB:", err); }
   await require('./config/createRoles')();
   await require('./config/createPermissions')();
   await require('./config/createAdmin')();
   await require('./config/createCourses')();
   await require('./config/initUserDailyScore')();
+  await require('./config/initAdminAccess')();
+
+  httpServer.listen(PORT, () => {
+    console.log('La API está corriendo en el puerto ', PORT);
+    initSocket(httpServer, allowedOrigins);
+  });
+};
+
+startServer().catch((error) => {
+  console.error('No se pudo inicializar la API:', error);
+  process.exit(1);
 });

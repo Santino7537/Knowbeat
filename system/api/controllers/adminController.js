@@ -1,4 +1,4 @@
-const { ROLES_PERMISSIONS, ADMINISTRATOR_ROLE, REPORT_STATUSES, REPORT_REASONS, LOG_ACTIONS } = require('../constants');
+const { ADMINISTRATOR_ROLE, REPORT_STATUSES, REPORT_REASONS, LOG_ACTIONS } = require('../constants');
 const { computeDVHFromObject } = require('../utils/dvhHelpers');
 const db = require('../config/db');
 
@@ -59,83 +59,136 @@ const parseRequiredPositiveInt = (value) => {
 };
 
 const deleteUser = async (req, res) => {
-    const userId = req.params.id;
-  
-    req.actions_data = {};
-    if (req.body.password) req.body.password = "[REDACTED]";
-
-    let [userPayload] = await db.query(
-        'SELECT * FROM User WHERE id = ?',
-        [userId]
-    );
-
-    if (userPayload.length === 0) {
-        return res.status(404).json({
-          error: 'Usuario no encontrado'
-        });
+    const userId = parseRequiredPositiveInt(req.params.id);
+    if (!userId) {
+        return res.status(400).json({ error: 'ID de usuario inválido' });
     }
 
-    // Guardar dvh viejo y actualizar dvh
-    userPayload = userPayload[0];
-    const oldDvh = userPayload.dvh;
-    userPayload.eliminated = 1;
-    delete userPayload.dvh;
-    const newDvh = computeDVHFromObject(userPayload);
-    userPayload.dvh = newDvh;
+    if (userId === req.user.user_id) {
+        return res.status(409).json({ error: 'No podés eliminar tu propia cuenta desde el panel' });
+    }
 
-    req.actions_data["user-delete-user"] = {
-        entity: "User",
-        record_id: userId,
-        action: "update",
-        old_dvh: oldDvh,
-        new_dvh: newDvh
-    };
-
+    req.actions_data = {};
+    let connection;
+    let transactionStarted = false;
     try {
-        const [result] = await db.query(
-            'UPDATE User SET eliminated = ?, dvh = ? WHERE id = ?;',
+        connection = await db.getConnection();
+        await connection.beginTransaction();
+        transactionStarted = true;
+
+        const [userRows] = await connection.query(
+            'SELECT * FROM User WHERE id = ? AND eliminated = 0 FOR UPDATE',
+            [userId]
+        );
+        if (userRows.length === 0) {
+            await connection.rollback();
+            transactionStarted = false;
+            return res.status(404).json({ error: 'Usuario no encontrado' });
+        }
+
+        const userPayload = userRows[0];
+        const [roleRows] = await connection.query(
+            'SELECT role FROM Role WHERE id = ?',
+            [userPayload.role_id]
+        );
+        if (roleRows[0]?.role === ADMINISTRATOR_ROLE) {
+            await connection.rollback();
+            transactionStarted = false;
+            return res.status(403).json({ error: 'No se puede eliminar a un administrador' });
+        }
+
+        const oldDvh = userPayload.dvh;
+        userPayload.eliminated = 1;
+        delete userPayload.dvh;
+        const newDvh = computeDVHFromObject(userPayload);
+
+        req.actions_data["user-delete-user"] = {
+            entity: "User",
+            record_id: userId,
+            action: "update",
+            old_dvh: oldDvh,
+            new_dvh: newDvh
+        };
+
+        const [result] = await connection.query(
+            'UPDATE User SET eliminated = ?, dvh = ? WHERE id = ? AND eliminated = 0;',
             [1, newDvh, userId]
         );
-      
-        if (result.affectedRows === 0) { return res.status(404).json({ error: 'Usuario no encontrado' }); }
+        if (result.affectedRows === 0) {
+            await connection.rollback();
+            transactionStarted = false;
+            return res.status(404).json({ error: 'Usuario no encontrado' });
+        }
 
+        await connection.commit();
+        transactionStarted = false;
         res.json({ message: 'Usuario eliminado exitosamente' });
-    } 
-    
-    catch (error) { res.status(500).json({ error: 'Error al eliminar usuario' }); }
+    } catch (error) {
+        if (transactionStarted) {
+            try {
+                await connection.rollback();
+            } catch (rollbackError) {
+                console.error('Error al revertir la eliminación de usuario:', rollbackError);
+            }
+        }
+        console.error('Error al eliminar usuario:', error);
+        res.status(500).json({ error: 'Error al eliminar usuario' });
+    } finally {
+        connection?.release();
+    }
 };
   
 const changeRole = async (req, res) => {
     const { rol } = req.body;
-    const userId = req.params.id;
+    const userId = parseRequiredPositiveInt(req.params.id);
+
+    if (!userId) {
+        return res.status(400).json({ error: 'ID de usuario inválido' });
+    }
 
     req.actions_data = {};
-    if (req.body.password) req.body.password = "[REDACTED]";
 
+    let connection;
+    let transactionStarted = false;
     try {
-
-        // validar rol permitido
-        if (!Number.isInteger(rol) || !(0 < rol && rol <= Object.keys(ROLES_PERMISSIONS).length)) {
+        if (!Number.isInteger(rol) || rol <= 0) {
             return res.status(400).json({ error: 'Rol inválido' });
         }
 
-        let [userPayload] = await db.query(
-            'SELECT * FROM User WHERE id = ?',
+        connection = await db.getConnection();
+        await connection.beginTransaction();
+        transactionStarted = true;
+
+        let [userPayload] = await connection.query(
+            'SELECT * FROM User WHERE id = ? AND eliminated = 0 FOR UPDATE',
             [userId]
         );
 
         // validar usuario existente
         if (userPayload.length === 0) {
+            await connection.rollback();
+            transactionStarted = false;
             return res.status(404).json({ error: 'Usuario no encontrado' });
         }
 
         userPayload = userPayload[0];
+        const [currentRoleRows] = await connection.query(
+            'SELECT role FROM Role WHERE id = ?',
+            [userPayload.role_id]
+        );
+        const [targetRoleRows] = await connection.query(
+            'SELECT id FROM Role WHERE id = ?',
+            [rol]
+        );
+        if (targetRoleRows.length === 0) {
+            await connection.rollback();
+            transactionStarted = false;
+            return res.status(400).json({ error: 'Rol inválido' });
+        }
 
-        // impedir modificar admins
-        if (
-            userPayload.role_id ===
-            Object.keys(ROLES_PERMISSIONS).indexOf(ADMINISTRATOR_ROLE) + 1
-        ) {
+        if (currentRoleRows[0]?.role === ADMINISTRATOR_ROLE) {
+            await connection.rollback();
+            transactionStarted = false;
             return res.status(403).json({
                 error: 'No se le puede cambiar el rol a un administrador'
             });
@@ -161,19 +214,31 @@ const changeRole = async (req, res) => {
             new_dvh: newDvh
         };
 
-        await db.query(
+        await connection.query(
             'UPDATE User SET role_id = ?, dvh = ? WHERE id = ?',
             [rol, newDvh, userId]
         );
 
+        await connection.commit();
+        transactionStarted = false;
         return res.json({
             message: 'Se cambió el rol del usuario correctamente'
         });
 
     } catch (error) {
+        if (transactionStarted) {
+            try {
+                await connection.rollback();
+            } catch (rollbackError) {
+                console.error('Error al revertir el cambio de rol:', rollbackError);
+            }
+        }
+        console.error('Error al cambiar el rol del usuario:', error);
         return res.status(500).json({
             error: 'Error al cambiar el rol al usuario'
         });
+    } finally {
+        connection?.release();
     }
 };
 

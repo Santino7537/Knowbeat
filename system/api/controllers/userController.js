@@ -24,7 +24,10 @@ const login = async (req, res) => {
 
   // Comprueba si el usuario existe y obtiene su información
   try {
-    [user] = await db.query('SELECT * FROM User WHERE username = ?;', [username]);
+    [user] = await db.query(
+      'SELECT * FROM User WHERE username = ? AND eliminated = 0;',
+      [username]
+    );
     if (user.length === 0) return res.status(400).json({ message: 'Usuario o contraseña incorrecta' });
     user = user[0];
   } catch (error) {
@@ -204,11 +207,18 @@ const getUserByToken = async (req, res) => {
   const userId = req.user.user_id
 
   try {
-    let [user] = await db.query('SELECT id, picture, username, biography FROM User WHERE eliminated = 0 && id = ?', [userId]);
+    let [user] = await db.query(
+      'SELECT id, picture, username, biography FROM User WHERE eliminated = 0 AND id = ?',
+      [userId]
+    );
     if (user.length === 1) {
       user = user[0]
       user.picture = getPublicFileUrl("profiles", user.picture);
-      return res.status(200).json(user);
+      return res.status(200).json({
+        ...user,
+        role: req.user.role,
+        role_id: req.user.role_id
+      });
     }
     return res.status(400).json({ message: `No existe el usuario con id ${userId}` })
 
@@ -222,9 +232,22 @@ const getUserByToken = async (req, res) => {
 const getUsers = async (req, res) => {
 
   try {
-    const [rows] = await db.query('SELECT * FROM User WHERE eliminated = 0');
-    rows.forEach(obj => { obj.picture = getPublicFileUrl("profiles", obj.picture); });
-    res.json(rows);
+    const [[users], [roles]] = await Promise.all([
+      db.query(
+        `SELECT u.id, u.username, u.email, u.role_id, r.role AS role_name
+         FROM User u
+         JOIN Role r ON r.id = u.role_id
+         WHERE u.eliminated = 0
+         ORDER BY u.username ASC`
+      ),
+      db.query('SELECT id, role AS name FROM Role ORDER BY id ASC')
+    ]);
+
+    res.json({
+      users,
+      roles,
+      current_user_id: req.user.user_id
+    });
 
   } catch (error) {
     console.error(error);
