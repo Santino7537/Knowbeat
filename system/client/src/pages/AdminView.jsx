@@ -7,8 +7,7 @@ import styles from "./CSS/AdminView.module.css";
 
 const TABS = [
   { id: "users", label: "Usuarios" },
-  { id: "reports", label: "Reportes" },
-  { id: "announcements", label: "Anuncios" }
+  { id: "reports", label: "Reportes" }
 ];
 
 const roleLabel = (role) => ({
@@ -601,20 +600,6 @@ export default function AdminView() {
           </section>
         )}
 
-        {activeTab === "announcements" && (
-          <section className={styles.section} aria-labelledby="announcements-heading">
-            <div className={styles.sectionHeader}>
-              <div>
-                <h2 id="announcements-heading">Anuncios</h2>
-                <p>Publicaciones para toda la comunidad.</p>
-              </div>
-            </div>
-            <div className={styles.unavailableNotice} role="status">
-              <strong>Publicación de anuncios no disponible</strong>
-              <p>Esta sección todavía no cuenta con un endpoint de publicación en el backend. No se enviará ni guardará ningún anuncio.</p>
-            </div>
-          </section>
-        )}
       </main>
 
       {selectedReport && reportDetail && (
