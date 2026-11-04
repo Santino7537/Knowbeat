@@ -10,6 +10,7 @@ import Exercises from './pages/Exercises.jsx';
 import SeventhChordsExercise from './exercises-pages/seventh-chords.jsx'
 import Community from './pages/Community.jsx';
 import Messages from './pages/Messages.jsx';
+import Folders from './pages/Folders.jsx';
 
 import Login_register from './pages/login_register.jsx'
 import { AuthProvider, useAuth } from './context/AuthContext.jsx'
@@ -34,6 +35,7 @@ const getPageTitle = (pathname) => {
   if (normalizedPath === "/exercises/seventh-chords") return "Notas de acordes de séptima";
   if (normalizedPath === "/community") return "Comunidad";
   if (normalizedPath === "/messages") return "Mensajes";
+  if (normalizedPath === "/folders" || /^\/folders\/[^/]+$/.test(normalizedPath)) return "Carpetas";
   if (/^\/user\/[^/]+$/.test(normalizedPath)) return "Perfil";
 
   return "KnowBeat";
@@ -154,6 +156,8 @@ function App() {
             <Route path="/exercises" element={<Exercises />}/>
             <Route path="/exercises/seventh-chords" element={<SeventhChordsExercise />} />
             <Route path="/messages" element={<Messages/>} />
+            <Route path="/folders" element={<Folders />} />
+            <Route path="/folders/:folderId" element={<Folders />} />
             <Route path="/user/:username" element={<UserProfile />} />
           </Route>
           <Route path="/community" element={<Community/>} />

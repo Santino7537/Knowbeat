@@ -8,7 +8,7 @@ const { verifyAdminPassword, getAdminSession, revokeAdminSession, logout } = req
 
 const { getCourses, getUserProgress, registerCourse, updateUserProgress } = require('./controllers/coursesController');
 const { getUserStats, getUserScoreHistory, changeGoal } = require('./controllers/streakController');
-const { createFolder, updateFolder, deleteFolder, getFolderFiles } = require('./controllers/folderController');
+const { createFolder, updateFolder, deleteFolder, getFolders, getFolderFiles, shareFolder, unshareFolder } = require('./controllers/folderController');
 const { uploadFileInFolder, deleteFileFromFolder, getFileUrlFromFolder } = require('./controllers/fileController');
 const { searchCommunity, searchThread, createThread, createResponse, searchResponses, likePublication } = require('./controllers/communityController');
 const { getFriendshipRequests, getFriends, sendFriendRequest, acceptFriendRequest, rejectFriendRequest, cancelFriendRequest, deleteFriendship } = require('./controllers/friendshipController');
@@ -72,7 +72,10 @@ server.patch('/user/update/profile', postResponseLog, checkToken, isAuth, checkF
 server.post('/user/create/folder/:folder_name', postResponseLog, checkToken, isAuth, createFolder);
 server.patch('/user/update/folder', postResponseLog, checkToken, isAuth, updateFolder);
 server.delete('/user/delete/folder/:folder_name', postResponseLog, checkToken, isAuth, deleteFolder);
+server.get('/user/get/folders', checkToken, isAuth, getFolders);
 server.get('/user/get/folder/files/:folder_name', checkToken, isAuth, getFolderFiles);
+server.post('/user/share/folder/:folder_id', postResponseLog, checkToken, isAuth, shareFolder);
+server.delete('/user/unshare/folder/:folder_id/:user_id', postResponseLog, checkToken, isAuth, unshareFolder);
 server.post('/user/upload/file/:folder_id', postResponseLog, checkToken, isAuth, checkFilesUpload('folder_file', 1), uploadFileInFolder);
 server.delete('/user/delete/file/:file_id/:folder_id', postResponseLog, checkToken, isAuth, deleteFileFromFolder);
 server.get('/user/get/file/:file_id/:folder_id', checkToken, isAuth, getFileUrlFromFolder);
@@ -128,15 +131,17 @@ server.patch('/user/delete/user/:id', postResponseLog, checkToken, isAuth, requi
 server.get('/token/get/user', checkToken, getUserByToken)
 
 const startServer = async () => {
-  // try {
-  //   await connectMongo();
-  // } catch (err) { console.error("Failed to start MongoDB:", err); }
+
   await require('./config/createRoles')();
   await require('./config/createPermissions')();
   await require('./config/createAdmin')();
   await require('./config/createCourses')();
   await require('./config/initUserDailyScore')();
   await require('./config/initAdminAccess')();
+
+  try {
+    await connectMongo();
+  } catch (err) { console.error("Failed to start MongoDB:", err); }
 
   httpServer.listen(PORT, () => {
     console.log('La API está corriendo en el puerto ', PORT);

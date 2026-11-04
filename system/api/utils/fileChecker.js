@@ -1,12 +1,13 @@
 const sharp = require('sharp');
 const fs = require('fs/promises');
+const path = require('path');
 const { promisify } = require('util');
-const { exec } = require('child_process');
+const { execFile } = require('child_process');
 const { fileTypeFromBuffer } = require('file-type');
 const { FILES_CONSTANTS, VALID_FILES_FORMATS } = require('../constants');
 const { MAX_IMAGE_SIZE, MAX_IMAGE_PIXELS, MIN_IMAGE_DIMENSIONS, MAX_IMAGE_DIMENSIONS } = FILES_CONSTANTS;
 
-const execAsync = promisify(exec);
+const execFileAsync = promisify(execFile);
 
 const detectRealType = async (buffer) => {
     const type = await fileTypeFromBuffer(buffer);
@@ -19,15 +20,13 @@ const detectRealType = async (buffer) => {
 }
 
 const analyzeMedia = async (filePath) => {
-    const command = `
-        docker exec ffmpeg ffprobe -v error \
-        -print_format json \
-        -show_streams \
-        -show_format \
-        /data/${filePath}
-    `;
-
-    const { stdout } = await execAsync(command);
+    const { stdout } = await execFileAsync('docker', [
+        'exec', 'ffmpeg', 'ffprobe', '-v', 'error',
+        '-print_format', 'json',
+        '-show_streams',
+        '-show_format',
+        `/data/${path.basename(filePath)}`
+    ]);
     return JSON.parse(stdout);
 }
 
@@ -43,11 +42,42 @@ const validateMedia = async (filePath) => {
     } catch (e) { return { valid: false, error: e.message }; }
 }
 
-const validateFile = async (filePath) => {
+const TEXT_EXTENSIONS = new Set(['.txt']);
+const MIME_EXTENSIONS = {
+    'image/jpeg': new Set(['.jpg', '.jpeg']),
+    'image/jpg': new Set(['.jpg', '.jpeg']),
+    'image/png': new Set(['.png']),
+    'image/webp': new Set(['.webp']),
+    'application/pdf': new Set(['.pdf']),
+    'audio/mpeg': new Set(['.mp3']),
+    'audio/wav': new Set(['.wav']),
+    'audio/x-wav': new Set(['.wav']),
+    'audio/ogg': new Set(['.ogg']),
+    'video/mp4': new Set(['.mp4']),
+    'video/webm': new Set(['.webm'])
+};
+
+const validateFile = async (filePath, originalName) => {
     const buffer = await fs.readFile(filePath);
     const type = await detectRealType(buffer);
+    const extension = path.extname(originalName || '').toLowerCase();
 
-    if (!type.valid) throw new Error("Invalid file");
+    if (!type.valid) {
+        if (!TEXT_EXTENSIONS.has(extension) || buffer.length > 1024 * 1024 || buffer.includes(0)) {
+            throw new Error("Invalid file");
+        }
+
+        try {
+            new TextDecoder('utf-8', { fatal: true }).decode(buffer);
+        } catch {
+            throw new Error("Invalid text file");
+        }
+        return { mime: 'text/plain', ext: 'txt', valid: true };
+    }
+
+    if (!MIME_EXTENSIONS[type.mime]?.has(extension)) {
+        throw new Error("La extensión no coincide con el contenido del archivo.");
+    }
 
     // IMAGES
     if (VALID_FILES_FORMATS.images.includes(type.mime)) {

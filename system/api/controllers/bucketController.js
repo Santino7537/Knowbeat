@@ -2,13 +2,16 @@ const { GetObjectCommand, PutObjectCommand, DeleteObjectCommand, DeleteObjectsCo
 const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
 const s3 = require('../config/s3_client');
 
-const getPrivateFileUrl = async (bucket, filePath, expirationTime = 300) => {
+const getPrivateFileUrl = async (bucket, filePath, expirationTime = 300, options = {}) => {
     const command = new GetObjectCommand({
         Bucket: bucket,
-        Key: filePath
+        Key: filePath,
+        ...(options.contentType ? { ResponseContentType: options.contentType } : {}),
+        ...(options.filename ? {
+            ResponseContentDisposition: `${options.download ? "attachment" : "inline"}; filename*=UTF-8''${encodeURIComponent(options.filename)}`
+        } : {})
     });
 
-    // Genera la URL pre-firmada
     return await getSignedUrl(s3, command, { expiresIn: expirationTime });
 };
 
@@ -50,22 +53,25 @@ const deleteFile = async(bucket, filePath) => {
 };
 
 const deleteFolderAndFiles = async (bucket, route) => {
-    const objects = await s3.send(
-        new ListObjectsV2Command({
+    let continuationToken;
+    do {
+        const page = await s3.send(new ListObjectsV2Command({
             Bucket: bucket,
-            Prefix: route
-        })
-    );
-
-    if (!objects.Contents?.length) { return; }
-
-    await s3.send(
-        new DeleteObjectsCommand({
-            Bucket: bucket,
-            Delete: { Objects: 
-                objects.Contents.map(obj => ({ Key: obj.Key })) }
-        })
-    );
+            Prefix: route,
+            ContinuationToken: continuationToken
+        }));
+        const keys = (page.Contents || []).map(({ Key }) => ({ Key }));
+        for (let offset = 0; offset < keys.length; offset += 1000) {
+            const result = await s3.send(new DeleteObjectsCommand({
+                Bucket: bucket,
+                Delete: { Objects: keys.slice(offset, offset + 1000), Quiet: false }
+            }));
+            if (result.Errors?.length) {
+                throw new Error(`MinIO no pudo eliminar ${result.Errors.length} objeto(s).`);
+            }
+        }
+        continuationToken = page.IsTruncated ? page.NextContinuationToken : undefined;
+    } while (continuationToken);
 };
 
 module.exports = {
