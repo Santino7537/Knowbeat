@@ -164,11 +164,6 @@ export default function AdminView() {
     setActionError(getErrorMessage(requestError, fallback));
   };
 
-  const deleteUser = async (id, role) => {
-    if (role === 2) {
-      alert(t("admin.alerts.cant_delete_admin"));
-      return;
-
   const handleRoleChange = async (user, roleId) => {
     setActionError("");
     setBusyAction(`role:${user.id}`);
@@ -186,13 +181,16 @@ export default function AdminView() {
     }
   };
 
-  const handleDeleteUser = async () => {
-    if (!selectedUser) return;
+  const handleDeleteUser = async (id, role) => {
+    if (role === 2) {
+      alert(t("admin.alerts.cant_delete_admin"));
+      return;
+    }
     setActionError("");
-    setBusyAction(`delete:${selectedUser.id}`);
+    setBusyAction(`delete:${id}`);
     try {
       await api.patch(
-        `/user/delete/user/${selectedUser.id}`,
+        `/user/delete/user/${id}`,
         {},
         { headers: { "X-Admin-Authorization": adminAuthorization.token } }
       );
@@ -333,32 +331,8 @@ export default function AdminView() {
             <button type="button" className={styles.refreshButton} onClick={loadData}>
               Actualizar datos
             </button>
-
-          <div className={styles.filter_row}>
-            <select
-              className={styles.role_select}
-              value={roleFilter}
-              onChange={(e) =>
-                setRoleFilter(e.target.value)
-              }
-            >
-              <option value="all">
-                {t("admin.users_section.filters.all")}
-              </option>
-
-              <option value="1">
-                {t("admin.users_section.filters.users")}
-              </option>
-
-              <option value="2">
-                {t("admin.users_section.filters.admins")}
-              </option>
-
-              <option value="3">
-                {t("admin.users_section.filters.mods")}
-              </option>
-            </select>
           </div>
+        </header>
 
         <section className={styles.statsGrid} aria-label="Resumen">
           <article className={styles.statCard}>
@@ -428,10 +402,10 @@ export default function AdminView() {
               <label className={styles.filterField}>
                 <span>Rol</span>
                 <select value={roleFilter} onChange={(event) => setRoleFilter(event.target.value)}>
-                  <option value="all">Todos los roles</option>
-                  {roles.map((role) => (
-                    <option key={role.id} value={role.id}>{roleLabel(role.name)}</option>
-                  ))}
+                  <option value="all">{t("admin.users_section.filters.all")}</option>
+                  <option value="1">{t("admin.users_section.filters.users")}</option>
+                  <option value="2">{t("admin.users_section.filters.admins")}</option>
+                  <option value="3">{t("admin.users_section.filters.mods")}</option>
                 </select>
               </label>
             </div>
@@ -843,17 +817,14 @@ export default function AdminView() {
                 {t("admin.modal.cancel")}
               </button>
               <button
-                className={
-                  styles.confirm_delete_btn
-                }
+                type="button"
+                className={styles.confirm_delete_btn}
+                disabled={Boolean(busyAction)}
                 onClick={async () => {
-                  await deleteUser(
+                  await handleDeleteUser(
                     selectedUser.id,
                     selectedUser.role_id
                   );
-
-                  setShowDeleteModal(false);
-                  setSelectedUser(null);
                 }}
               >
                 {t("admin.modal.confirm")}

@@ -4,6 +4,7 @@ import Sidebar from "../components/Sidebar";
 import FileViewer from "../components/folders/FileViewer";
 import { useToast } from "../context/ToastContext.jsx";
 import { getErrorMessage } from "../api/client";
+import { useLanguage } from "../context/LanguageContext.jsx"; // <-- Importar hook de idioma
 import {
   createFolder,
   getFileUrl,
@@ -18,19 +19,6 @@ import {
 } from "../api/folders";
 import styles from "./CSS/Folders.module.css";
 
-const SCOPES = [
-  { id: "mine", label: "Mis carpetas" },
-  { id: "public", label: "Carpetas públicas" },
-  { id: "shared", label: "Compartidas conmigo" }
-];
-const CATEGORIES = [
-  { id: "", label: "Todos los archivos" },
-  { id: "documents", label: "Documentos" },
-  { id: "images", label: "Imágenes" },
-  { id: "audio", label: "Audio" },
-  { id: "video", label: "Videos" },
-  { id: "other", label: "Otros" }
-];
 const PAGE_SIZE = 30;
 
 const formatSize = (megabytes) => {
@@ -61,7 +49,24 @@ export default function Folders() {
   const { folderId } = useParams();
   const navigate = useNavigate();
   const toast = useToast();
+  const { t } = useLanguage(); // <-- Consumir función de traducción
   const inputRef = useRef(null);
+
+  const SCOPES = [
+    { id: "mine", label: t("folders_page.scopes.mine") },
+    { id: "public", label: t("folders_page.scopes.public") },
+    { id: "shared", label: t("folders_page.scopes.shared") }
+  ];
+
+  const CATEGORIES = [
+    { id: "", label: t("folders_page.categories.all") },
+    { id: "documents", label: t("folders_page.categories.documents") },
+    { id: "images", label: t("folders_page.categories.images") },
+    { id: "audio", label: t("folders_page.categories.audio") },
+    { id: "video", label: t("folders_page.categories.video") },
+    { id: "other", label: t("folders_page.categories.other") }
+  ];
+
   const [scope, setScope] = useState("mine");
   const [category, setCategory] = useState("");
   const [searchInput, setSearchInput] = useState("");
@@ -115,7 +120,7 @@ export default function Folders() {
       }
       setPagination(result.pagination);
     }).catch((requestError) => {
-      if (!cancelled) setError(getErrorMessage(requestError, "No se pudo cargar el contenido."));
+      if (!cancelled) setError(getErrorMessage(requestError, t("folders_page.errors.load_failed")));
     }).finally(() => {
       if (!cancelled) setLoading(false);
     });
@@ -123,7 +128,7 @@ export default function Folders() {
     return () => {
       cancelled = true;
     };
-  }, [category, folderId, folderPage, page, query, reloadKey, scope, sortBy]);
+  }, [category, folderId, folderPage, page, query, reloadKey, scope, sortBy, t]);
 
   const maxPages = useMemo(
     () => Math.max(1, Math.ceil(pagination.total / PAGE_SIZE)),
@@ -151,16 +156,16 @@ export default function Folders() {
     try {
       if (dialog === "create") {
         await createFolder(dialogValue.trim());
-        toast.success("Carpeta creada.");
+        toast.success(t("folders_page.toasts.folder_created"));
       } else if (dialog === "rename") {
         await updateFolder(folderInfo.id, { name: dialogValue.trim() });
-        toast.success("Carpeta renombrada.");
+        toast.success(t("folders_page.toasts.folder_renamed"));
       } else if (dialog === "share") {
         await shareFolder(folderInfo.id, dialogValue.trim());
-        toast.success("Acceso de solo lectura compartido.");
+        toast.success(t("folders_page.toasts.folder_shared"));
       } else if (dialog === "unshare") {
         await unshareFolder(folderInfo.id, dialogValue.trim());
-        toast.success("Se revocó el acceso compartido.");
+        toast.success(t("folders_page.toasts.folder_unshared"));
       }
       closeDialog();
       refresh();
@@ -172,7 +177,7 @@ export default function Folders() {
   const toggleVisibility = async () => {
     try {
       await updateFolder(folderInfo.id, { isPublic: !folderInfo.public });
-      toast.success(folderInfo.public ? "La carpeta ahora es privada." : "La carpeta ahora es pública.");
+      toast.success(folderInfo.public ? t("folders_page.toasts.made_private") : t("folders_page.toasts.made_public"));
       refresh();
     } catch (requestError) {
       toast.error(getErrorMessage(requestError));
@@ -180,10 +185,10 @@ export default function Folders() {
   };
 
   const deleteCurrentFolder = async () => {
-    if (!window.confirm(`¿Eliminar "${folderInfo.name}" y todos sus archivos? Esta acción no se puede deshacer.`)) return;
+    if (!window.confirm(t("folders_page.confirm.delete_folder").replace("{name}", folderInfo.name))) return;
     try {
       await removeFolder(folderInfo.id);
-      toast.success("Carpeta eliminada.");
+      toast.success(t("folders_page.toasts.folder_deleted"));
       navigate("/folders");
     } catch (requestError) {
       toast.error(getErrorMessage(requestError));
@@ -197,7 +202,7 @@ export default function Folders() {
       id: `${Date.now()}-${index}-${file.name}`,
       name: file.name,
       progress: 0,
-      status: "Subiendo",
+      status: t("folders_page.upload.uploading_status"),
       controller: new AbortController()
     }));
     setUploads((current) => [...current, ...jobs]);
@@ -212,15 +217,15 @@ export default function Folders() {
           ))
         });
         setUploads((current) => current.map((item) =>
-          item.id === job.id ? { ...item, progress: 100, status: "Listo" } : item
+          item.id === job.id ? { ...item, progress: 100, status: t("folders_page.upload.ready_status") } : item
         ));
-        toast.success(`${file.name}: carga completada.`);
+        toast.success(t("folders_page.toasts.upload_complete").replace("{name}", file.name));
         refresh();
       } catch (requestError) {
         const cancelled = requestError?.code === "ERR_CANCELED" || requestError?.name === "CanceledError";
         setUploads((current) => current.map((item) =>
           item.id === job.id
-            ? { ...item, status: cancelled ? "Cancelada" : "Error" }
+            ? { ...item, status: cancelled ? t("folders_page.upload.cancelled_status") : t("folders_page.upload.error_status") }
             : item
         ));
         if (!cancelled) toast.error(`${file.name}: ${getErrorMessage(requestError)}`);
@@ -248,10 +253,10 @@ export default function Folders() {
   };
 
   const deleteCurrentFile = async (file) => {
-    if (!window.confirm(`¿Eliminar "${file.name}"?`)) return;
+    if (!window.confirm(t("folders_page.confirm.delete_file").replace("{name}", file.name))) return;
     try {
       await removeFile(file.id, folderId);
-      toast.success("Archivo eliminado.");
+      toast.success(t("folders_page.toasts.file_deleted"));
       refresh();
     } catch (requestError) {
       toast.error(getErrorMessage(requestError));
@@ -268,10 +273,10 @@ export default function Folders() {
     <div className={styles.page}>
       <Sidebar />
       <main className={styles.main}>
-        <aside className={styles.filters} aria-label="Filtros de carpetas">
+        <aside className={styles.filters} aria-label={t("folders_page.aria.filters")}>
           {!folderId ? (
             <>
-              <p className={styles.filterHeading}>Biblioteca</p>
+              <p className={styles.filterHeading}>{t("folders_page.library_heading")}</p>
               {SCOPES.map((item) => (
                 <button
                   type="button"
@@ -291,14 +296,14 @@ export default function Folders() {
                 </button>
               ))}
               <div className={styles.storage}>
-                <span>Almacenamiento usado</span>
+                <span>{t("folders_page.storage.used")}</span>
                 <strong>{storageUsed == null ? "—" : formatSize(storageUsed)}</strong>
-                <small>Sin cuota configurada</small>
+                <small>{t("folders_page.storage.no_quota")}</small>
               </div>
             </>
           ) : (
             <>
-              <p className={styles.filterHeading}>Tipo de archivo</p>
+              <p className={styles.filterHeading}>{t("folders_page.file_type_heading")}</p>
               {CATEGORIES.map((item) => (
                 <button
                   type="button"
@@ -324,16 +329,22 @@ export default function Folders() {
           <header className={styles.header}>
             <div>
               <div className={styles.breadcrumbs}>
-                <button type="button" onClick={() => navigate("/folders")}>Carpetas</button>
+                <button type="button" onClick={() => navigate("/folders")}>{t("folders_page.breadcrumbs.folders")}</button>
                 {folderInfo && <><span>/</span><span>{folderInfo.name}</span></>}
               </div>
               <h1>{folderInfo?.name || SCOPES.find((item) => item.id === scope)?.label}</h1>
-              <p>{folderInfo ? "Archivos organizados en esta carpeta." : "Tu espacio personal para guardar y organizar archivos."}</p>
+              <p>{folderInfo ? t("folders_page.header.folder_desc") : t("folders_page.header.main_desc")}</p>
             </div>
             <div className={styles.headerActions}>
-              {!folderId && <button className={styles.primaryButton} type="button" onClick={() => setDialog("create")}>＋ Nueva carpeta</button>}
+              {!folderId && (
+                <button className={styles.primaryButton} type="button" onClick={() => setDialog("create")}>
+                  {t("folders_page.actions.new_folder")}
+                </button>
+              )}
               {folderInfo?.can_write && (
-                <button className={styles.primaryButton} type="button" onClick={() => inputRef.current?.click()}>↑ Subir archivos</button>
+                <button className={styles.primaryButton} type="button" onClick={() => inputRef.current?.click()}>
+                  {t("folders_page.actions.upload_files")}
+                </button>
               )}
             </div>
           </header>
@@ -344,21 +355,33 @@ export default function Folders() {
               type="search"
               value={searchInput}
               onChange={(event) => setSearchInput(event.target.value)}
-              placeholder={folderId ? "Buscar archivos en esta carpeta" : "Buscar carpetas"}
+              placeholder={folderId ? t("folders_page.search.folder_placeholder") : t("folders_page.search.main_placeholder")}
             />
-            {searchInput && <button type="button" onClick={() => setSearchInput("")} aria-label="Limpiar búsqueda">×</button>}
+            {searchInput && (
+              <button type="button" onClick={() => setSearchInput("")} aria-label={t("folders_page.search.clear_aria")}>
+                ×
+              </button>
+            )}
           </label>
 
           {folderInfo && (
             <div className={styles.folderMeta}>
-              <span>{folderInfo.public ? "Pública" : "Privada"} · {folderInfo.owner_name || "Propietario"}</span>
+              <span>
+                {folderInfo.public ? t("folders_page.meta.public") : t("folders_page.meta.private")} · {folderInfo.owner_name || t("folders_page.meta.owner")}
+              </span>
               {folderInfo.can_write && (
                 <div className={styles.folderActions}>
-                  <button type="button" onClick={() => { setDialogValue(folderInfo.name); setDialog("rename"); }}>Renombrar</button>
-                  <button type="button" onClick={toggleVisibility}>{folderInfo.public ? "Hacer privada" : "Hacer pública"}</button>
-                  <button type="button" onClick={() => setDialog("share")}>Compartir</button>
-                  <button type="button" onClick={() => setDialog("unshare")}>Revocar acceso</button>
-                  <button type="button" className={styles.dangerText} onClick={deleteCurrentFolder}>Eliminar carpeta</button>
+                  <button type="button" onClick={() => { setDialogValue(folderInfo.name); setDialog("rename"); }}>
+                    {t("folders_page.meta.rename")}
+                  </button>
+                  <button type="button" onClick={toggleVisibility}>
+                    {folderInfo.public ? t("folders_page.meta.make_private") : t("folders_page.meta.make_public")}
+                  </button>
+                  <button type="button" onClick={() => setDialog("share")}>{t("folders_page.meta.share")}</button>
+                  <button type="button" onClick={() => setDialog("unshare")}>{t("folders_page.meta.revoke")}</button>
+                  <button type="button" className={styles.dangerText} onClick={deleteCurrentFolder}>
+                    {t("folders_page.meta.delete_folder")}
+                  </button>
                 </div>
               )}
             </div>
@@ -366,9 +389,9 @@ export default function Folders() {
 
           {folderInfo && (
             <div className={styles.fileToolbar}>
-              <span>{pagination.total} {pagination.total === 1 ? "archivo" : "archivos"}</span>
+              <span>{pagination.total} {pagination.total === 1 ? t("folders_page.toolbar.file_singular") : t("folders_page.toolbar.file_plural")}</span>
               <label>
-                Ordenar por
+                {t("folders_page.toolbar.sort_label")}
                 <select
                   value={sortBy}
                   onChange={(event) => {
@@ -378,8 +401,8 @@ export default function Folders() {
                     setPage(1);
                   }}
                 >
-                  <option value="name">Nombre</option>
-                  <option value="size">Tamaño</option>
+                  <option value="name">{t("folders_page.toolbar.sort_name")}</option>
+                  <option value="size">{t("folders_page.toolbar.sort_size")}</option>
                 </select>
               </label>
             </div>
@@ -406,8 +429,11 @@ export default function Folders() {
               onDragLeave={() => setDragging(false)}
               onDrop={onDrop}
             >
-              Arrastrá archivos acá o <button type="button" onClick={() => inputRef.current?.click()}>seleccionalos</button>
-              <span>Máximo 50 MB por archivo.</span>
+              {t("folders_page.dropzone.text_prefix")}{" "}
+              <button type="button" onClick={() => inputRef.current?.click()}>
+                {t("folders_page.dropzone.select_btn")}
+              </button>
+              <span>{t("folders_page.dropzone.limit")}</span>
             </div>
           )}
 
@@ -417,8 +443,12 @@ export default function Folders() {
                 <div className={styles.uploadItem} key={upload.id}>
                   <span title={upload.name}>{upload.name}</span>
                   <progress value={upload.progress} max="100" />
-                  <small>{upload.status === "Subiendo" ? `${upload.progress}%` : upload.status}</small>
-                  {upload.status === "Subiendo" && <button type="button" onClick={() => cancelUpload(upload.id)}>Cancelar</button>}
+                  <small>{upload.status === t("folders_page.upload.uploading_status") ? `${upload.progress}%` : upload.status}</small>
+                  {upload.status === t("folders_page.upload.uploading_status") && (
+                    <button type="button" onClick={() => cancelUpload(upload.id)}>
+                      {t("folders_page.upload.cancel_btn")}
+                    </button>
+                  )}
                 </div>
               ))}
             </div>
@@ -427,23 +457,27 @@ export default function Folders() {
           {error && (
             <div className={styles.stateMessage} role="alert">
               <p>{error}</p>
-              <button type="button" onClick={refresh}>Reintentar</button>
+              <button type="button" onClick={refresh}>{t("folders_page.states.retry")}</button>
             </div>
           )}
-          {loading && <div className={styles.stateMessage}>Cargando contenido…</div>}
+          {loading && <div className={styles.stateMessage}>{t("folders_page.states.loading")}</div>}
           {!loading && !error && !folderId && folders.length === 0 && (
             <div className={styles.empty}>
               <span aria-hidden="true">▰</span>
-              <h2>{query ? "No encontramos carpetas" : "Todavía no hay carpetas"}</h2>
-              <p>{query ? "Probá con otro nombre." : "Creá una carpeta para empezar a organizar tus archivos."}</p>
-              {scope === "mine" && !query && <button className={styles.primaryButton} type="button" onClick={() => setDialog("create")}>Crear carpeta</button>}
+              <h2>{query ? t("folders_page.empty.no_folders_query") : t("folders_page.empty.no_folders")}</h2>
+              <p>{query ? t("folders_page.empty.try_other") : t("folders_page.empty.create_prompt")}</p>
+              {scope === "mine" && !query && (
+                <button className={styles.primaryButton} type="button" onClick={() => setDialog("create")}>
+                  {t("folders_page.actions.new_folder")}
+                </button>
+              )}
             </div>
           )}
           {!loading && !error && folderId && files.length === 0 && (
             <div className={styles.empty}>
               <span aria-hidden="true">▱</span>
-              <h2>{query || category ? "No encontramos archivos" : "La carpeta está vacía"}</h2>
-              <p>{folderInfo?.can_write ? "Subí archivos para tenerlos disponibles acá." : "No hay archivos disponibles en esta carpeta."}</p>
+              <h2>{query || category ? t("folders_page.empty.no_files_query") : t("folders_page.empty.folder_empty")}</h2>
+              <p>{folderInfo?.can_write ? t("folders_page.empty.upload_prompt") : t("folders_page.empty.no_access")}</p>
             </div>
           )}
 
@@ -456,9 +490,11 @@ export default function Folders() {
                     <strong title={folder.name}>{folder.name}</strong>
                   </button>
                   <span className={styles.folderDetails}>
-                    {folder.file_count} {folder.file_count === 1 ? "archivo" : "archivos"} · {folder.public ? "Pública" : "Privada"}
+                    {folder.file_count} {folder.file_count === 1 ? t("folders_page.toolbar.file_singular") : t("folders_page.toolbar.file_plural")} · {folder.public ? t("folders_page.meta.public") : t("folders_page.meta.private")}
                   </span>
-                  <span className={styles.owner}>{folder.is_owner ? "Tu carpeta" : folder.owner_name || "Compartida"}</span>
+                  <span className={styles.owner}>
+                    {folder.is_owner ? t("folders_page.folder_card.your_folder") : folder.owner_name || t("folders_page.folder_card.shared")}
+                  </span>
                 </article>
               ))}
             </div>
@@ -466,7 +502,12 @@ export default function Folders() {
 
           {!loading && !error && folderId && files.length > 0 && (
             <div className={styles.fileList}>
-              <div className={styles.fileHeader}><span>Nombre</span><span>Tipo</span><span>Tamaño</span><span>Acciones</span></div>
+              <div className={styles.fileHeader}>
+                <span>{t("folders_page.file_list.name")}</span>
+                <span>{t("folders_page.file_list.type")}</span>
+                <span>{t("folders_page.file_list.size")}</span>
+                <span>{t("folders_page.file_list.actions")}</span>
+              </div>
               {files.map((file) => (
                 <article className={styles.fileRow} key={file.id}>
                   <button className={styles.fileName} type="button" onClick={() => openFile(file)}>
@@ -476,8 +517,14 @@ export default function Folders() {
                   <span className={styles.fileType}>{file.mime_type}</span>
                   <span>{formatSize(file.size)}</span>
                   <div className={styles.fileActions}>
-                    <button type="button" onClick={() => openFile(file)}>{canPreview(file.mime_type) ? "Abrir" : "Descargar"}</button>
-                    {folderInfo?.can_write && <button type="button" className={styles.dangerText} onClick={() => deleteCurrentFile(file)}>Eliminar</button>}
+                    <button type="button" onClick={() => openFile(file)}>
+                      {canPreview(file.mime_type) ? t("folders_page.file_list.open") : t("folders_page.file_list.download")}
+                    </button>
+                    {folderInfo?.can_write && (
+                      <button type="button" className={styles.dangerText} onClick={() => deleteCurrentFile(file)}>
+                        {t("folders_page.file_list.delete")}
+                      </button>
+                    )}
                   </div>
                 </article>
               ))}
@@ -485,7 +532,7 @@ export default function Folders() {
           )}
 
           {!loading && !error && pagination.total > PAGE_SIZE && (
-            <nav className={styles.pagination} aria-label="Paginación">
+            <nav className={styles.pagination} aria-label={t("folders_page.aria.pagination")}>
               <button
                 type="button"
                 disabled={(folderId ? page : folderPage) <= 1}
@@ -494,8 +541,14 @@ export default function Folders() {
                   setError("");
                   folderId ? setPage((value) => value - 1) : setFolderPage((value) => value - 1);
                 }}
-              >Anterior</button>
-              <span>Página {folderId ? page : folderPage} de {maxPages}</span>
+              >
+                {t("folders_page.pagination.prev")}
+              </button>
+              <span>
+                {t("folders_page.pagination.pages")
+                  .replace("{current}", folderId ? page : folderPage)
+                  .replace("{total}", maxPages)}
+              </span>
               <button
                 type="button"
                 disabled={(folderId ? page : folderPage) >= maxPages}
@@ -504,36 +557,58 @@ export default function Folders() {
                   setError("");
                   folderId ? setPage((value) => value + 1) : setFolderPage((value) => value + 1);
                 }}
-              >Siguiente</button>
+              >
+                {t("folders_page.pagination.next")}
+              </button>
             </nav>
           )}
         </section>
       </main>
 
       {dialog && (
-        <div className={styles.modalBackdrop} role="presentation" onMouseDown={(event) => {
-          if (event.target === event.currentTarget) closeDialog();
-        }}>
+        <div
+          className={styles.modalBackdrop}
+          role="presentation"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) closeDialog();
+          }}
+        >
           <form className={styles.modal} onSubmit={submitDialog} aria-labelledby="folder-dialog-title">
             <h2 id="folder-dialog-title">
-              {dialog === "create" ? "Crear carpeta" : dialog === "rename" ? "Renombrar carpeta" : dialog === "unshare" ? "Revocar acceso" : "Compartir carpeta"}
+              {dialog === "create"
+                ? t("folders_page.dialog.create_title")
+                : dialog === "rename"
+                ? t("folders_page.dialog.rename_title")
+                : dialog === "unshare"
+                ? t("folders_page.dialog.unshare_title")
+                : t("folders_page.dialog.share_title")}
             </h2>
             <label>
-              {dialog === "share" || dialog === "unshare" ? "Nombre de usuario" : "Nombre"}
+              {dialog === "share" || dialog === "unshare"
+                ? t("folders_page.dialog.username_label")
+                : t("folders_page.dialog.name_label")}
               <input
                 autoFocus
                 required
                 maxLength={dialog === "share" || dialog === "unshare" ? 80 : 120}
                 value={dialogValue}
                 onChange={(event) => setDialogValue(event.target.value)}
-                placeholder={dialog === "share" || dialog === "unshare" ? "usuario" : "Por ejemplo, Mis partituras"}
+                placeholder={
+                  dialog === "share" || dialog === "unshare"
+                    ? t("folders_page.dialog.username_placeholder")
+                    : t("folders_page.dialog.name_placeholder")
+                }
               />
             </label>
-            {dialog === "share" && <p>La persona podrá ver y descargar archivos, pero no modificarlos.</p>}
+            {dialog === "share" && <p>{t("folders_page.dialog.share_desc")}</p>}
             <div className={styles.modalActions}>
-              <button type="button" onClick={closeDialog}>Cancelar</button>
+              <button type="button" onClick={closeDialog}>{t("folders_page.dialog.cancel_btn")}</button>
               <button className={styles.primaryButton} type="submit">
-                {dialog === "share" ? "Compartir" : dialog === "unshare" ? "Revocar" : "Guardar"}
+                {dialog === "share"
+                  ? t("folders_page.dialog.share_btn")
+                  : dialog === "unshare"
+                  ? t("folders_page.dialog.revoke_btn")
+                  : t("folders_page.dialog.save_btn")}
               </button>
             </div>
           </form>

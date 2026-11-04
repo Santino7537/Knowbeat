@@ -82,6 +82,18 @@ export const translations = {
       },
       alerts: {
         cant_delete_admin: "No podés eliminar otro administrador"
+      },
+      users_section: {
+        filters: {
+          all: "Todos los roles",
+          users: "Usuarios",
+          admins: "Administradores",
+          mods: "Moderadores"
+        }
+      },
+      modal: {
+        cancel: "Cancelar",
+        confirm: "Confirmar eliminación"
       }
     },
     community: {
@@ -670,6 +682,142 @@ export const translations = {
         }
       }
     },
+    folders_page: {
+      scopes: {
+        mine: "Mis carpetas",
+        public: "Carpetas públicas",
+        shared: "Compartidas conmigo"
+      },
+      categories: {
+        all: "Todos los archivos",
+        documents: "Documentos",
+        images: "Imágenes",
+        audio: "Audio",
+        video: "Videos",
+        other: "Otros"
+      },
+      library_heading: "Biblioteca",
+      file_type_heading: "Tipo de archivo",
+      storage: {
+        used: "Almacenamiento usado",
+        no_quota: "Sin cuota configurada"
+      },
+      breadcrumbs: {
+        folders: "Carpetas"
+      },
+      header: {
+        folder_desc: "Archivos organizados en esta carpeta.",
+        main_desc: "Tu espacio personal para guardar y organizar archivos."
+      },
+      actions: {
+        new_folder: "＋ Nueva carpeta",
+        upload_files: "↑ Subir archivos"
+      },
+      search: {
+        folder_placeholder: "Buscar archivos en esta carpeta",
+        main_placeholder: "Buscar carpetas",
+        clear_aria: "Limpiar búsqueda"
+      },
+      meta: {
+        public: "Pública",
+        private: "Privada",
+        owner: "Propietario",
+        rename: "Renombrar",
+        make_private: "Hacer privada",
+        make_public: "Hacer pública",
+        share: "Compartir",
+        revoke: "Revocar acceso",
+        delete_folder: "Eliminar carpeta"
+      },
+      toolbar: {
+        file_singular: "archivo",
+        file_plural: "archivos",
+        sort_label: "Ordenar por",
+        sort_name: "Nombre",
+        sort_size: "Tamaño"
+      },
+      dropzone: {
+        text_prefix: "Arrastrá archivos acá o",
+        select_btn: "seleccionalos",
+        limit: "Máximo 50 MB por archivo."
+      },
+      upload: {
+        uploading_status: "Subiendo",
+        ready_status: "Listo",
+        cancelled_status: "Cancelada",
+        error_status: "Error",
+        cancel_btn: "Cancelar"
+      },
+      states: {
+        retry: "Reintentar",
+        loading: "Cargando contenido…"
+      },
+      empty: {
+        no_folders_query: "No encontramos carpetas",
+        no_folders: "Todavía no hay carpetas",
+        try_other: "Probá con otro nombre.",
+        create_prompt: "Creá una carpeta para empezar a organizar tus archivos.",
+        no_files_query: "No encontramos archivos",
+        folder_empty: "La carpeta está vacía",
+        upload_prompt: "Subí archivos para tenerlos disponibles acá.",
+        no_access: "No hay archivos disponibles en esta carpeta."
+      },
+      folder_card: {
+        your_folder: "Tu carpeta",
+        shared: "Compartida"
+      },
+      file_list: {
+        name: "Nombre",
+        type: "Tipo",
+        size: "Tamaño",
+        actions: "Acciones",
+        open: "Abrir",
+        download: "Descargar",
+        delete: "Eliminar"
+      },
+      pagination: {
+        prev: "Anterior",
+        next: "Siguiente",
+        pages: "Página {current} de {total}"
+      },
+      dialog: {
+        create_title: "Crear carpeta",
+        rename_title: "Renombrar carpeta",
+        unshare_title: "Revocar acceso",
+        share_title: "Compartir carpeta",
+        username_label: "Nombre de usuario",
+        name_label: "Nombre",
+        username_placeholder: "usuario",
+        name_placeholder: "Por ejemplo, Mis partituras",
+        share_desc: "La persona podrá ver y descargar archivos, pero no modificarlos.",
+        cancel_btn: "Cancelar",
+        share_btn: "Compartir",
+        revoke_btn: "Revocar",
+        save_btn: "Guardar"
+      },
+      toasts: {
+        folder_created: "Carpeta creada.",
+        folder_renamed: "Carpeta renombrada.",
+        folder_shared: "Acceso de solo lectura compartido.",
+        folder_unshared: "Se revocó el acceso compartido.",
+        made_private: "La carpeta ahora es privada.",
+        made_public: "La carpeta ahora es pública.",
+        folder_deleted: "Carpeta eliminada.",
+        upload_complete: "{name}: carga completada.",
+        file_deleted: "Archivo eliminado."
+      },
+      confirm: {
+        delete_folder: "¿Eliminar \"{name}\" y todos sus archivos? Esta acción no se puede deshacer.",
+        delete_file: "¿Eliminar \"{name}\"?"
+      },
+      aria: {
+        filters: "Filtros de carpetas",
+        pagination: "Paginación"
+      },
+      errors: {
+        load_failed: "No se pudo cargar el contenido."
+      }
+    }
   },
   "en-US": {
     settings: {
@@ -753,6 +901,18 @@ export const translations = {
       },
       alerts: {
         cant_delete_admin: "You cannot delete another administrator"
+      },
+      users_section: {
+        filters: {
+          all: "All roles",
+          users: "Users",
+          admins: "Administrators",
+          mods: "Moderators"
+        }
+      },
+      modal: {
+        cancel: "Cancel",
+        confirm: "Confirm deletion"
       }
     },
     community: {
@@ -1227,5 +1387,141 @@ export const translations = {
         }
       }
     },
+    folders_page: {
+      scopes: {
+        mine: "My folders",
+        public: "Public folders",
+        shared: "Shared with me"
+      },
+      categories: {
+        all: "All files",
+        documents: "Documents",
+        images: "Images",
+        audio: "Audio",
+        video: "Videos",
+        other: "Others"
+      },
+      library_heading: "Library",
+      file_type_heading: "File type",
+      storage: {
+        used: "Storage used",
+        no_quota: "No quota configured"
+      },
+      breadcrumbs: {
+        folders: "Folders"
+      },
+      header: {
+        folder_desc: "Files organized in this folder.",
+        main_desc: "Your personal space to store and organize files."
+      },
+      actions: {
+        new_folder: "＋ New folder",
+        upload_files: "↑ Upload files"
+      },
+      search: {
+        folder_placeholder: "Search files in this folder",
+        main_placeholder: "Search folders",
+        clear_aria: "Clear search"
+      },
+      meta: {
+        public: "Public",
+        private: "Private",
+        owner: "Owner",
+        rename: "Rename",
+        make_private: "Make private",
+        make_public: "Make public",
+        share: "Share",
+        revoke: "Revoke access",
+        delete_folder: "Delete folder"
+      },
+      toolbar: {
+        file_singular: "file",
+        file_plural: "files",
+        sort_label: "Sort by",
+        sort_name: "Name",
+        sort_size: "Size"
+      },
+      dropzone: {
+        text_prefix: "Drag files here or",
+        select_btn: "select them",
+        limit: "Maximum 50 MB per file."
+      },
+      upload: {
+        uploading_status: "Uploading",
+        ready_status: "Ready",
+        cancelled_status: "Cancelled",
+        error_status: "Error",
+        cancel_btn: "Cancel"
+      },
+      states: {
+        retry: "Retry",
+        loading: "Loading content..."
+      },
+      empty: {
+        no_folders_query: "No folders found",
+        no_folders: "No folders yet",
+        try_other: "Try a different name.",
+        create_prompt: "Create a folder to start organizing your files.",
+        no_files_query: "No files found",
+        folder_empty: "Folder is empty",
+        upload_prompt: "Upload files to have them available here.",
+        no_access: "No files available in this folder."
+      },
+      folder_card: {
+        your_folder: "Your folder",
+        shared: "Shared"
+      },
+      file_list: {
+        name: "Name",
+        type: "Type",
+        size: "Size",
+        actions: "Actions",
+        open: "Open",
+        download: "Download",
+        delete: "Delete"
+      },
+      pagination: {
+        prev: "Previous",
+        next: "Next",
+        pages: "Page {current} of {total}"
+      },
+      dialog: {
+        create_title: "Create folder",
+        rename_title: "Rename folder",
+        unshare_title: "Revoke access",
+        share_title: "Share folder",
+        username_label: "Username",
+        name_label: "Name",
+        username_placeholder: "username",
+        name_placeholder: "For example, My sheet music",
+        share_desc: "The person will be able to view and download files, but not modify them.",
+        cancel_btn: "Cancel",
+        share_btn: "Share",
+        revoke_btn: "Revoke",
+        save_btn: "Save"
+      },
+      toasts: {
+        folder_created: "Folder created.",
+        folder_renamed: "Folder renamed.",
+        folder_shared: "Read-only access shared.",
+        folder_unshared: "Shared access revoked.",
+        made_private: "Folder is now private.",
+        made_public: "Folder is now public.",
+        folder_deleted: "Folder deleted.",
+        upload_complete: "{name}: upload complete.",
+        file_deleted: "File deleted."
+      },
+      confirm: {
+        delete_folder: "Delete \"{name}\" and all its files? This action cannot be undone.",
+        delete_file: "Delete \"{name}\"?"
+      },
+      aria: {
+        filters: "Folder filters",
+        pagination: "Pagination"
+      },
+      errors: {
+        load_failed: "Could not load content."
+      }
+    }
   }
 };
