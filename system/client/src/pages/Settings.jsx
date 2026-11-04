@@ -5,7 +5,7 @@ import styles from "./CSS/Settings.module.css";
 import Sidebar from "../components/Sidebar";
 import { useTheme } from "../context/ThemeContext.jsx";
 import { useToast } from "../context/ToastContext.jsx";
-import { getErrorMessage } from "../api/client";
+import { API_URL, getErrorMessage } from "../api/client";
 
 // Etiquetas legibles para las claves de notificaciones que vienen del backend
 const notificationLabels = {
@@ -135,7 +135,7 @@ const Settings = () => {
 
     try {
       const response = await axios.patch(
-        "http://localhost:3000/user/update/config/",
+        `${API_URL}/user/update/config/`,
         body,
         {
           headers: {

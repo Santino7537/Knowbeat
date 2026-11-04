@@ -10,10 +10,10 @@ import Avatar from "../components/general/Avatar.jsx";
 import MusicStaff from "../components/general/MusicStaff.jsx";
 import DailyScoreActivity from "../components/profile/DailyScoreActivity.jsx";
 import { useToast } from "../context/ToastContext.jsx";
-import { getErrorMessage } from "../api/client";
+import { API_URL, getErrorMessage } from "../api/client";
 import styles from "./CSS/UserProfile.module.css";
 
-const API = "http://localhost:3000";
+const API = API_URL;
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 

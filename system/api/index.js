@@ -30,9 +30,10 @@ const httpServer = createServer(server);
 const PORT = process.env.PORT || 3000;
 
 const allowedOrigins = [
+  process.env.CLIENT_URL,
   'http://localhost:5173',
   'http://localhost:3000'
-]; // Origenes permitidos para CORS
+].filter(Boolean); // Origenes permitidos para CORS
 
 server.set('trust proxy', true); // Confía en el proxy para obtener la IP real del cliente
 
@@ -42,6 +43,7 @@ server.use(express.urlencoded({ limit: '100kb', extended: true })); // Limita el
 
 server.use(cors({ // No permite solicitudes de otros orígenes que no estén en la lista de allowedOrigins
   origin: function (origin, callback) {
+    if (!origin) return callback(null, false);
     if (allowedOrigins.includes(origin)) { // Se puede agregar "!origin ||" para testeos
       callback(null, true);
     } else {

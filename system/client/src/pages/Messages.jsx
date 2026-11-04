@@ -8,10 +8,9 @@ import styles from './CSS/Message.module.css'
 import axios from "axios";
 import { useNavigate } from 'react-router-dom'
 import Avatar from '../components/general/Avatar.jsx'
-import { getErrorMessage } from '../api/client'
+import { API_URL, getErrorMessage } from '../api/client'
 import { io } from 'socket.io-client'
 
-const API_URL = 'http://localhost:3000'
 const MESSAGE_PAGE_SIZE = 30
 
 // Etiqueta de día para separar los mensajes: "Hoy", "Ayer" o la fecha
@@ -71,7 +70,7 @@ export default function Messages() {
     const token = localStorage.getItem("token");
 
     axios.get(
-      "http://localhost:3000/friend/list",
+      `${API_URL}/friend/list`,
       { headers: { Authorization: `Bearer ${token}` } }
     ).then(({data}) => {
         setFriendChats(data)
@@ -128,7 +127,8 @@ export default function Messages() {
     const token = localStorage.getItem('token')
     if (!token) return
 
-    const socket = io(API_URL, { auth: { token } })
+    const socketUrl = API_URL.startsWith("/") ? window.location.origin : API_URL
+    const socket = io(socketUrl, { path: "/socket.io", auth: { token } })
     socketRef.current = socket
 
     const handleMessage = (message) => {

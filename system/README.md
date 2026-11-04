@@ -112,3 +112,69 @@ los tres respaldos podrían reflejar instantes distintos. Los archivos no están
 host puede destruir tanto los datos como sus backups; copiar periódicamente el volumen
 a otro medio/servidor y restringir el acceso al host es responsabilidad del operador.
 `docker compose down -v` también elimina este volumen.
+
+### Demo pública temporal con Cloudflare Quick Tunnel
+
+Esta alternativa sirve para mostrar la aplicación por unos minutos desde una PC
+encendida. Cualquier persona con la URL temporal puede acceder desde Internet. No es
+un alojamiento permanente: la URL deja de funcionar al detener el túnel y puede cambiar
+al crear uno nuevo. Usar solo datos de prueba.
+
+El cliente Vite reenvía las rutas de API, Socket.IO y MinIO localmente. Solo el puerto
+del cliente queda publicado por el túnel; los puertos de bases de datos y MinIO están
+limitados a `127.0.0.1` en el host.
+
+1. Abrir Docker Desktop y, desde PowerShell, iniciar las dependencias desde `system`:
+
+   ```powershell
+   docker compose up -d mysql mongo minio minio-init ffmpeg
+   docker compose ps
+   ```
+
+   Esperar a que MySQL y MongoDB terminen su inicialización. La primera descarga de
+   imágenes puede tardar.
+2. En una segunda terminal, iniciar el cliente:
+
+   ```powershell
+   cd system\client
+   npm run dev
+   ```
+
+3. Instalar `cloudflared` desde
+   [la documentación oficial](https://developers.cloudflare.com/tunnel/downloads/) si
+   todavía no está instalado. En una tercera terminal, crear el Quick Tunnel:
+
+   ```powershell
+   cloudflared tunnel --url http://127.0.0.1:5173
+   ```
+
+   Copiar la dirección `https://....trycloudflare.com` que muestra el comando.
+4. En una cuarta terminal, iniciar el API y configurar para esta sesión la dirección
+   pública que acabás de copiar. Reemplazar el ejemplo por la URL exacta del túnel:
+
+   ```powershell
+   cd system\api
+   $publicUrl = 'https://REEMPLAZAR.trycloudflare.com'
+   $env:CLIENT_URL = $publicUrl
+   $env:MINIO_PUBLIC_ENDPOINT = $publicUrl
+   $env:MINIO_PUBLIC_URL = $publicUrl
+   npm start
+   ```
+
+   El API reutiliza las credenciales locales de `system\.env`; no copiar ni compartir ese
+   archivo. Dejar abiertas las cuatro terminales mientras se use la demo.
+5. Compartir la URL de Quick Tunnel. Probar registro/login, cargar una imagen o archivo
+   y, si corresponde, el chat. La computadora y la conexión a Internet deben seguir
+   activas.
+
+Para terminar, detener `cloudflared`, Vite y el API con `Ctrl+C`; luego se pueden parar
+los contenedores conservando sus datos:
+
+```powershell
+cd system
+docker compose down
+```
+
+No usar `docker compose down -v`: eso elimina los volúmenes de bases, MinIO y backups.
+Al iniciar otro Quick Tunnel, la URL puede ser distinta; volver a configurar
+`CLIENT_URL`, `MINIO_PUBLIC_ENDPOINT` y `MINIO_PUBLIC_URL` para esa sesión.

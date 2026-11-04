@@ -1,7 +1,7 @@
 const checkRequestDataSize = () => {
     const maxParams = 5;
     const maxQuery = 5;
-    const maxHeaders = 20;
+    const maxHeaders = 40;
     const maxKeyLength = 100;
     const maxValueLength = 300;
     return (req, res, next) => {

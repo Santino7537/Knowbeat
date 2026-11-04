@@ -7,6 +7,7 @@ import CourseLessonMap from "../components/course-map/CourseLessonMap";
 import LessonPlayer from "../components/lesson-player/LessonPlayer.jsx";
 import { getLessonForCourse } from "../components/lesson-player/lessonCatalog.js";
 import styles from "./CSS/CourseLessonMapPage.module.css";
+import { API_URL } from "../api/client";
 
 const pianoIcon = (
   <svg fill="currentColor" width="800" height="800" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" aria-label="Curso de piano" role="img">
@@ -65,7 +66,7 @@ const CourseLessonMapPage = () => {
 
       try {
         const response = await axios.get(
-          "http://localhost:3000/user/get/progress",
+          `${API_URL}/user/get/progress`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         if (!Array.isArray(response.data)) {
@@ -111,7 +112,7 @@ const CourseLessonMapPage = () => {
     setStartingLesson(true);
     try {
       const response = await axios.patch(
-        `http://localhost:3000/user/update/progress/${course.course_id}`,
+        `${API_URL}/user/update/progress/${course.course_id}`,
         { current_lesson: lessonNumber },
         { headers: { Authorization: `Bearer ${token}` } }
       );

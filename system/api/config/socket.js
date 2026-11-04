@@ -10,7 +10,7 @@ const getIo = () => io;
 const initSocket = (server, allowedOrigins = []) => {
   io = new Server(server, {
     cors: {
-      origin: allowedOrigins,
+      origin: (origin, callback) => callback(null, Boolean(origin && allowedOrigins.includes(origin))),
       credentials: true,
       methods: ['GET', 'POST']
     }

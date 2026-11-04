@@ -12,7 +12,7 @@ const getPrivateFileUrl = async (bucket, filePath, expirationTime = 300, options
         } : {})
     });
 
-    return await getSignedUrl(s3, command, { expiresIn: expirationTime });
+    return await getSignedUrl(s3.presignClient, command, { expiresIn: expirationTime });
 };
 
 function getPublicFileUrl(bucket, filePath) {

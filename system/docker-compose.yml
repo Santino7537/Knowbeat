@@ -4,8 +4,8 @@ services:
     container_name: minio
 
     ports:
-      - "9000:9000"
-      - "9001:9001"
+      - "127.0.0.1:9000:9000"
+      - "127.0.0.1:9001:9001"
 
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER}
@@ -62,7 +62,7 @@ services:
     container_name: mongo
 
     ports:
-      - "27018:27017"
+      - "127.0.0.1:27018:27017"
 
     environment:
       MONGO_INITDB_DATABASE: ${MONGO_DATABASE_NAME}
@@ -82,7 +82,7 @@ services:
     container_name: mysql
 
     ports:
-      - "3307:3306"
+      - "127.0.0.1:3307:3306"
 
     environment:
       MYSQL_ROOT_PASSWORD: ${SQL_ROOT_PASSWORD}

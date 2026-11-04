@@ -10,4 +10,14 @@ const s3 = new S3Client({
   forcePathStyle: true // importante para MinIO local
 });
 
+s3.presignClient = new S3Client({
+  endpoint: process.env.MINIO_PUBLIC_ENDPOINT || process.env.MINIO_ENDPOINT,
+  region: "sa-east-1",
+  credentials: {
+    accessKeyId: process.env.MINIO_ACCESS_KEY,
+    secretAccessKey: process.env.MINIO_SECRET_KEY,
+  },
+  forcePathStyle: true
+});
+
 module.exports = s3;

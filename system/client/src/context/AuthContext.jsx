@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback } from "react";
 import axios from "axios";
+import { API_URL } from "../api/client";
 
 // ── Contexto ──────────────────────────────────────────────────────────────────
 const AuthContext = createContext(null);
@@ -30,7 +31,7 @@ export function AuthProvider({ children }) {
     }
     try {
       const { data } = await axios.get(
-        "http://localhost:3000/token/get/user",
+        `${API_URL}/token/get/user`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setLoggedUser(data);
@@ -55,7 +56,7 @@ export function AuthProvider({ children }) {
 
   const verifyAdminPassword = useCallback(async (password) => {
     const { data } = await axios.post(
-      "http://localhost:3000/admin/reauth",
+      `${API_URL}/admin/reauth`,
       { password },
       { headers: getAuthenticatedHeaders() }
     );
@@ -78,7 +79,7 @@ export function AuthProvider({ children }) {
     }
 
     try {
-      await axios.get("http://localhost:3000/admin/session", {
+      await axios.get(`${API_URL}/admin/session`, {
         headers: {
           ...getAuthenticatedHeaders(),
           "X-Admin-Authorization": adminAuthorization.token
@@ -99,7 +100,7 @@ export function AuthProvider({ children }) {
     try {
       if (localStorage.getItem("token")) {
         await axios.post(
-          "http://localhost:3000/user/logout",
+          `${API_URL}/user/logout`,
           {},
           { headers: getAuthenticatedHeaders() }
         );
