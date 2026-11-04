@@ -3,7 +3,8 @@ const express = require('express');
 const cors = require('cors');
 
 const { login, register, getUserById, getUserByUsername, getUserByToken, getUsers, getConfig, changeConfig, changeProfile, reportUser } = require('./controllers/userController');
-const { changeRole, deleteUser, getReports, getReportDetail, resolveReport } = require('./controllers/adminController');
+const { changeRole, deleteUser } = require('./controllers/adminController');
+const { getReports, getReportDetail, resolveReport, revokeSanction } = require('./controllers/moderationController');
 const { verifyAdminPassword, getAdminSession, revokeAdminSession, logout } = require('./controllers/adminAccessController');
 
 const { getCourses, getUserProgress, registerCourse, updateUserProgress } = require('./controllers/coursesController');
@@ -126,6 +127,7 @@ server.delete('/admin/session', checkToken, revokeAdminSession);
 server.get('/admin/reports', postResponseLog, checkToken, isAuth, requireAdminAccess, getReports);
 server.get('/admin/reports/:id', postResponseLog, checkToken, isAuth, requireAdminAccess, getReportDetail);
 server.patch('/admin/reports/:id', postResponseLog, checkToken, isAuth, requireAdminAccess, resolveReport);
+server.patch('/admin/sanctions/user/:id/revoke', postResponseLog, checkToken, isAuth, requireAdminAccess, revokeSanction);
 server.patch('/user/update/role/:id', postResponseLog, checkToken, isAuth, requireAdminAccess, changeRole);
 server.patch('/user/delete/user/:id', postResponseLog, checkToken, isAuth, requireAdminAccess, deleteUser);
 

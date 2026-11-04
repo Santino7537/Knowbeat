@@ -12,7 +12,7 @@ const PERKS = [
 
 // Panel de autenticación: lado de marca + formulario con pestañas.
 // (Mantiene el nombre de archivo original para no romper imports.)
-export default function FlipCard({ onAuthSuccess, initialMode = "login" }) {
+export default function FlipCard({ onAuthSuccess, onAccountSuspended, initialMode = "login" }) {
   const [mode, setMode] = useState(initialMode);
   const isLogin = mode === "login";
 
@@ -57,7 +57,11 @@ export default function FlipCard({ onAuthSuccess, initialMode = "login" }) {
 
         <div key={mode} className={styles.formSlot}>
           {isLogin ? (
-            <Login_card onAuthSuccess={onAuthSuccess} switchToRegister={() => setMode("register")} />
+            <Login_card
+              onAuthSuccess={onAuthSuccess}
+              onAccountSuspended={onAccountSuspended}
+              switchToRegister={() => setMode("register")}
+            />
           ) : (
             <Register_card onAuthSuccess={onAuthSuccess} switchToLogin={() => setMode("login")} />
           )}

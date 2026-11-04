@@ -3,7 +3,7 @@ import api, { getErrorMessage } from '../../api/client';
 import AuthField from './AuthField.jsx';
 import styles from './form_card.module.css';
 
-function Login_card({ onAuthSuccess, switchToRegister }) {
+function Login_card({ onAuthSuccess, onAccountSuspended, switchToRegister }) {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [errors, setErrors] = useState({});
@@ -33,6 +33,10 @@ function Login_card({ onAuthSuccess, switchToRegister }) {
             const { data } = await api.post("/login", { username: username.trim(), password });
             await onAuthSuccess(data.token);
         } catch (err) {
+            if (err.response?.data?.code === "ACCOUNT_SUSPENDED") {
+                onAccountSuspended?.(err.response.data.suspension);
+                return;
+            }
             const status = err.response?.status;
             if (status === 400 || status === 401) {
                 // Credenciales incorrectas: marcamos ambos campos (no revelamos cuál falló)

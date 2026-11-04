@@ -579,10 +579,10 @@ const resolveReport = async (req, res) => {
     }
 };
 
+const moderationController = require('./moderationController');
+
 module.exports = {
     deleteUser,
     changeRole,
-    getReports,
-    getReportDetail,
-    resolveReport
+    ...moderationController
 };

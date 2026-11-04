@@ -164,8 +164,18 @@ export default function Messages() {
     }
 
     socket.on('chat:message', handleMessage)
+    const handleSuspension = (details) => {
+      window.dispatchEvent(new CustomEvent('knowbeat:account-suspended', { detail: details }))
+    }
+    const handleConnectionError = (error) => {
+      if (error.data?.code === 'ACCOUNT_SUSPENDED') handleSuspension(error.data.suspension)
+    }
+    socket.on('account:suspended', handleSuspension)
+    socket.on('connect_error', handleConnectionError)
     return () => {
       socket.off('chat:message', handleMessage)
+      socket.off('account:suspended', handleSuspension)
+      socket.off('connect_error', handleConnectionError)
       socket.disconnect()
       socketRef.current = null
     }

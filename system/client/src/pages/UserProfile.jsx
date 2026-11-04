@@ -332,7 +332,7 @@ function StreakDisplay({ streak, loading, error }) {
 // ── ProfileHeader ─────────────────────────────────────────────────────────────
 
 function ProfileHeader({
-  user, isOwner, onEditClick, onRequestsClick, panel
+  user, isOwner, onEditClick, onRequestsClick, onReportClick, panel
 }) {
   return (
     <section className={styles.profileHeader} aria-label="Información del perfil">
@@ -376,7 +376,21 @@ function ProfileHeader({
               </button>
             </>
           ) : (
-            <FriendButton profileUsername={user.username} />
+            <>
+              <button
+                type="button"
+                className={styles.reportUserButton}
+                onClick={onReportClick}
+                title="Reportar usuario"
+                aria-label={`Reportar a ${user.username}`}
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M12 3 22 21H2L12 3Z" />
+                  <path d="M12 9v5m0 3h.01" />
+                </svg>
+              </button>
+              <FriendButton profileUsername={user.username} />
+            </>
           )}
         </div>
       </div>
@@ -446,6 +460,10 @@ export default function UserProfile() {
   const [goalLoading, setGoalLoading]         = useState(false);
   const [scoreHistory, setScoreHistory]       = useState([]);
   const [scoreHistoryLoading, setScoreHistoryLoading] = useState(true);
+  const [reportReason, setReportReason] = useState("INAPPROPRIATE_CONTENT");
+  const [reportDescription, setReportDescription] = useState("");
+  const [reportError, setReportError] = useState("");
+  const [sendingReport, setSendingReport] = useState(false);
 
   const isOwner =
     loggedUser && profileUser &&
@@ -547,6 +565,33 @@ export default function UserProfile() {
   // Handlers
   const togglePanel = (name) => {
     setPanel(prev => prev === name ? null : name);
+  };
+
+  const handleReportSubmit = async (event) => {
+    event.preventDefault();
+    const description = reportDescription.trim();
+    if (description.length < 20 || description.length > 2000) {
+      setReportError("La descripción debe tener entre 20 y 2000 caracteres.");
+      return;
+    }
+    if (sendingReport || !profileUser?.id) return;
+
+    setSendingReport(true);
+    setReportError("");
+    try {
+      await axios.post(
+        `${API}/user/report`,
+        { reported_id: profileUser.id, reason: reportReason, description },
+        { headers: authHeaders() }
+      );
+      setPanel(null);
+      setReportDescription("");
+      toast.success("El reporte se envió para revisión.");
+    } catch (requestError) {
+      setReportError(getErrorMessage(requestError, "No se pudo enviar el reporte."));
+    } finally {
+      setSendingReport(false);
+    }
     setIsMenuOpen(false);
     setError("");
   };
@@ -639,6 +684,10 @@ export default function UserProfile() {
           panel={panel}
           onEditClick={() => togglePanel("edit")}
           onRequestsClick={() => togglePanel("requests")}
+          onReportClick={() => {
+            setReportError("");
+            togglePanel("report");
+          }}
         />
 
         <ProfileStats
@@ -689,6 +738,55 @@ export default function UserProfile() {
         {isOwner && panel === "requests" && (
           <ProfileModal title="Solicitudes de amistad" onClose={() => setPanel(null)}>
             <FriendRequestsPanel />
+          </ProfileModal>
+        )}
+
+        {!isOwner && panel === "report" && (
+          <ProfileModal title="Reportar usuario" onClose={() => setPanel(null)}>
+            <form className={styles.modalBody} onSubmit={handleReportSubmit}>
+              <p className={styles.reportIntro}>
+                El reporte será revisado por el equipo de moderación. Usalo para informar un incidente concreto.
+              </p>
+              <label className={styles.reportField}>
+                Motivo del reporte
+                <select value={reportReason} onChange={(event) => setReportReason(event.target.value)}>
+                  <option value="INAPPROPRIATE_CONTENT">Contenido inapropiado</option>
+                  <option value="HARASSMENT">Acoso o bullying</option>
+                  <option value="THREATS">Amenazas o intimidación</option>
+                  <option value="SEXUAL_CONTENT">Desnudos o contenido sexual explícito</option>
+                  <option value="GRAPHIC_VIOLENCE">Violencia o contenido gráfico</option>
+                  <option value="SPAM">Spam o publicidad no solicitada</option>
+                  <option value="IDENTITY_THEFT">Suplantación de identidad</option>
+                  <option value="HATE_SPEECH">Discurso de odio o discriminación</option>
+                  <option value="FRAUD">Estafa o intento de fraude</option>
+                  <option value="ILLEGAL_ACTIVITY">Contenido relacionado con actividades ilegales</option>
+                  <option value="MISINFORMATION">Información falsa o engañosa</option>
+                  <option value="OTHER">Otro motivo</option>
+                </select>
+              </label>
+              <label className={styles.reportField}>
+                Descripción
+                <textarea
+                  value={reportDescription}
+                  onChange={(event) => setReportDescription(event.target.value)}
+                  minLength={20}
+                  maxLength={2000}
+                  rows={6}
+                  required
+                  placeholder="Contá brevemente qué ocurrió. Para “Otro motivo”, explicalo acá."
+                />
+                <span className={styles.characterCount}>{reportDescription.length}/2000</span>
+              </label>
+              {reportError && <p className={styles.formError} role="alert">{reportError}</p>}
+              <div className={styles.formActions}>
+                <button className={styles.secondaryAction} type="button" onClick={() => setPanel(null)} disabled={sendingReport}>
+                  Cancelar
+                </button>
+                <button className={styles.saveButton} type="submit" disabled={sendingReport}>
+                  {sendingReport ? "Enviando…" : "Enviar reporte"}
+                </button>
+              </div>
+            </form>
           </ProfileModal>
         )}
 

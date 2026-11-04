@@ -17,6 +17,16 @@ export function AuthProvider({ children }) {
   const [loggedUser, setLoggedUser] = useState(null);
   const [loadingAuth, setLoadingAuth] = useState(true);
   const [adminAuthorization, setAdminAuthorization] = useState(null);
+  const [suspension, setSuspension] = useState(null);
+
+  const handleAccountSuspension = useCallback((details) => {
+    if (!details || typeof details.reason !== "string") return;
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    setAdminAuthorization(null);
+    setLoggedUser(false);
+    setSuspension(details);
+  }, []);
 
   // Llama al endpoint con el token guardado en localStorage.
   // Se exporta para poder refrescar manualmente si el usuario edita su perfil.
@@ -34,10 +44,13 @@ export function AuthProvider({ children }) {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setLoggedUser(data);
+      setSuspension(null);
       return data;
     } catch (err) {
       console.warn("Sesión inválida:", err.response?.data ?? err.message);
-      if (err.response?.status === 401 || err.response?.status === 404) {
+      if (err.response?.data?.code === "ACCOUNT_SUSPENDED") {
+        handleAccountSuspension(err.response.data.suspension);
+      } else if (err.response?.status === 401 || err.response?.status === 404) {
         localStorage.removeItem("token");
         setAdminAuthorization(null);
       }
@@ -46,12 +59,30 @@ export function AuthProvider({ children }) {
     } finally {
       setLoadingAuth(false);
     }
-  }, []);
+  }, [handleAccountSuspension]);
 
   // Se ejecuta una única vez al montar la app
   useEffect(() => {
     refreshUser();
   }, [refreshUser]);
+
+  useEffect(() => {
+    const handleSuspensionEvent = (event) => handleAccountSuspension(event.detail);
+    const interceptorId = axios.interceptors.response.use(
+      (response) => response,
+      (error) => {
+        if (error.response?.data?.code === "ACCOUNT_SUSPENDED") {
+          handleAccountSuspension(error.response.data.suspension);
+        }
+        return Promise.reject(error);
+      }
+    );
+    window.addEventListener("knowbeat:account-suspended", handleSuspensionEvent);
+    return () => {
+      axios.interceptors.response.eject(interceptorId);
+      window.removeEventListener("knowbeat:account-suspended", handleSuspensionEvent);
+    };
+  }, [handleAccountSuspension]);
 
   const verifyAdminPassword = useCallback(async (password) => {
     const { data } = await axios.post(
@@ -95,6 +126,10 @@ export function AuthProvider({ children }) {
     setAdminAuthorization(null);
   }, []);
 
+  const clearSuspension = useCallback(() => {
+    setSuspension(null);
+  }, []);
+
   const logout = useCallback(async () => {
     try {
       if (localStorage.getItem("token")) {
@@ -111,6 +146,7 @@ export function AuthProvider({ children }) {
       localStorage.removeItem("user");
       setAdminAuthorization(null);
       setLoggedUser(false);
+      setSuspension(null);
     }
   }, []);
 
@@ -118,8 +154,11 @@ export function AuthProvider({ children }) {
     <AuthContext.Provider value={{
       loggedUser,
       loadingAuth,
+      suspension,
       refreshUser,
       setLoggedUser,
+      handleAccountSuspension,
+      clearSuspension,
       adminAuthorization,
       verifyAdminPassword,
       validateAdminAuthorization,

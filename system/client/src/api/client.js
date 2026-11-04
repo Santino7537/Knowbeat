@@ -11,6 +11,13 @@ export const API_URL = "http://localhost:3000";
 
 const api = axios.create({ baseURL: API_URL });
 
+const notifySuspension = (error) => {
+  const suspension = error.response?.data?.suspension;
+  if (error.response?.data?.code === "ACCOUNT_SUSPENDED" && suspension && typeof window !== "undefined") {
+    window.dispatchEvent(new CustomEvent("knowbeat:account-suspended", { detail: suspension }));
+  }
+};
+
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
   if (token) {
@@ -19,6 +26,14 @@ api.interceptors.request.use((config) => {
   }
   return config;
 });
+
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    notifySuspension(error);
+    return Promise.reject(error);
+  }
+);
 
 export default api;
 

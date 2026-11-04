@@ -12,7 +12,7 @@ const USER_PERMISSIONS = ['user-get-user', 'user-get-user-username', 'user-get-c
   'friend', 'friend-request', 'friend-request-accept', 'friend-request-reject', 'friend-request-cancel', 'friend-delete', 'friend-list', 'friend-requests',
   'chat', 'chat-send', 'chat-messages', 'chat-read'];
 
-  const ADMIN_PERMISSIONS = ['admin-reports', 'user-get-users', 'user-update-role', 'user-delete-user'];
+  const ADMIN_PERMISSIONS = ['admin-reports', 'admin-sanctions', 'user-get-users', 'user-update-role', 'user-delete-user'];
 
 const ROLES_PERMISSIONS = {
     [USER_ROLE]: USER_PERMISSIONS,
@@ -21,12 +21,31 @@ const ROLES_PERMISSIONS = {
 };
 const PERMISSIONS = [...new Set(Object.values(ROLES_PERMISSIONS).flat())].sort()
 
-const REPORT_STATUSES = ['PENDING', 'ACCEPTED', 'REJECTED'];
-const REPORT_REASONS = ['HARASSMENT', 'THREATS', 'OFFENSIVE_LANGUAGE', 'INAPPROPRIATE_CONTENT', 'SPAM', 'IDENTITY_THEFT', 'PERSONAL_DATA_EXPOSURE', 'OTHER'];
+const REPORT_STATUSES = ['PENDING', 'RESOLVED', 'REJECTED', 'ACCEPTED'];
+const REPORT_REASONS = [
+    'INAPPROPRIATE_CONTENT',
+    'HARASSMENT',
+    'THREATS',
+    'SEXUAL_CONTENT',
+    'GRAPHIC_VIOLENCE',
+    'SPAM',
+    'IDENTITY_THEFT',
+    'HATE_SPEECH',
+    'FRAUD',
+    'ILLEGAL_ACTIVITY',
+    'MISINFORMATION',
+    'OTHER'
+];
+const REPORT_FILTER_REASONS = [
+    ...REPORT_REASONS,
+    'OFFENSIVE_LANGUAGE',
+    'PERSONAL_DATA_EXPOSURE'
+];
 
 const LOG_ACTIONS = {
     REPORT_RESOLVE: 'resolve-report',
-    USER_BAN: 'ban-user'
+    USER_BAN: 'ban-user',
+    SANCTION_REVOKE: 'revoke-sanction'
 };
 
 const CONFIG_JSON = JSON.stringify({
@@ -115,6 +134,7 @@ module.exports = {
     PERMISSIONS,
     REPORT_STATUSES,
     REPORT_REASONS,
+    REPORT_FILTER_REASONS,
     LOG_ACTIONS,
     PENALTY_DATE,
     MAX_DAILY_GOAL,

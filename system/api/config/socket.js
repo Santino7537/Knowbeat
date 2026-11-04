@@ -2,6 +2,7 @@ const { Server } = require('socket.io');
 const jwt = require('jsonwebtoken');
 const db = require('./db');
 const { getDb } = require('./mongodb');
+const { getActiveSanction, toSuspensionResponse } = require('../utils/sanctions');
 
 let io;
 
@@ -29,10 +30,23 @@ const initSocket = (server, allowedOrigins = []) => {
 
       const secret = process.env.SECRET;
       const decoded = jwt.verify(token, secret);
+      if (!Number.isSafeInteger(decoded.user_id) || decoded.user_id <= 0) {
+        return next(new Error('Token inválido o expirado'));
+      }
       const [rows] = await db.query('SELECT id, role_id FROM User WHERE id = ? AND eliminated = 0', [decoded.user_id]);
 
       if (rows.length === 0) {
         return next(new Error('Usuario no encontrado'));
+      }
+
+      const sanction = await getActiveSanction(db, rows[0].id);
+      if (sanction) {
+        const error = new Error('ACCOUNT_SUSPENDED');
+        error.data = {
+          code: 'ACCOUNT_SUSPENDED',
+          suspension: toSuspensionResponse(sanction)
+        };
+        return next(error);
       }
 
       socket.user = {
@@ -42,12 +56,31 @@ const initSocket = (server, allowedOrigins = []) => {
       };
       next();
     } catch (error) {
-      next(new Error('Token inválido o expirado'));
+      if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {
+        return next(new Error('Token inválido o expirado'));
+      }
+      console.error('Error validando sesión de socket:', error);
+      next(new Error('No se pudo validar la sesión'));
     }
   });
 
   io.on('connection', (socket) => {
+    socket.join(`user:${socket.user.user_id}`);
+
+    const ensureNotSuspended = async () => {
+      try {
+        const sanction = await getActiveSanction(db, socket.user.user_id);
+        if (!sanction) return true;
+        socket.emit('account:suspended', toSuspensionResponse(sanction));
+      } catch (error) {
+        console.error('Error verificando sanción de socket:', error);
+      }
+      socket.disconnect(true);
+      return false;
+    };
+
     socket.on('chat:join', async ({ friendship_id }) => {
+      if (!(await ensureNotSuspended())) return;
       const friendshipId = Number(friendship_id);
       if (!Number.isSafeInteger(friendshipId) || friendshipId <= 0) {
         return socket.emit('chat:error', { message: 'El ID de la amistad no es válido' });
@@ -71,6 +104,7 @@ const initSocket = (server, allowedOrigins = []) => {
     });
 
     socket.on('chat:send', async ({ friendship_id, text }) => {
+      if (!(await ensureNotSuspended())) return;
       const friendshipId = Number(friendship_id);
       const cleanText = typeof text === 'string' ? text.replace(/[\u0000-\u001F\u007F]/g, '').trim() : '';
 
@@ -109,6 +143,7 @@ const initSocket = (server, allowedOrigins = []) => {
     });
 
     socket.on('chat:read', async ({ friendship_id }) => {
+      if (!(await ensureNotSuspended())) return;
       const friendshipId = Number(friendship_id);
       if (!Number.isSafeInteger(friendshipId) || friendshipId <= 0) {
         return socket.emit('chat:error', { message: 'El ID de la amistad no es válido' });
