@@ -1,4 +1,5 @@
 import styles from "../pages/CSS/Courses.module.css";
+import { useLanguage } from "../context/LanguageContext.jsx"; // <-- Importar hook de idioma
 
 const courseImages = {
   guitarra: "/coursesPicture/guitarra.png",
@@ -21,6 +22,8 @@ const CourseCard = ({
   onRegister,
   onContinue
 }) => {
+  const { t } = useLanguage(); // <-- Consumir la función de traducción
+
   const totalLessons = Number(course.total_lessons) || 0;
   const currentLesson = Math.max(1, Number(course.current_lesson) || 0);
   const completedLessons = Math.min(totalLessons, Math.max(0, currentLesson - 1));
@@ -42,7 +45,7 @@ const CourseCard = ({
         <div className={styles.course_top}>
           <h2>{course.name}</h2>
           <span className={styles.course_lesson_count}>
-            {totalLessons} {totalLessons === 1 ? "lección" : "lecciones"}
+            {totalLessons} {totalLessons === 1 ? t("course_card.lesson_singular") : t("course_card.lesson_plural")}
           </span>
         </div>
 
@@ -51,16 +54,16 @@ const CourseCard = ({
             <div className={styles.course_progress}>
               <div className={styles.progress_info}>
                 <span className={styles.course_status}>
-                  {totalLessons > 0 && completedLessons === totalLessons ? "Completado" : "En progreso"}
+                  {totalLessons > 0 && completedLessons === totalLessons ? t("course_card.status.completed") : t("course_card.status.in_progress")}
                 </span>
-                <span>{completedLessons} / {totalLessons} lecciones</span>
-                <span>{remainingLessons} restantes</span>
+                <span>{completedLessons} / {totalLessons} {t("course_card.lessons_count_label")}</span>
+                <span>{remainingLessons} {t("course_card.remaining_label")}</span>
                 <strong className={styles.course_percent}>{percent}%</strong>
               </div>
               <div
                 className={styles.progress_bar}
                 role="progressbar"
-                aria-label={`Progreso de ${course.name}`}
+                aria-label={t("course_card.progress_aria").replace("{name}", course.name)}
                 aria-valuenow={percent}
                 aria-valuemin="0"
                 aria-valuemax="100"
@@ -72,28 +75,28 @@ const CourseCard = ({
               </div>
             </div>
             <button className={styles.continue_btn} onClick={onContinue}>
-              Continuar
+              {t("course_card.continue_btn")}
             </button>
           </div>
         ) : (
           <div className={styles.course_card_footer}>
             <span className={isEnrolled ? styles.course_status : styles.catalog_status}>
-              {isEnrolled ? "Ya estás anotado" : "Disponible"}
+              {isEnrolled ? t("course_card.catalog.already_enrolled") : t("course_card.catalog.available")}
             </span>
             <div className={styles.catalog_actions}>
               <button
                 className={styles.catalog_content_btn}
                 disabled
-                title="Disponible próximamente"
+                title={t("course_card.catalog.coming_soon_title")}
               >
-                Ver contenido
+                {t("course_card.catalog.view_content")}
               </button>
               <button
                 className={styles.continue_btn}
                 disabled={isEnrolled || registering}
                 onClick={onRegister}
               >
-                {isEnrolled ? "Inscripto" : registering ? "Inscribiendo..." : "Inscribirme"}
+                {isEnrolled ? t("course_card.catalog.enrolled_badge") : registering ? t("course_card.catalog.registering") : t("course_card.catalog.register_btn")}
               </button>
             </div>
           </div>

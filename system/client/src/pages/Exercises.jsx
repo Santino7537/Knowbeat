@@ -1,26 +1,29 @@
-import { useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
-import Sidebar from '../components/Sidebar'
-import { EXERCISE_TYPES, exercisesCatalog } from '../exercises-pages/exercisesCatalog'
-import styles from './CSS/Exercises.module.css'
+import Sidebar from '../components/Sidebar';
+import { EXERCISE_TYPES, exercisesCatalog } from '../exercises-pages/exercisesCatalog';
+import styles from './CSS/Exercises.module.css';
+import { useLanguage } from '../context/LanguageContext.jsx'; // <-- Importar hook de idioma
 
 const Exercises = () => {
-  const navigate = useNavigate()
-  const [activeType, setActiveType] = useState('Todos')
+  const navigate = useNavigate();
+  const { t } = useLanguage(); // <-- Consumir la función de traducción
+  const [activeType, setActiveType] = useState('Todos');
+
   const filteredExercises = useMemo(() => {
     if (activeType === 'Todos') {
-      return exercisesCatalog
+      return exercisesCatalog;
     }
 
     return exercisesCatalog.filter(
       (exercise) => exercise.type === activeType
-    )
-  }, [activeType])
+    );
+  }, [activeType]);
 
   const availableCount = exercisesCatalog.filter(
     (exercise) => exercise.available
-  ).length
+  ).length;
 
   return (
     <div className={styles.exercises_layout}>
@@ -29,22 +32,22 @@ const Exercises = () => {
       <main className={styles.exercises_main}>
         <div className={styles.exercises_header}>
           <div>
-            <h1>Ejercicios Musicales</h1>
+            <h1>{t('exercises_page.title')}</h1>
             <p>
-              Elegí un tipo de ejercicio y empezá a practicar.
+              {t('exercises_page.subtitle')}
             </p>
           </div>
 
           <div className={styles.header_stats}>
             <span className={styles.stat_pill}>
-              {availableCount} disponible{availableCount !== 1 ? 's' : ''}
+              {availableCount} {availableCount !== 1 ? t('exercises_page.stats.available_plural') : t('exercises_page.stats.available_singular')}
             </span>
           </div>
         </div>
 
         <div className={styles.content_container}>
           <aside className={styles.types_panel}>
-            <h3>Filtrar por tipo</h3>
+            <h3>{t('exercises_page.filter_title')}</h3>
 
             {EXERCISE_TYPES.map((type) => {
               const count =
@@ -52,7 +55,10 @@ const Exercises = () => {
                   ? exercisesCatalog.length
                   : exercisesCatalog.filter(
                       (exercise) => exercise.type === type
-                    ).length
+                    ).length;
+
+              // Manejar etiqueta para el botón "Todos" de forma localizada si es necesario
+              const displayLabel = type === 'Todos' ? t('exercises_page.all_types') : type;
 
               return (
                 <button
@@ -63,10 +69,10 @@ const Exercises = () => {
                   }`}
                   onClick={() => setActiveType(type)}
                 >
-                  <span>{type}</span>
+                  <span>{displayLabel}</span>
                   <span className={styles.type_count}>{count}</span>
                 </button>
-              )
+              );
             })}
           </aside>
 
@@ -74,26 +80,24 @@ const Exercises = () => {
             <div className={styles.panel_header}>
               <h2>
                 {activeType === 'Todos'
-                  ? 'Todos los ejercicios'
-                  : `Ejercicios de ${activeType}`}
+                  ? t('exercises_page.all_exercises')
+                  : t('exercises_page.exercises_of').replace('{type}', activeType)}
               </h2>
-            
             </div>
 
             {filteredExercises.length === 0 ? (
               <div className={styles.empty_state}>
                 <span className={styles.empty_icon}>🎼</span>
-                <h3>Sin ejercicios por ahora</h3>
+                <h3>{t('exercises_page.empty.title')}</h3>
                 <p>
-                  Probá con otra categoría o volvé más adelante cuando
-                  agreguemos nuevos ejercicios.
+                  {t('exercises_page.empty.desc')}
                 </p>
                 <button
                   type="button"
                   className={styles.reset_filter_button}
                   onClick={() => setActiveType('Todos')}
                 >
-                  Ver todos los ejercicios
+                  {t('exercises_page.empty.reset_btn')}
                 </button>
               </div>
             ) : (
@@ -108,7 +112,7 @@ const Exercises = () => {
                     }`}
                     onClick={() => {
                       if (exercise.available) {
-                        navigate(exercise.path)
+                        navigate(exercise.path);
                       }
                     }}
                     onKeyDown={(event) => {
@@ -116,8 +120,8 @@ const Exercises = () => {
                         exercise.available &&
                         (event.key === 'Enter' || event.key === ' ')
                       ) {
-                        event.preventDefault()
-                        navigate(exercise.path)
+                        event.preventDefault();
+                        navigate(exercise.path);
                       }
                     }}
                     role={exercise.available ? 'button' : undefined}
@@ -129,7 +133,7 @@ const Exercises = () => {
                       </span>
                       {!exercise.available && (
                         <span className={styles.coming_soon_badge}>
-                          Próximamente
+                          {t('exercises_page.coming_soon')}
                         </span>
                       )}
                     </div>
@@ -139,7 +143,7 @@ const Exercises = () => {
 
                     {exercise.available && (
                       <span className={styles.enter_link}>
-                        Empezar →
+                        {t('exercises_page.start_link')}
                       </span>
                     )}
                   </article>
@@ -150,7 +154,7 @@ const Exercises = () => {
         </div>
       </main>
     </div>
-  )
-}
+  );
+};
 
-export default Exercises
+export default Exercises;

@@ -1,33 +1,38 @@
 import styles from "./LessonPlayer.module.css";
+import { useLanguage } from "../../context/LanguageContext.jsx"; // <-- Importar hook de idioma (ajusta la ruta si es necesario)
 
-const LessonCompletion = ({ result, isReplay = false, onRetry, onReturn }) => (
-  <main className={styles.completion}>
-    <p className={styles.eyebrow}>LECCIÓN FINALIZADA</p>
-    <h1>{result.passed ? "¡Buen trabajo!" : "Seguí practicando"}</h1>
-    {result.score && (
-      <p className={styles.score}>
-        Respuestas correctas: {result.score.correct} de {result.score.total}
-        <strong>{result.score.percent}%</strong>
-      </p>
-    )}
-    {result.passed ? (
-      <p className={styles.completionMessage}>
-        {isReplay
-          ? "Terminaste la práctica. Tu progreso del curso se mantiene sin cambios."
-          : "Aprobaste esta lección y tu progreso quedó guardado."}
-      </p>
-    ) : (
-      <>
-        <p className={styles.completionMessage}>Terminaste la lección, pero no alcanzaste el requisito para aprobarla.</p>
-        <button className={styles.secondaryButton} type="button" onClick={onRetry}>
-          Reintentar lección
-        </button>
-      </>
-    )}
-    <button className={styles.nextButton} type="button" onClick={onReturn}>
-      Volver al curso
-    </button>
-  </main>
-);
+const LessonCompletion = ({ result, isReplay = false, onRetry, onReturn }) => {
+  const { t } = useLanguage(); // <-- Consumir la función de traducción
+
+  return (
+    <main className={styles.completion}>
+      <p className={styles.eyebrow}>{t("lesson_completion.eyebrow")}</p>
+      <h1>{result.passed ? t("lesson_completion.passed_title") : t("lesson_completion.failed_title")}</h1>
+      {result.score && (
+        <p className={styles.score}>
+          {t("lesson_completion.correct_answers")} {result.score.correct} {t("lesson_completion.of")} {result.score.total}
+          <strong>{result.score.percent}%</strong>
+        </p>
+      )}
+      {result.passed ? (
+        <p className={styles.completionMessage}>
+          {isReplay
+            ? t("lesson_completion.replay_message")
+            : t("lesson_completion.passed_message")}
+        </p>
+      ) : (
+        <>
+          <p className={styles.completionMessage}>{t("lesson_completion.fail_message")}</p>
+          <button className={styles.secondaryButton} type="button" onClick={onRetry}>
+            {t("lesson_completion.retry_btn")}
+          </button>
+        </>
+      )}
+      <button className={styles.nextButton} type="button" onClick={onReturn}>
+        {t("lesson_completion.return_btn")}
+      </button>
+    </main>
+  );
+};
 
 export default LessonCompletion;

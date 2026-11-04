@@ -4,6 +4,7 @@ import { useAuth } from "../context/AuthContext.jsx";
 import BrandLogo from "./general/BrandLogo.jsx";
 import ThemeToggle from "./general/ThemeToggle.jsx";
 import Avatar from "./general/Avatar.jsx";
+import { useLanguage } from "../context/LanguageContext.jsx"; // <-- Importar hook de idioma
 
 const COLLAPSE_KEY = "kb-sidebar-collapsed";
 
@@ -66,12 +67,11 @@ const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { loggedUser, logout } = useAuth();
+  const { t } = useLanguage(); // <-- Consumir función de traducción
   const [profileImageError, setProfileImageError] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(readCollapsed);
 
-  // La clase va en <html> para que TODAS las páginas lean el nuevo ancho
-  // (--kb-sidebar-width) y se acomoden con una transición.
   useEffect(() => {
     document.documentElement.classList.toggle("kb-sidebar-collapsed", collapsed);
     try {
@@ -89,7 +89,6 @@ const Sidebar = () => {
     setProfileImageError(false);
   }, [loggedUser?.picture]);
 
-  // En mobile la sidebar es un panel deslizable: se cierra al navegar o con Escape
   useEffect(() => {
     setMobileOpen(false);
   }, [location.pathname]);
@@ -102,11 +101,11 @@ const Sidebar = () => {
   }, [mobileOpen]);
 
   const items = [
-    { name: "Aprender", path: "/courses", icon: navIcons.aprender },
-    { name: "Comunidad", path: "/community", icon: navIcons.comunidad },
-    { name: "Ejercicios", path: "/exercises", icon: navIcons.ejercicios },
-    { name: "Carpetas", path: "/folders", icon: navIcons.carpetas },
-    { name: "Mensajes", path: "/messages", icon: navIcons.mensajes },
+    { name: t("sidebar.nav.learn"), path: "/courses", icon: navIcons.aprender },
+    { name: t("sidebar.nav.community"), path: "/community", icon: navIcons.comunidad },
+    { name: t("sidebar.nav.exercises"), path: "/exercises", icon: navIcons.ejercicios },
+    { name: t("sidebar.nav.folders"), path: "/folders", icon: navIcons.carpetas },
+    { name: t("sidebar.nav.messages"), path: "/messages", icon: navIcons.mensajes },
   ];
   if (loggedUser?.role === "Administrator") {
     items.push({ name: "Administración", path: "/admin", icon: navIcons.administracion, admin: true });
@@ -114,9 +113,10 @@ const Sidebar = () => {
 
   const profileImage = loggedUser?.picture && String(loggedUser.picture).trim();
 
-  // "Aprender" también queda activo dentro de /courses/... (catálogo, lecciones)
   const isActive = (path) =>
     location.pathname === path || (path !== "/" && location.pathname.startsWith(`${path}/`));
+
+  const profileLabel = loggedUser?.username || t("sidebar.profile.fallback");
 
   return (
     <>
@@ -124,7 +124,7 @@ const Sidebar = () => {
       type="button"
       className={`sidebar-mobile-toggle ${mobileOpen ? "is-open" : ""}`}
       onClick={() => setMobileOpen((open) => !open)}
-      aria-label={mobileOpen ? "Cerrar menú" : "Abrir menú"}
+      aria-label={mobileOpen ? t("sidebar.aria.close_menu") : t("sidebar.aria.open_menu")}
       aria-expanded={mobileOpen}
     >
       <span></span><span></span><span></span>
@@ -136,14 +136,14 @@ const Sidebar = () => {
       aria-hidden="true"
     />
 
-    <aside className={`sidebar ${mobileOpen ? "open" : ""} ${collapsed ? "is-collapsed" : ""}`} aria-label="Sidebar principal">
+    <aside className={`sidebar ${mobileOpen ? "open" : ""} ${collapsed ? "is-collapsed" : ""}`} aria-label={t("sidebar.aria.sidebar_label")}>
       <button
         type="button"
         className="sidebar-collapse"
         onClick={() => setCollapsed((c) => !c)}
-        aria-label={collapsed ? "Expandir menú lateral" : "Minimizar menú lateral"}
+        aria-label={collapsed ? t("sidebar.aria.expand_menu") : t("sidebar.aria.collapse_menu")}
         aria-expanded={!collapsed}
-        title={collapsed ? "Expandir menú" : "Minimizar menú"}
+        title={collapsed ? t("sidebar.titles.expand") : t("sidebar.titles.collapse")}
       >
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
           <path d="M15 5l-7 7 7 7" />
@@ -151,7 +151,7 @@ const Sidebar = () => {
       </button>
 
       <div className="sidebar-brand">
-        <button type="button" className="sidebar-logo-button" onClick={() => navigate("/")} aria-label="Ir al inicio">
+        <button type="button" className="sidebar-logo-button" onClick={() => navigate("/")} aria-label={t("sidebar.aria.go_home")}>
           <BrandLogo className="sidebar-logo" />
           <BrandLogo variant="mark" className="sidebar-mark" label="" />
         </button>
@@ -159,8 +159,8 @@ const Sidebar = () => {
 
       <div className="sidebar-divider"></div>
 
-      <nav className="sidebar-nav" aria-label="Menú principal">
-        <div className="nav-label">Menú Principal</div>
+      <nav className="sidebar-nav" aria-label={t("sidebar.aria.main_menu")}>
+        <div className="nav-label">{t("sidebar.nav.label")}</div>
         {items.map((item) => (
           <button
             key={item.path}
@@ -184,16 +184,16 @@ const Sidebar = () => {
             type="button"
             className={`profile-button ${location.pathname === profilePath ? "active" : ""}`}
             onClick={() => profilePath && navigate(profilePath)}
-            aria-label={loggedUser?.username ? `Ir al perfil de ${loggedUser.username}` : "Ir al perfil"}
-            title={loggedUser?.username ? `Perfil de ${loggedUser.username}` : "Perfil"}
+            aria-label={loggedUser?.username ? t("sidebar.aria.profile_of").replace("{username}", loggedUser.username) : t("sidebar.aria.profile")}
+            title={loggedUser?.username ? t("sidebar.titles.profile_of").replace("{username}", loggedUser.username) : t("sidebar.titles.profile")}
           >
             <Avatar
-              name={loggedUser?.username || "Perfil"}
+              name={profileLabel}
               src={profileImage && !profileImageError ? profileImage : null}
               size={36}
               className="profile-avatar-img"
             />
-            <span className="profile-name">{loggedUser?.username || "Perfil"}</span>
+            <span className="profile-name">{profileLabel}</span>
           </button>
 
           <ThemeToggle className="sidebar-theme-toggle" />
@@ -202,8 +202,8 @@ const Sidebar = () => {
             type="button"
             className={`settings-button ${location.pathname === "/settings" ? "active" : ""}`}
             onClick={() => navigate("/settings")}
-            aria-label="Configuración"
-            title="Configuración"
+            aria-label={t("sidebar.aria.settings")}
+            title={t("sidebar.titles.settings")}
           >
             <span className="nav-icon" aria-hidden="true">{navIcons.config}</span>
           </button>

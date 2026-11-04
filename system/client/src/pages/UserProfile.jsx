@@ -11,6 +11,7 @@ import MusicStaff from "../components/general/MusicStaff.jsx";
 import DailyScoreActivity from "../components/profile/DailyScoreActivity.jsx";
 import { useToast } from "../context/ToastContext.jsx";
 import { getErrorMessage } from "../api/client";
+import { useLanguage } from "../context/LanguageContext.jsx"; // <-- Importar hook de idioma
 import styles from "./CSS/UserProfile.module.css";
 
 const API = "http://localhost:3000";
@@ -22,29 +23,21 @@ function authHeaders() {
 }
 
 // ── FriendButton ──────────────────────────────────────────────────────────────
-// Aparece solo cuando se visita el perfil de otro usuario.
-// Estados posibles: "none" | "friends" | "pending_sent" | "loading"
-// - none         → botón agrega amigo  → llama a sendFriendRequest
-// - friends      → botón elimina amigo → llama a deleteFriendship
-// - pending_sent → solicitud enviada   → llama a cancelFriendRequest
 
 function FriendButton({ profileUsername }) {
-  // friendshipStatus: null mientras carga, luego objeto con los campos necesarios
   const [status, setStatus]     = useState("loading");
   const [busy, setBusy]         = useState(false);
   const toast                   = useToast();
   const navigate                = useNavigate();
-  // Guardamos IDs que necesitamos para las acciones
+  const { t }                   = useLanguage(); // <-- Consumir traducción
   const [friendshipId, setFriendshipId]   = useState(null);
   const [requestId, setRequestId]         = useState(null);
 
-  // Al montar consultamos si ya son amigos y si hay solicitud pendiente
   useEffect(() => {
     let mounted = true;
 
     const check = async () => {
       try {
-        // Pedimos la lista de amigos y las solicitudes en paralelo
         const [friendsRes, requestsRes] = await Promise.all([
           axios.get(`${API}/friend/list`,     { headers: authHeaders() }),
           axios.get(`${API}/friend/requests`, { headers: authHeaders() }),
@@ -52,8 +45,6 @@ function FriendButton({ profileUsername }) {
 
         if (!mounted) return;
 
-        // friendsRes.data es un objeto { [user_id]: { friendship_id, username, ... } }
-        // Buscamos si alguno tiene el username del perfil visitado
         const friendEntry = Object.entries(friendsRes.data)
           .find(([, f]) => f.username === profileUsername);
 
@@ -63,7 +54,6 @@ function FriendButton({ profileUsername }) {
           return;
         }
 
-        // Solicitudes salientes pendientes
         const outgoing = requestsRes.data.outgoing ?? [];
         const sent = outgoing.find(r => r.user.username === profileUsername);
         if (sent) {
@@ -75,7 +65,7 @@ function FriendButton({ profileUsername }) {
         setStatus("none");
       } catch (err) {
         console.error("Error al verificar amistad:", err.response?.data ?? err.message);
-        setStatus("none"); // fallback no-bloqueante
+        setStatus("none");
       }
     };
 
@@ -89,9 +79,6 @@ function FriendButton({ profileUsername }) {
     setBusy(true);
     try {
       if (status === "none") {
-        // Necesitamos el user_id del perfil visitado.
-        // Lo obtenemos del endpoint de perfil público (ya existe en el componente padre,
-        // pero para mantener FriendButton independiente hacemos una consulta mínima).
         const { data: target } = await axios.get(
           `${API}/user/get/user/username/${encodeURIComponent(profileUsername)}`,
           { headers: authHeaders() }
@@ -122,26 +109,25 @@ function FriendButton({ profileUsername }) {
         setFriendshipId(null);
       }
     } catch (err) {
-      toast.error(getErrorMessage(err, "No se pudo completar la acción de amistad."));
+      toast.error(getErrorMessage(err, t("profile_page.errors.friend_action_failed")));
     } finally {
       setBusy(false);
     }
   };
 
-  // Mientras carga mostramos un botón "fantasma" del mismo tamaño (sin saltos)
   if (status === "loading") return <span className={styles.friendPlaceholder} aria-hidden="true" />;
 
   const isFriend     = status === "friends";
   const isPending    = status === "pending_sent";
-  const label        = isFriend  ? "Eliminar amigo"
-                     : isPending ? "Cancelar solicitud"
-                     : "Enviar solicitud de amistad";
+  const label        = isFriend  ? t("profile_page.friends.delete")
+                     : isPending ? t("profile_page.friends.cancel_request")
+                     : t("profile_page.friends.add");
 
   return (
     <div className={styles.friendActions}>
       {isFriend && (
         <button type="button" className={styles.primaryAction} onClick={() => navigate("/messages")}>
-          Enviar mensaje
+          {t("profile_page.friends.send_message")}
         </button>
       )}
       <button
@@ -157,7 +143,7 @@ function FriendButton({ profileUsername }) {
           aria-hidden="true"
           className={styles.actionIcon}
         />
-        {isFriend ? "Amigos · Eliminar" : isPending ? "Solicitud enviada · Cancelar" : "Agregar amigo"}
+        {isFriend ? t("profile_page.friends.status_friends") : isPending ? t("profile_page.friends.status_pending") : t("profile_page.friends.add")}
       </button>
     </div>
   );
@@ -167,6 +153,7 @@ function FriendButton({ profileUsername }) {
 
 function FriendRequestItem({ request, onAccept, onReject }) {
   const [busy, setBusy] = useState(false);
+  const { t } = useLanguage();
 
   const handle = async (action) => {
     setBusy(true);
@@ -179,24 +166,22 @@ function FriendRequestItem({ request, onAccept, onReject }) {
       <Avatar name={request.user.username} src={request.user.picture} size={40} />
       <span className={styles.requestUsername}>{request.user.username}</span>
       <div className={styles.requestActions}>
-        {/* Aceptar */}
         <button
           className={`${styles.friendButton} ${styles.friendButtonSmall}`}
           onClick={() => handle(onAccept)}
           disabled={busy}
-          aria-label="Aceptar solicitud"
-          title="Aceptar"
+          aria-label={t("profile_page.requests.accept_aria")}
+          title={t("profile_page.requests.accept_title")}
           type="button"
         >
           <img src={AddFriendIcon} alt="" aria-hidden="true" className={styles.friendButtonIcon} />
         </button>
-        {/* Rechazar */}
         <button
           className={`${styles.friendButton} ${styles.friendButtonSmall} ${styles.friendButtonActive}`}
           onClick={() => handle(onReject)}
           disabled={busy}
-          aria-label="Rechazar solicitud"
-          title="Rechazar"
+          aria-label={t("profile_page.requests.reject_aria")}
+          title={t("profile_page.requests.reject_title")}
           type="button"
         >
           <img src={RemoveFriendIcon} alt="" aria-hidden="true" className={styles.friendButtonIcon} />
@@ -208,6 +193,7 @@ function FriendRequestItem({ request, onAccept, onReject }) {
 
 function ProfileModal({ title, onClose, children }) {
   const dialogRef = useRef(null);
+  const { t } = useLanguage();
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -235,7 +221,7 @@ function ProfileModal({ title, onClose, children }) {
           className={styles.closeButton}
           type="button"
           onClick={onClose}
-          aria-label="Cerrar ventana"
+          aria-label={t("profile_page.modal.close_aria")}
           autoFocus
         >
           ×
@@ -251,6 +237,7 @@ function ProfileModal({ title, onClose, children }) {
 function FriendRequestsPanel() {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading]   = useState(true);
+  const { t } = useLanguage();
 
   const fetchRequests = useCallback(async () => {
     try {
@@ -278,9 +265,9 @@ function FriendRequestsPanel() {
   return (
     <div className={styles.modalBody}>
       {loading ? (
-        <p className={styles.requestsEmpty}>Cargando…</p>
+        <p className={styles.requestsEmpty}>{t("profile_page.requests.loading")}</p>
       ) : requests.length === 0 ? (
-        <p className={styles.requestsEmpty}>No hay solicitudes pendientes</p>
+        <p className={styles.requestsEmpty}>{t("profile_page.requests.empty")}</p>
       ) : (
         <div className={styles.requestsList}>
           {requests.map(req => (
@@ -300,12 +287,13 @@ function FriendRequestsPanel() {
 // ── StreakDisplay ─────────────────────────────────────────────────────────────
 
 function StreakDisplay({ streak, loading, error }) {
+  const { t } = useLanguage();
   const hasStreak = streak !== null && streak !== undefined && Number.isFinite(Number(streak));
   const days      = hasStreak ? Math.max(0, Math.floor(Number(streak))) : null;
   const tier      = days > 60 ? "red" : days > 30 ? "orange" : days > 5 ? "yellow" : "white";
 
   return (
-    <div className={`${styles.statCard} ${styles.streakDisplay} ${styles[`streak${tier}`]}`} aria-label="Racha de aprendizaje">
+    <div className={`${styles.statCard} ${styles.streakDisplay} ${styles[`streak${tier}`]}`} aria-label={t("profile_page.streak.aria")}>
       <svg className={styles.streakIcon} viewBox="0 0 32 40" aria-hidden="true">
         <path d="M17.2 1.5c1.2 7.1-4.9 9.5-2.8 15.2 1.3-1.2 2.2-3.1 2.1-5.3 6.1 4.6 9.6 10 8.5 16.3C24 34 19.8 38 14.2 38 7.8 38 3 33.4 3 26.8c0-5.2 3.1-9.2 7.1-12.8-.2 4.2.3 6.5 1.7 8.1C11 15.1 18.7 11 17.2 1.5Z" fill="currentColor"/>
         <path d="M16.4 23.2c2.8 2.2 4.1 4.2 3.7 7.1-.3 2.3-1.9 3.8-4 3.8-2.4 0-4.1-1.8-4.1-4.2 0-2.5 1.8-4.5 4.4-6.7Z" fill="currentColor" opacity=".58"/>
@@ -314,14 +302,16 @@ function StreakDisplay({ streak, loading, error }) {
         {error ? (
           <span className={styles.streakUnavailable}>{error}</span>
         ) : loading || days === null ? (
-          <span className={styles.streakUnavailable}>Cargando racha…</span>
+          <span className={styles.streakUnavailable}>{t("profile_page.streak.loading")}</span>
         ) : (
           <>
             <span className={styles.streakValue}>
               <strong>{days}</strong>
-              <span>{days === 1 ? "día" : "días"}</span>
+              <span>{days === 1 ? t("profile_page.streak.day") : t("profile_page.streak.days")}</span>
             </span>
-            <span className={styles.streakLabel}>de racha {days > 0 ? "· Seguí así" : "· practicá hoy para empezar"}</span>
+            <span className={styles.streakLabel}>
+              {days > 0 ? t("profile_page.streak.positive") : t("profile_page.streak.zero")}
+            </span>
           </>
         )}
       </div>
@@ -334,9 +324,10 @@ function StreakDisplay({ streak, loading, error }) {
 function ProfileHeader({
   user, isOwner, onEditClick, onRequestsClick, onReportClick, panel
 }) {
+  const { t } = useLanguage();
+
   return (
-    <section className={styles.profileHeader} aria-label="Información del perfil">
-      {/* Portada con pentagrama y notas */}
+    <section className={styles.profileHeader} aria-label={t("profile_page.header_aria")}>
       <div className={styles.cover} aria-hidden="true">
         <MusicStaff staves={1} notes={12} lineGap={18} className={styles.coverStaff} />
       </div>
@@ -350,10 +341,10 @@ function ProfileHeader({
             <p className={styles.description}>{user.biography}</p>
           ) : isOwner ? (
             <button type="button" className={styles.addBio} onClick={onEditClick}>
-              + Agregá una biografía para que la comunidad te conozca
+              {t("profile_page.bio.add_prompt")}
             </button>
           ) : (
-            <p className={styles.descriptionMuted}>Este músico todavía no escribió su biografía.</p>
+            <p className={styles.descriptionMuted}>{t("profile_page.bio.empty_other")}</p>
           )}
         </div>
 
@@ -365,14 +356,14 @@ function ProfileHeader({
                 className={panel === "edit" ? styles.primaryAction : styles.secondaryAction}
                 onClick={onEditClick}
               >
-                Editar perfil
+                {t("profile_page.actions.edit")}
               </button>
               <button
                 type="button"
                 className={panel === "requests" ? styles.primaryAction : styles.secondaryAction}
                 onClick={onRequestsClick}
               >
-                Solicitudes
+                {t("profile_page.actions.requests")}
               </button>
             </>
           ) : (
@@ -401,13 +392,14 @@ function ProfileHeader({
 // ── Estadísticas rápidas ──────────────────────────────────────────────────────
 
 function ProfileStats({ isOwner, streak, streakLoading, streakError, score, courses, progressVisible }) {
+  const { t } = useLanguage();
   const completed = courses.reduce(
     (sum, c) => sum + Math.max(0, Math.min(Number(c.total_lessons) || 0, (Number(c.current_lesson) || 1) - 1)),
     0
   );
 
   return (
-    <section className={styles.stats} aria-label="Estadísticas">
+    <section className={styles.stats} aria-label={t("profile_page.stats.aria")}>
       {isOwner && (
         <StreakDisplay streak={streak} loading={streakLoading} error={streakError} />
       )}
@@ -415,20 +407,20 @@ function ProfileStats({ isOwner, streak, streakLoading, streakError, score, cour
         <div className={styles.statCard}>
           <div>
             <strong>{score}</strong>
-            <span>score total</span>
+            <span>{t("profile_page.stats.total_score")}</span>
           </div>
         </div>
       )}
       <div className={styles.statCard}>
         <div>
           <strong>{progressVisible ? courses.length : "—"}</strong>
-          <span>{courses.length === 1 ? "curso en progreso" : "cursos en progreso"}</span>
+          <span>{courses.length === 1 ? t("profile_page.stats.course_singular") : t("profile_page.stats.course_plural")}</span>
         </div>
       </div>
       <div className={styles.statCard}>
         <div>
           <strong>{progressVisible ? completed : "—"}</strong>
-          <span>{completed === 1 ? "lección completada" : "lecciones completadas"}</span>
+          <span>{completed === 1 ? t("profile_page.stats.lesson_singular") : t("profile_page.stats.lesson_plural")}</span>
         </div>
       </div>
     </section>
@@ -442,23 +434,24 @@ export default function UserProfile() {
   const navigate                 = useNavigate();
   const { loggedUser, refreshUser } = useAuth();
   const toast = useToast();
+  const { t } = useLanguage();
 
-  const [profileUser, setProfileUser]       = useState(null);
-  const [loading, setLoading]                 = useState(true);
-  const [error, setError]                     = useState("");
-  const [panel, setPanel]                     = useState(null); // null | "edit" | "requests"
-  const [, setIsMenuOpen]                     = useState(false);
-  const [saving, setSaving]                   = useState(false);
-  const [form, setForm]                       = useState({ username: "", email: "", biography: "", password: "" });
-  const [streak, setStreak]                   = useState(null);
-  const [streakLoading, setStreakLoading]     = useState(true);
-  const [streakError, setStreakError]         = useState("");
-  const [score, setScore]                     = useState(null);
-  const [scoreGoal, setScoreGoal]             = useState(null);
-  const [goalInput, setGoalInput]             = useState("");
-  const [goalError, setGoalError]             = useState("");
-  const [goalLoading, setGoalLoading]         = useState(false);
-  const [scoreHistory, setScoreHistory]       = useState([]);
+  const [profileUser, setProfileUser]        = useState(null);
+  const [loading, setLoading]                = useState(true);
+  const [error, setError]                    = useState("");
+  const [panel, setPanel]                    = useState(null);
+  const [, setIsMenuOpen]                    = useState(false);
+  const [saving, setSaving]                  = useState(false);
+  const [form, setForm]                      = useState({ username: "", email: "", biography: "", password: "" });
+  const [streak, setStreak]                  = useState(null);
+  const [streakLoading, setStreakLoading]    = useState(true);
+  const [streakError, setStreakError]        = useState("");
+  const [score, setScore]                    = useState(null);
+  const [scoreGoal, setScoreGoal]            = useState(null);
+  const [goalInput, setGoalInput]            = useState("");
+  const [goalError, setGoalError]            = useState("");
+  const [goalLoading, setGoalLoading]        = useState(false);
+  const [scoreHistory, setScoreHistory]      = useState([]);
   const [scoreHistoryLoading, setScoreHistoryLoading] = useState(true);
   const [reportReason, setReportReason] = useState("INAPPROPRIATE_CONTENT");
   const [reportDescription, setReportDescription] = useState("");
@@ -476,7 +469,6 @@ export default function UserProfile() {
     return !(total > 0 && done === total);
   });
 
-  // Fetch racha, score y objetivo (solo si es dueño)
   useEffect(() => {
     if (!isOwner) return;
     let mounted = true;
@@ -499,7 +491,7 @@ export default function UserProfile() {
       } catch (err) {
         console.error("Error stats:", err.response?.data ?? err.message);
         if (mounted) {
-          setStreakError("Racha no disponible");
+          setStreakError(t("profile_page.errors.streak_unavailable"));
           setScore(0);
           setScoreGoal(null);
         }
@@ -509,7 +501,7 @@ export default function UserProfile() {
     })();
 
     return () => { mounted = false; };
-  }, [isOwner]);
+  }, [isOwner, t]);
 
   useEffect(() => {
     if (!isOwner) return;
@@ -530,7 +522,6 @@ export default function UserProfile() {
     return () => { mounted = false; };
   }, [isOwner]);
 
-  // Fetch perfil
   useEffect(() => {
     let mounted = true;
     setLoading(true);
@@ -552,7 +543,7 @@ export default function UserProfile() {
         console.error("Error perfil:", err.response?.data ?? err.message);
         if (mounted) {
           setProfileUser(null);
-          setError(err.response?.status === 404 ? "Usuario no encontrado." : "No se pudo cargar el perfil.");
+          setError(err.response?.status === 404 ? t("profile_page.errors.not_found") : t("profile_page.errors.load_failed"));
         }
       } finally {
         if (mounted) setLoading(false);
@@ -560,9 +551,8 @@ export default function UserProfile() {
     })();
 
     return () => { mounted = false; };
-  }, [username]);
+  }, [username, t]);
 
-  // Handlers
   const togglePanel = (name) => {
     setPanel(prev => prev === name ? null : name);
   };
@@ -606,7 +596,7 @@ export default function UserProfile() {
     const nextGoal = Number(goalInput);
 
     if (!Number.isInteger(nextGoal) || nextGoal <= 0 || nextGoal > 5000) {
-      setGoalError("La meta diaria debe ser un número entero entre 1 y 5000.");
+      setGoalError(t("profile_page.errors.goal_invalid"));
       return;
     }
 
@@ -621,9 +611,9 @@ export default function UserProfile() {
       const normalized = Number(data.score_goal ?? nextGoal);
       setScoreGoal(Number.isFinite(normalized) ? normalized : nextGoal);
       setGoalInput(String(normalized));
-      toast.success("Meta diaria actualizada.");
+      toast.success(t("profile_page.toast.goal_updated"));
     } catch (err) {
-      setGoalError(getErrorMessage(err, "No se pudo actualizar la meta diaria."));
+      setGoalError(getErrorMessage(err, t("profile_page.errors.goal_update_failed")));
     } finally {
       setGoalLoading(false);
     }
@@ -640,25 +630,23 @@ export default function UserProfile() {
       setProfileUser(prev => ({ ...prev, ...payload, ...data.userPayload }));
       setForm(prev => ({ ...prev, password: "" }));
       setPanel(null);
-      toast.success("Perfil actualizado.");
+      toast.success(t("profile_page.toast.profile_updated"));
       await refreshUser();
       if (payload.username !== username) {
         navigate(`/user/${encodeURIComponent(payload.username)}`, { replace: true });
       }
     } catch (err) {
-      setError(getErrorMessage(err, "No se pudo guardar el perfil."));
+      setError(getErrorMessage(err, t("profile_page.errors.profile_save_failed")));
     } finally {
       setSaving(false);
     }
   };
 
-  // ── Render ────────────────────────────────────────────────────────────────
-
   if (loading) return (
     <div className={styles.layout}>
       <Sidebar />
       <main className={styles.main}>
-        <p className={styles.loadingText} role="status">Cargando perfil…</p>
+        <p className={styles.loadingText} role="status">{t("profile_page.loading")}</p>
       </main>
     </div>
   );
@@ -715,20 +703,20 @@ export default function UserProfile() {
 
         {/* Modal editar perfil */}
         {isOwner && panel === "edit" && (
-          <ProfileModal title="Editar perfil" onClose={() => setPanel(null)}>
+          <ProfileModal title={t("profile_page.modal.edit_title")} onClose={() => setPanel(null)}>
             <form className={styles.modalBody} onSubmit={handleProfileSave}>
               <div className={styles.formGrid}>
-                <label>Nombre de usuario<input name="username" value={form.username} onChange={handleFormChange} required minLength="3" /></label>
-                <label>Email<input name="email" type="email" value={form.email} onChange={handleFormChange} required /></label>
-                <label className={styles.fullField}>Biografía<textarea name="biography" value={form.biography} onChange={handleFormChange} maxLength="240" rows="3" placeholder="Contale a la comunidad quién sos" /></label>
+                <label>{t("profile_page.form.username")}<input name="username" value={form.username} onChange={handleFormChange} required minLength="3" /></label>
+                <label>{t("profile_page.form.email")}<input name="email" type="email" value={form.email} onChange={handleFormChange} required /></label>
+                <label className={styles.fullField}>{t("profile_page.form.biography")}<textarea name="biography" value={form.biography} onChange={handleFormChange} maxLength="240" rows="3" placeholder={t("profile_page.form.bio_placeholder")} /></label>
                 <label className={styles.fullField}>
-                  <span className={styles.fieldLabel}>Nueva contraseña <small>(opcional)</small></span>
+                  <span className={styles.fieldLabel}>{t("profile_page.form.password")} <small>({t("profile_page.form.optional")})</small></span>
                   <input name="password" type="password" value={form.password} onChange={handleFormChange} minLength="8" />
                 </label>
               </div>
               <div className={styles.formActions}>
                 {error && <p className={styles.formError}>{error}</p>}
-                <button className={styles.saveButton} type="submit" disabled={saving}>{saving ? "Guardando..." : "Guardar cambios"}</button>
+                <button className={styles.saveButton} type="submit" disabled={saving}>{saving ? t("profile_page.form.saving") : t("profile_page.form.save_btn")}</button>
               </div>
             </form>
           </ProfileModal>
@@ -736,7 +724,7 @@ export default function UserProfile() {
 
         {/* Modal solicitudes */}
         {isOwner && panel === "requests" && (
-          <ProfileModal title="Solicitudes de amistad" onClose={() => setPanel(null)}>
+          <ProfileModal title={t("profile_page.modal.requests_title")} onClose={() => setPanel(null)}>
             <FriendRequestsPanel />
           </ProfileModal>
         )}
@@ -791,12 +779,12 @@ export default function UserProfile() {
         )}
 
         {/* Cursos */}
-        <section className={styles.contentArea} aria-label="Cursos del perfil">
+        <section className={styles.contentArea} aria-label={t("profile_page.courses_aria")}>
           <div className={styles.contentHeading}>
-            <h2 className={styles.contentTitle}>Cursos en progreso</h2>
+            <h2 className={styles.contentTitle}>{t("profile_page.courses_title")}</h2>
             {profileUser.progressVisible && (
               <span className={styles.courseCount}>
-                {coursesInProgress.length} {coursesInProgress.length === 1 ? "curso" : "cursos"}
+                {coursesInProgress.length} {coursesInProgress.length === 1 ? t("profile_page.stats.course_singular") : t("profile_page.stats.course_plural")}
               </span>
             )}
           </div>
@@ -806,8 +794,8 @@ export default function UserProfile() {
                 <path d="M23 4v17.5a4.5 4.5 0 1 1-2-3.7V8l-11 3v14.5a4.5 4.5 0 1 1-2-3.7V9L23 4Z" fill="currentColor"/>
                 <path d="M5 31 31 5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
               </svg>
-              <h3>El progreso es privado</h3>
-              <p>Este usuario eligió mantener sus cursos fuera de su perfil público.</p>
+              <h3>{t("profile_page.private.title")}</h3>
+              <p>{t("profile_page.private.desc")}</p>
             </div>
           ) : coursesInProgress.length ? (
             <div className={styles.courseGrid}>
@@ -825,11 +813,11 @@ export default function UserProfile() {
               <svg className={styles.emptyIcon} viewBox="0 0 36 36" aria-hidden="true">
                 <path d="M23 4v17.5a4.5 4.5 0 1 1-2-3.7V8l-11 3v14.5a4.5 4.5 0 1 1-2-3.7V9L23 4Z" fill="currentColor"/>
               </svg>
-              <h3>Todavía no hay cursos en progreso</h3>
-              <p>{isOwner ? "Elegí tu primer curso y empezá a aprender hoy." : "Cuando se inscriba en un curso, va a aparecer acá."}</p>
+              <h3>{t("profile_page.empty_courses.title")}</h3>
+              <p>{isOwner ? t("profile_page.empty_courses.owner_desc") : t("profile_page.empty_courses.other_desc")}</p>
               {isOwner && (
                 <button type="button" className={styles.primaryAction} onClick={() => navigate("/courses/catalog")}>
-                  Explorar cursos
+                  {t("profile_page.empty_courses.explore_btn")}
                 </button>
               )}
             </div>

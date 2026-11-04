@@ -1,70 +1,73 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useAuth } from "../context/AuthContext.jsx";
-import Sidebar from '../components/Sidebar'
-import MessageBubble from '../components/message/Messagebubble'
-import MessageInput from '../components/message/Messageinput'
-import ContactList from '../components/message/Contactlist'
-import styles from './CSS/Message.module.css'
+import Sidebar from '../components/Sidebar';
+import MessageBubble from '../components/message/Messagebubble';
+import MessageInput from '../components/message/Messageinput';
+import ContactList from '../components/message/Contactlist';
+import styles from './CSS/Message.module.css';
 import axios from "axios";
-import { useNavigate } from 'react-router-dom'
-import Avatar from '../components/general/Avatar.jsx'
-import { getErrorMessage } from '../api/client'
-import { io } from 'socket.io-client'
+import { useNavigate } from 'react-router-dom';
+import Avatar from '../components/general/Avatar.jsx';
+import { getErrorMessage } from '../api/client';
+import { io } from 'socket.io-client';
+import { useLanguage } from '../context/LanguageContext.jsx'; // <-- Importar hook de idioma
 
-const API_URL = 'http://localhost:3000'
-const MESSAGE_PAGE_SIZE = 30
+const API_URL = 'http://localhost:3000';
+const MESSAGE_PAGE_SIZE = 30;
 
-// Etiqueta de día para separar los mensajes: "Hoy", "Ayer" o la fecha
-function dayLabel(value) {
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return ''
-  const today = new Date()
-  const startOf = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime()
-  const diff = Math.round((startOf(today) - startOf(date)) / 86400000)
-  if (diff === 0) return 'Hoy'
-  if (diff === 1) return 'Ayer'
-  return new Intl.DateTimeFormat('es-AR', { weekday: 'long', day: 'numeric', month: 'long' }).format(date)
-}
-
-const QUICK_REPLIES = ['¡Hola! 👋', '¿Practicamos juntos?', '¿Cómo vas con el curso?']
+const QUICK_REPLIES = ['¡Hola! 👋', '¿Practicamos juntos?', '¿Cómo vas con el curso?'];
 
 export default function Messages() {
   const { loggedUser } = useAuth();
-  const navigate = useNavigate()
+  const navigate = useNavigate();
+  const { t, language } = useLanguage(); // <-- Consumir idioma actual y función de traducción
   const currentUserId = loggedUser?.id;
-  const [contactsLoaded, setContactsLoaded] = useState(false)
+  const [contactsLoaded, setContactsLoaded] = useState(false);
 
-  const [friendChats, setFriendChats] = useState({})
-  const [currentFriendId, setCurrentFriendId] = useState(null)
-  const [messages, setMessages] = useState([])
-  const [loadedFriendshipId, setLoadedFriendshipId] = useState(null)
-  const [error, setError] = useState(null)
-  const [hasMoreMessages, setHasMoreMessages] = useState(true)
-  const [loadingOlderMessages, setLoadingOlderMessages] = useState(false)
-  const listRef = useRef(null)
-  const socketRef = useRef(null)
-  const friendChatsRef = useRef(friendChats)
-  const currentFriendshipIdRef = useRef(null)
-  const loadingOlderMessagesRef = useRef(false)
-  const scrollAnchorRef = useRef(null)
-  const shouldStickToBottomRef = useRef(true)
-  const friend = friendChats[currentFriendId] ?? null
-  const friendshipIds = Object.values(friendChats).map((chat) => chat.friendship_id).filter(Boolean)
-  const friendshipIdsKey = friendshipIds.join(',')
-  const currentFriendIdRef = useRef(currentFriendId)
-  const visibleMessages = loadedFriendshipId === friend?.friendship_id ? messages : []
+  const [friendChats, setFriendChats] = useState({});
+  const [currentFriendId, setCurrentFriendId] = useState(null);
+  const [messages, setMessages] = useState([]);
+  const [loadedFriendshipId, setLoadedFriendshipId] = useState(null);
+  const [error, setError] = useState(null);
+  const [hasMoreMessages, setHasMoreMessages] = useState(true);
+  const [loadingOlderMessages, setLoadingOlderMessages] = useState(false);
+  const listRef = useRef(null);
+  const socketRef = useRef(null);
+  const friendChatsRef = useRef(friendChats);
+  const currentFriendshipIdRef = useRef(null);
+  const loadingOlderMessagesRef = useRef(false);
+  const scrollAnchorRef = useRef(null);
+  const shouldStickToBottomRef = useRef(true);
+  const friend = friendChats[currentFriendId] ?? null;
+  const friendshipIds = Object.values(friendChats).map((chat) => chat.friendship_id).filter(Boolean);
+  const friendshipIdsKey = friendshipIds.join(',');
+  const currentFriendIdRef = useRef(currentFriendId);
+  const visibleMessages = loadedFriendshipId === friend?.friendship_id ? messages : [];
+
+  // Etiqueta de día adaptada al idioma actual ("es-AR" u "en-US")
+  const getDayLabel = (value) => {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return '';
+    const today = new Date();
+    const startOf = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+    const diff = Math.round((startOf(today) - startOf(date)) / 86400000);
+    if (diff === 0) return t('messages_page.days.today');
+    if (diff === 1) return t('messages_page.days.yesterday');
+    const localeCode = language === 'en-US' ? 'en-US' : 'es-AR';
+    return new Intl.DateTimeFormat(localeCode, { weekday: 'long', day: 'numeric', month: 'long' }).format(date);
+  };
 
   useEffect(() => {
-    friendChatsRef.current = friendChats
-  }, [friendChats])
+    friendChatsRef.current = friendChats;
+  }, [friendChats]);
 
   useEffect(() => {
-    currentFriendshipIdRef.current = friend?.friendship_id ?? null
-  }, [friend?.friendship_id])
+    currentFriendshipIdRef.current = friend?.friendship_id ?? null;
+  }, [friend?.friendship_id]);
 
   useEffect(() => {
-    currentFriendIdRef.current = currentFriendId
-  }, [currentFriendId])
+    currentFriendIdRef.current = currentFriendId;
+  }, [currentFriendId]);
 
   // Carga la lista de contactos una sola vez y deja abierta la primera conversación.
   useEffect(() => {
@@ -73,45 +76,45 @@ export default function Messages() {
     axios.get(
       "http://localhost:3000/friend/list",
       { headers: { Authorization: `Bearer ${token}` } }
-    ).then(({data}) => {
-        setFriendChats(data)
-        setCurrentFriendId((prev) => prev ?? Object.keys(data)[0] ?? null)
+    ).then(({ data }) => {
+        setFriendChats(data);
+        setCurrentFriendId((prev) => prev ?? Object.keys(data)[0] ?? null);
       })
-      .catch((err) => setError(getErrorMessage(err, 'No se pudieron cargar las conversaciones.')))
-      .finally(() => setContactsLoaded(true))
-  }, [])
+      .catch((err) => setError(getErrorMessage(err, t('messages_page.errors.load_chats_failed'))))
+      .finally(() => setContactsLoaded(true));
+  }, [t]);
 
   // Carga el historial cada vez que cambia la conversación activa.
   useEffect(() => {
-    const friendshipId = friend?.friendship_id
-    if (currentFriendId === null || !friendshipId) return
+    const friendshipId = friend?.friendship_id;
+    if (currentFriendId === null || !friendshipId) return;
 
-    let cancelled = false
-    loadingOlderMessagesRef.current = false
-    scrollAnchorRef.current = null
-    shouldStickToBottomRef.current = true
+    let cancelled = false;
+    loadingOlderMessagesRef.current = false;
+    scrollAnchorRef.current = null;
+    shouldStickToBottomRef.current = true;
 
     const token = localStorage.getItem("token");
     axios.get(`${API_URL}/chat/${friendshipId}/messages`, {
       params: { limit: MESSAGE_PAGE_SIZE },
       headers: { Authorization: `Bearer ${token}` }
     }).then(({ data }) => {
-      if (cancelled) return
-      setError(null)
-      setMessages(data.data)
-      setLoadedFriendshipId(friendshipId)
-      setHasMoreMessages(data.data.length === MESSAGE_PAGE_SIZE)
+      if (cancelled) return;
+      setError(null);
+      setMessages(data.data);
+      setLoadedFriendshipId(friendshipId);
+      setHasMoreMessages(data.data.length === MESSAGE_PAGE_SIZE);
     }).catch((err) => {
-      if (!cancelled) setError(getErrorMessage(err, 'No se pudieron cargar los mensajes.'))
-    })
+      if (!cancelled) setError(getErrorMessage(err, t('messages_page.errors.load_messages_failed')));
+    });
 
-    return () => { cancelled = true }
-  }, [currentFriendId, friend?.friendship_id])
+    return () => { cancelled = true; };
+  }, [currentFriendId, friend?.friendship_id, t]);
 
   // Marca como leídos los mensajes del chat actual
   useEffect(() => {
-    const friendshipId = friend?.friendship_id
-    if (currentFriendId === null || !friendshipId) return
+    const friendshipId = friend?.friendship_id;
+    if (currentFriendId === null || !friendshipId) return;
 
     const token = localStorage.getItem("token");
     axios.patch(`${API_URL}/chat/${friendshipId}/read`, {}, {
@@ -119,30 +122,30 @@ export default function Messages() {
     }).then(() => {
       setFriendChats((prev) => prev[currentFriendId]?.unread_count
         ? { ...prev, [currentFriendId]: { ...prev[currentFriendId], unread_count: 0 } }
-        : prev)
-    }).catch(() => {})
-  }, [currentFriendId, friend?.friendship_id])
+        : prev);
+    }).catch(() => {});
+  }, [currentFriendId, friend?.friendship_id]);
 
   // Mantiene una conexión autenticada y escucha mensajes de todas las amistades.
   useEffect(() => {
-    const token = localStorage.getItem('token')
-    if (!token) return
+    const token = localStorage.getItem('token');
+    if (!token) return;
 
-    const socket = io(API_URL, { auth: { token } })
-    socketRef.current = socket
+    const socket = io(API_URL, { auth: { token } });
+    socketRef.current = socket;
 
     const handleMessage = (message) => {
-      if (message.author_id === currentUserId) return
+      if (message.author_id === currentUserId) return;
 
       const [friendId, chat] = Object.entries(friendChatsRef.current).find(([, item]) =>
         Number(item.friendship_id) === Number(message.friendship_id)
-      ) ?? []
-      if (!friendId || !chat) return
+      ) ?? [];
+      if (!friendId || !chat) return;
 
-      const isOpen = currentFriendIdRef.current === friendId
+      const isOpen = currentFriendIdRef.current === friendId;
       setFriendChats((prev) => {
-        const currentChat = prev[friendId]
-        if (!currentChat) return prev
+        const currentChat = prev[friendId];
+        if (!currentChat) return prev;
         return {
           ...prev,
           [friendId]: {
@@ -150,18 +153,18 @@ export default function Messages() {
             last_message: message.text,
             unread_count: isOpen ? 0 : (currentChat.unread_count ?? 0) + 1
           }
-        }
-      })
+        };
+      });
 
       if (isOpen) {
         setMessages((prev) => prev.some((item) => String(item.id) === String(message.id))
           ? prev
-          : [...prev, message])
+          : [...prev, message]);
         axios.patch(`${API_URL}/chat/${message.friendship_id}/read`, {}, {
           headers: { Authorization: `Bearer ${token}` }
-        }).catch(() => {})
+        }).catch(() => {});
       }
-    }
+    };
 
     socket.on('chat:message', handleMessage)
     const handleSuspension = (details) => {
@@ -183,113 +186,111 @@ export default function Messages() {
 
   // El servidor autoriza cada sala antes de emitir sus mensajes al socket.
   useEffect(() => {
-    const socket = socketRef.current
-    if (!socket) return
+    const socket = socketRef.current;
+    if (!socket) return;
     Object.values(friendChatsRef.current).forEach(({ friendship_id }) => {
-      socket.emit('chat:join', { friendship_id })
-    })
-  }, [friendshipIdsKey])
+      socket.emit('chat:join', { friendship_id });
+    });
+  }, [friendshipIdsKey]);
 
   // Mantiene la posición al anteponer mensajes y sigue los nuevos si ya estaba abajo.
   useLayoutEffect(() => {
-    const el = listRef.current
-    if (!el) return
+    const el = listRef.current;
+    if (!el) return;
 
     if (scrollAnchorRef.current) {
-      const { height, top } = scrollAnchorRef.current
-      el.scrollTop = top + el.scrollHeight - height
-      scrollAnchorRef.current = null
+      const { height, top } = scrollAnchorRef.current;
+      el.scrollTop = top + el.scrollHeight - height;
+      scrollAnchorRef.current = null;
     } else if (shouldStickToBottomRef.current) {
-      el.scrollTop = el.scrollHeight
+      el.scrollTop = el.scrollHeight;
     }
-  }, [messages, loadedFriendshipId, friend?.friendship_id])
+  }, [messages, loadedFriendshipId, friend?.friendship_id]);
 
   const handleMessageListScroll = async (event) => {
-    const element = event.currentTarget
-    shouldStickToBottomRef.current = element.scrollHeight - element.scrollTop - element.clientHeight < 80
+    const element = event.currentTarget;
+    shouldStickToBottomRef.current = element.scrollHeight - element.scrollTop - element.clientHeight < 80;
 
-    const friendshipId = friend?.friendship_id
-    const oldestMessage = visibleMessages[0]
+    const friendshipId = friend?.friendship_id;
+    const oldestMessage = visibleMessages[0];
     if (element.scrollTop > 40 || !hasMoreMessages || loadingOlderMessagesRef.current || !friendshipId || !oldestMessage?.created_at) {
-      return
+      return;
     }
 
-    loadingOlderMessagesRef.current = true
-    setLoadingOlderMessages(true)
-    scrollAnchorRef.current = { height: element.scrollHeight, top: element.scrollTop }
-    const token = localStorage.getItem('token')
+    loadingOlderMessagesRef.current = true;
+    setLoadingOlderMessages(true);
+    scrollAnchorRef.current = { height: element.scrollHeight, top: element.scrollTop };
+    const token = localStorage.getItem('token');
 
     try {
       const { data } = await axios.get(`${API_URL}/chat/${friendshipId}/messages`, {
         params: { limit: MESSAGE_PAGE_SIZE, before: oldestMessage.created_at },
         headers: { Authorization: `Bearer ${token}` }
-      })
-      if (Number(currentFriendshipIdRef.current) !== Number(friendshipId)) return
+      });
+      if (Number(currentFriendshipIdRef.current) !== Number(friendshipId)) return;
 
-      const olderMessages = data.data
+      const olderMessages = data.data;
       if (olderMessages.length === 0) {
-        setHasMoreMessages(false)
-        scrollAnchorRef.current = null
-        return
+        setHasMoreMessages(false);
+        scrollAnchorRef.current = null;
+        return;
       }
 
       setMessages((prev) => {
-        const existingIds = new Set(prev.map((message) => String(message.id)))
-        return [...olderMessages.filter((message) => !existingIds.has(String(message.id))), ...prev]
-      })
-      setLoadedFriendshipId(friendshipId)
-      setHasMoreMessages(olderMessages.length === MESSAGE_PAGE_SIZE)
+        const existingIds = new Set(prev.map((message) => String(message.id)));
+        return [...olderMessages.filter((message) => !existingIds.has(String(message.id))), ...prev];
+      });
+      setLoadedFriendshipId(friendshipId);
+      setHasMoreMessages(olderMessages.length === MESSAGE_PAGE_SIZE);
     } catch (err) {
-      scrollAnchorRef.current = null
-      setError(getErrorMessage(err, 'No se pudieron cargar más mensajes.'))
+      scrollAnchorRef.current = null;
+      setError(getErrorMessage(err, t('messages_page.errors.load_more_failed')));
     } finally {
-      loadingOlderMessagesRef.current = false
-      setLoadingOlderMessages(false)
+      loadingOlderMessagesRef.current = false;
+      setLoadingOlderMessages(false);
     }
-  }
+  };
 
   const handleSelectFriend = (friendId) => {
-    setCurrentFriendId(friendId)
+    setCurrentFriendId(friendId);
     setFriendChats((prev) => prev[friendId]?.unread_count
       ? { ...prev, [friendId]: { ...prev[friendId], unread_count: 0 } }
-      : prev)
-  }
+      : prev);
+  };
 
-  // Maneja el envío de un mensaje
   const handleSend = async (text) => {
     try {
-      setError(null)
+      setError(null);
       const token = localStorage.getItem("token");
 
       const { data } = await axios.post(`${API_URL}/chat/send`, {
         friendship_id: friend.friendship_id,
         text
-      }, { headers: { Authorization: `Bearer ${token}` } })
-      const message = data.message
+      }, { headers: { Authorization: `Bearer ${token}` } });
+      const message = data.message;
       setMessages((prev) => prev.some((item) => String(item.id) === String(message.id))
         ? prev
-        : [...prev, message])
+        : [...prev, message]);
       setFriendChats((prev) => prev[currentFriendId]
         ? { ...prev, [currentFriendId]: { ...prev[currentFriendId], last_message: message.text } }
-        : prev)
+        : prev);
     } catch (err) {
-      setError(getErrorMessage(err, 'No se pudo enviar el mensaje. Probá de nuevo.'))
-      throw err
+      setError(getErrorMessage(err, t('messages_page.errors.send_failed')));
+      throw err;
     }
-  }
+  };
 
-  const hasContacts = Object.keys(friendChats).length > 0
-  // Mensajes con separadores por día
-  const rows = []
-  let lastDay = null
+  const hasContacts = Object.keys(friendChats).length > 0;
+  const rows = [];
+  let lastDay = null;
   visibleMessages.forEach((m) => {
-    const label = dayLabel(m.created_at)
+    const label = getDayLabel(m.created_at);
     if (label && label !== lastDay) {
-      rows.push({ type: 'day', key: `day-${label}-${m.id}`, label })
-      lastDay = label
+      rows.push({ type: 'day', key: `day-${label}-${m.id}`, label });
+      lastDay = label;
     }
-    rows.push({ type: 'msg', key: m.id, message: m })
-  })
+    rows.push({ type: 'msg', key: m.id, message: m });
+  });
 
   return (
     <div className={styles.page}>
@@ -308,14 +309,14 @@ export default function Messages() {
             <Avatar name={friend.username} src={friend.picture} size={48} ring />
             <div className={styles.headerInfo}>
               <h1 className={styles.name}>{friend.username}</h1>
-              <span className={styles.headerSub}>Amistad en Knowbeat</span>
+              <span className={styles.headerSub}>{t('messages_page.friendship_subtitle')}</span>
             </div>
             <button
               type="button"
               className={styles.profileButton}
               onClick={() => navigate(`/user/${encodeURIComponent(friend.username)}`)}
             >
-              Ver perfil
+              {t('messages_page.view_profile')}
             </button>
           </header>
         ) : null}
@@ -323,21 +324,20 @@ export default function Messages() {
         {error && (
           <div className={styles.error} role="alert">
             <span>{error}</span>
-            <button type="button" onClick={() => setError(null)} aria-label="Cerrar aviso">×</button>
+            <button type="button" onClick={() => setError(null)} aria-label={t('messages_page.close_alert')}>×</button>
           </div>
         )}
 
-        {/* role="log" + aria-live: los lectores de pantalla anuncian los mensajes nuevos */}
         <div className={styles.list} ref={listRef} onScroll={handleMessageListScroll} role="log" aria-live="polite">
-          {loadingOlderMessages && <span className={styles.loadingOlder} role="status">Cargando mensajes anteriores…</span>}
+          {loadingOlderMessages && <span className={styles.loadingOlder} role="status">{t('messages_page.loading_older')}</span>}
 
           {contactsLoaded && !hasContacts && !error && (
             <div className={styles.empty}>
               <span className={styles.emptyEmoji} aria-hidden="true">💬</span>
-              <h2>Todavía no tenés conversaciones</h2>
-              <p>Cuando agregues amigos vas a poder chatear con ellos desde acá. Buscá gente en la comunidad.</p>
+              <h2>{t('messages_page.empty_chats.title')}</h2>
+              <p>{t('messages_page.empty_chats.desc')}</p>
               <button type="button" className={styles.emptyButton} onClick={() => navigate('/community')}>
-                Ir a la comunidad
+                {t('messages_page.empty_chats.btn')}
               </button>
             </div>
           )}
@@ -345,8 +345,8 @@ export default function Messages() {
           {friend && loadedFriendshipId === friend.friendship_id && visibleMessages.length === 0 && (
             <div className={styles.empty}>
               <Avatar name={friend.username} src={friend.picture} size={72} ring />
-              <h2>Empezá la charla con {friend.username}</h2>
-              <p>Un saludo rápido para romper el hielo:</p>
+              <h2>{t('messages_page.empty_conversation.title').replace('{username}', friend.username)}</h2>
+              <p>{t('messages_page.empty_conversation.desc')}</p>
               <div className={styles.quickReplies}>
                 {QUICK_REPLIES.map((text) => (
                   <button key={text} type="button" className={styles.quickReply} onClick={() => handleSend(text).catch(() => {})}>
@@ -369,13 +369,12 @@ export default function Messages() {
           ))}
         </div>
 
-        {/* Sin conversación abierta no hay a quién escribirle */}
         {friend && (
           <div className={styles.composer}>
-            <MessageInput onSend={handleSend} placeholder={`Escribile a ${friend.username}…`} />
+            <MessageInput onSend={handleSend} placeholder={t('messages_page.composer_placeholder').replace('{username}', friend.username)} />
           </div>
         )}
       </main>
     </div>
-  )
+  );
 }

@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import LessonCompletion from "./LessonCompletion.jsx";
 import SlideRenderer from "./SlideRenderer.jsx";
 import styles from "./LessonPlayer.module.css";
+import { useLanguage } from "../../context/LanguageContext.jsx"; // <-- Importar hook de idioma (ajusta la ruta según tu estructura)
 
 const LessonPlayer = ({ lesson, lessonNumber, isReplay = false, onExit, onComplete }) => {
   const [slideIndex, setSlideIndex] = useState(0);
@@ -10,6 +11,8 @@ const LessonPlayer = ({ lesson, lessonNumber, isReplay = false, onExit, onComple
   const [saveError, setSaveError] = useState("");
   const [result, setResult] = useState(null);
   const savingRef = useRef(false);
+  const { t } = useLanguage(); // <-- Consumir función de traducción
+
   const slide = lesson.slides[slideIndex];
   const questionCount = lesson.slides.reduce(
     (total, currentSlide) => total + (currentSlide.type === "exercise" ? currentSlide.questions.length : 0),
@@ -76,7 +79,7 @@ const LessonPlayer = ({ lesson, lessonNumber, isReplay = false, onExit, onComple
       if (!isReplay) await onComplete(lessonNumber);
       setResult({ passed: true, score });
     } catch (error) {
-      setSaveError(error.message || "No se pudo guardar el progreso. Intentá nuevamente.");
+      setSaveError(error.message || t("lesson_player.errors.save_failed"));
     } finally {
       savingRef.current = false;
       setSaving(false);
@@ -108,15 +111,15 @@ const LessonPlayer = ({ lesson, lessonNumber, isReplay = false, onExit, onComple
   return (
     <main className={styles.player}>
       <header className={styles.topBar}>
-        <button className={styles.exitButton} type="button" onClick={onExit} aria-label="Salir de la lección">
+        <button className={styles.exitButton} type="button" onClick={onExit} aria-label={t("lesson_player.exit_aria")}>
           <span aria-hidden="true">×</span>
-          <span>Salir</span>
+          <span>{t("lesson_player.exit_btn")}</span>
         </button>
         <div className={styles.progressArea}>
           <div
             className={styles.progressTrack}
             role="progressbar"
-            aria-label="Progreso de la lección"
+            aria-label={t("lesson_player.progress_aria")}
             aria-valuenow={progress}
             aria-valuemin="0"
             aria-valuemax="100"
@@ -124,7 +127,7 @@ const LessonPlayer = ({ lesson, lessonNumber, isReplay = false, onExit, onComple
             <div className={styles.progressFill} style={{ width: `${progress}%` }} />
           </div>
         </div>
-        <span className={styles.lessonLabel}>Lección {lessonNumber}</span>
+        <span className={styles.lessonLabel}>{t("lesson_player.lesson_label")} {lessonNumber}</span>
       </header>
 
       <section className={styles.lessonContent} aria-label={lesson.title}>
@@ -145,13 +148,13 @@ const LessonPlayer = ({ lesson, lessonNumber, isReplay = false, onExit, onComple
             disabled={saving}
             onClick={() => setSlideIndex((index) => Math.max(0, index - 1))}
           >
-            Anterior
+            {t("lesson_player.prev_btn")}
           </button>
         ) : <span />}
         <div className={styles.navigationActions}>
           {saveError && (
             <p className={styles.saveError} role="alert">
-              {saveError} {submittedCount > 0 && `Respuestas registradas: ${submittedCount}.`}
+              {saveError} {submittedCount > 0 && t("lesson_player.registered_answers").replace("{count}", submittedCount)}
             </p>
           )}
           {isLastSlide ? (
@@ -161,7 +164,7 @@ const LessonPlayer = ({ lesson, lessonNumber, isReplay = false, onExit, onComple
               disabled={!canAdvance}
               onClick={finishLesson}
             >
-              {saving ? "Guardando..." : saveError ? "Reintentar guardado" : "Finalizar lección"}
+              {saving ? t("lesson_player.saving") : saveError ? t("lesson_player.retry_save") : t("lesson_player.finish_btn")}
             </button>
           ) : (
             <button
@@ -170,7 +173,7 @@ const LessonPlayer = ({ lesson, lessonNumber, isReplay = false, onExit, onComple
               disabled={!canAdvance}
               onClick={() => setSlideIndex((index) => Math.min(lesson.slides.length - 1, index + 1))}
             >
-              Siguiente
+              {t("lesson_player.next_btn")}
             </button>
           )}
         </div>

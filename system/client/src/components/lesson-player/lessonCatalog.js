@@ -40,7 +40,62 @@ const matchesCourse = (courseName, courseId) => {
   });
 };
 
-export function getLessonForCourse(courseName, lessonNumber) {
+// Función para traducir dinámicamente la lección usando el diccionario actual
+export function getTranslatedLesson(lesson, t) {
+  if (!lesson || !lesson.id || typeof t !== "function") return lesson;
+  const translationKey = `lessons.${lesson.id}`;
+  
+  const translatedTitle = t(`${translationKey}.title`);
+  if (!translatedTitle || translatedTitle === `${translationKey}.title`) return lesson;
+
+  return {
+    ...lesson,
+    title: translatedTitle,
+    description: t(`${translationKey}.description`),
+    slides: lesson.slides.map((slide) => {
+      const slideKey = `${translationKey}.slides.${slide.id}`;
+      const translatedSlideTitle = t(`${slideKey}.title`);
+      
+      return {
+        ...slide,
+        title: translatedSlideTitle !== `${slideKey}.title` ? translatedSlideTitle : slide.title,
+        description: t(`${slideKey}.description`) !== `${slideKey}.description` ? t(`${slideKey}.description`) : slide.description,
+        image: slide.image ? {
+          ...slide.image,
+          alt: t(`${slideKey}.imageAlt`) !== `${slideKey}.imageAlt` ? t(`${slideKey}.imageAlt`) : slide.image.alt
+        } : undefined,
+        blocks: slide.blocks ? slide.blocks.map((block, bIdx) => {
+          if (typeof block === 'string') {
+            const blockText = t(`${slideKey}.blocks.${bIdx}`);
+            return blockText !== `${slideKey}.blocks.${bIdx}` ? blockText : block;
+          }
+          const blockHeading = t(`${slideKey}.blocks.${bIdx}.heading`);
+          const blockText = t(`${slideKey}.blocks.${bIdx}.text`);
+          return {
+            ...block,
+            heading: blockHeading !== `${slideKey}.blocks.${bIdx}.heading` ? blockHeading : block.heading,
+            text: blockText !== `${slideKey}.blocks.${bIdx}.text` ? blockText : block.text
+          };
+        }) : slide.blocks,
+        questions: slide.questions ? slide.questions.map((q) => {
+          const qKey = `${slideKey}.questions.${q.id}`;
+          return {
+            ...q,
+            prompt: t(`${qKey}.prompt`) !== `${qKey}.prompt` ? t(`${qKey}.prompt`) : q.prompt,
+            options: q.options.map(opt => ({
+              ...opt,
+              text: t(`${qKey}.options.${opt.id}`) !== `${qKey}.options.${opt.id}` ? t(`${qKey}.options.${opt.id}`) : opt.text
+            })),
+            feedbackCorrect: t(`${qKey}.feedbackCorrect`) !== `${qKey}.feedbackCorrect` ? t(`${qKey}.feedbackCorrect`) : q.feedbackCorrect,
+            feedbackIncorrect: t(`${qKey}.feedbackIncorrect`) !== `${qKey}.feedbackIncorrect` ? t(`${qKey}.feedbackIncorrect`) : q.feedbackIncorrect
+          };
+        }) : slide.questions
+      };
+    })
+  };
+}
+
+export function getLessonForCourse(courseName, lessonNumber, t) {
   const candidates = Object.entries(lessonFiles)
     .filter(([path]) => getLessonOrder(path) === lessonNumber);
 
@@ -61,7 +116,10 @@ export function getLessonForCourse(courseName, lessonNumber) {
     if (!matchesCourse(courseName, lesson.courseId)) {
       return { error: "El curso indicado en el JSON no coincide con su contenido." };
     }
-    return { lesson };
+
+    // Traducir la lección antes de retornarla
+    const translatedLesson = getTranslatedLesson(lesson, t);
+    return { lesson: translatedLesson };
   }
 
   return null;

@@ -6,9 +6,12 @@ import Sidebar from "../components/Sidebar";
 import CourseCard from "../components/CourseCard";
 import styles from "./CSS/Courses.module.css";
 import { getErrorMessage } from "../api/client";
+import { useLanguage } from "../context/LanguageContext.jsx"; // <-- Importar hook de idioma
 
 const CoursesCatalog = () => {
   const navigate = useNavigate();
+  const { t } = useLanguage(); // <-- Consumir la función de traducción
+
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -39,7 +42,7 @@ const CoursesCatalog = () => {
           setCourses(Array.isArray(response.data) ? response.data : []);
         }
       } catch (requestError) {
-        if (active) setError(getErrorMessage(requestError, "No se pudo cargar el catálogo. Probá nuevamente."));
+        if (active) setError(getErrorMessage(requestError, t("catalog_page.errors.load_failed")));
       } finally {
         if (active) setLoading(false);
       }
@@ -47,7 +50,7 @@ const CoursesCatalog = () => {
 
     fetchCourses();
     return () => { active = false; };
-  }, [token]);
+  }, [token, t]);
 
   const registerCourse = async (courseId) => {
     setRegisteringId(courseId);
@@ -65,7 +68,7 @@ const CoursesCatalog = () => {
           ? { ...course, is_enrolled: 1 }
           : course
       )));
-      setMessage("Ya estás anotado al curso. Lo encontrarás en Mis Cursos.");
+      setMessage(t("catalog_page.messages.registered_success"));
     } catch (requestError) {
       if (requestError.response?.status === 409) {
         setCourses((currentCourses) => currentCourses.map((course) => (
@@ -73,9 +76,9 @@ const CoursesCatalog = () => {
             ? { ...course, is_enrolled: 1 }
             : course
         )));
-        setMessage("Ya estabas anotado a este curso.");
+        setMessage(t("catalog_page.messages.already_registered"));
       } else {
-        setError(getErrorMessage(requestError, "No se pudo completar la inscripción."));
+        setError(getErrorMessage(requestError, t("catalog_page.errors.register_failed")));
       }
     } finally {
       setRegisteringId(null);
@@ -96,8 +99,8 @@ const CoursesCatalog = () => {
       <main className={styles.courses_main}>
         <div className={styles.courses_header}>
           <div>
-            <h1>Catálogo de cursos</h1>
-            <p>Explorá los cursos disponibles para aprender.</p>
+            <h1>{t("catalog_page.title")}</h1>
+            <p>{t("catalog_page.subtitle")}</p>
           </div>
           <div className={styles.catalog_header_actions}>
             <div className={styles.user_info}>
@@ -107,7 +110,7 @@ const CoursesCatalog = () => {
               className={styles.catalog_back_btn}
               onClick={() => navigate("/courses")}
             >
-              Mis Cursos
+              {t("catalog_page.my_courses_btn")}
             </button>
           </div>
         </div>
@@ -117,8 +120,8 @@ const CoursesCatalog = () => {
 
         {courses.length === 0 ? (
           <div className={styles.empty_state}>
-            <h2>No hay cursos disponibles</h2>
-            <p>Cuando se agreguen cursos, aparecerán en este catálogo.</p>
+            <h2>{t("catalog_page.empty.title")}</h2>
+            <p>{t("catalog_page.empty.desc")}</p>
           </div>
         ) : (
           <div className={styles.catalog_list}>

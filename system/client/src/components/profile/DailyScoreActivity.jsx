@@ -1,3 +1,4 @@
+import { useLanguage } from '../../context/LanguageContext.jsx'; // <-- Importar hook de idioma
 import styles from "./DailyScoreActivity.module.css";
 
 function toLocalDateKey(value = new Date()) {
@@ -8,26 +9,30 @@ function toLocalDateKey(value = new Date()) {
   return `${year}-${month}-${day}`;
 }
 
-function getLastSevenDays() {
+function getLastSevenDays(language) {
   const days = [];
   const today = new Date();
+  const localeCode = language === 'en-US' ? 'en-US' : 'es-AR';
+
   for (let offset = 6; offset >= 0; offset -= 1) {
     const date = new Date(today);
     date.setHours(0, 0, 0, 0);
     date.setDate(date.getDate() - offset);
     days.push({
       date: toLocalDateKey(date),
-      label: date.toLocaleDateString("es-AR", { weekday: "short" })
+      label: date.toLocaleDateString(localeCode, { weekday: "short" })
     });
   }
   return days;
 }
 
 function DailyScoreGoalForm({ goalInput, goalError, goalLoading, onGoalInputChange, onSubmit }) {
+  const { t } = useLanguage();
+
   return (
     <form className={styles.goalForm} onSubmit={onSubmit}>
       <label className={styles.goalInputLabel} htmlFor="score-goal-input">
-        Meta diaria
+        {t('daily_score.goal_label')}
       </label>
       <div className={styles.goalInputRow}>
         <input
@@ -38,12 +43,12 @@ function DailyScoreGoalForm({ goalInput, goalError, goalLoading, onGoalInputChan
           step="1"
           value={goalInput}
           onChange={(event) => onGoalInputChange(event.target.value)}
-          placeholder="Puntos"
-          aria-label="Objetivo diario de puntos"
+          placeholder={t('daily_score.goal_placeholder')}
+          aria-label={t('daily_score.goal_aria')}
           aria-invalid={Boolean(goalError)}
         />
         <button type="submit" className={styles.goalSubmit} disabled={goalLoading}>
-          {goalLoading ? "Guardando..." : "Guardar"}
+          {goalLoading ? t('daily_score.saving') : t('daily_score.save_btn')}
         </button>
       </div>
       {goalError && <p className={styles.goalError} role="alert">{goalError}</p>}
@@ -61,7 +66,8 @@ export default function DailyScoreActivity({
   onGoalInputChange,
   onGoalSubmit
 }) {
-  const days = getLastSevenDays();
+  const { language, t } = useLanguage(); // <-- Consumir el idioma actual
+  const days = getLastSevenDays(language);
   const goalValue = Number.isFinite(Number(scoreGoal)) ? Number(scoreGoal) : 0;
   const earnedByDate = new Map(
     history.map((entry) => [entry.date, Number(entry.score_earned ?? 0)])
@@ -69,11 +75,11 @@ export default function DailyScoreActivity({
   const maxValue = Math.max(1, goalValue, ...days.map((day) => earnedByDate.get(day.date) ?? 0));
 
   return (
-    <section className={styles.activityCard} aria-label="Objetivo diario e historial de score">
+    <section className={styles.activityCard} aria-label={t('daily_score.section_aria')}>
       <header className={styles.activityHeaderRow}>
         <div>
-          <p className={styles.activityEyebrow}>Historial de score</p>
-          <h2 className={styles.activityTitle}>Actividad de los últimos 7 días</h2>
+          <p className={styles.activityEyebrow}>{t('daily_score.eyebrow')}</p>
+          <h2 className={styles.activityTitle}>{t('daily_score.title')}</h2>
         </div>
         <DailyScoreGoalForm
           goalInput={goalInput}
@@ -85,9 +91,9 @@ export default function DailyScoreActivity({
       </header>
 
       {loading ? (
-        <p className={styles.activityLoading}>Cargando actividad…</p>
+        <p className={styles.activityLoading}>{t('daily_score.loading')}</p>
       ) : (
-        <div className={styles.activityChart} role="img" aria-label="Gráfico de actividad diaria">
+        <div className={styles.activityChart} role="img" aria-label={t('daily_score.chart_aria')}>
           {days.map((day) => {
             const earned = earnedByDate.get(day.date) ?? 0;
             const isGoalMet = goalValue > 0 && earned >= goalValue;
@@ -95,7 +101,7 @@ export default function DailyScoreActivity({
 
             return (
               <div key={day.date} className={styles.dayColumn}>
-                <div className={styles.barWrapper} title={`${day.label}: ${earned} puntos`}>
+                <div className={styles.barWrapper} title={`${day.label}: ${earned} ${t('daily_score.points_unit')}`}>
                   {goalValue > 0 && (
                     <span
                       className={styles.goalMarker}
@@ -106,7 +112,7 @@ export default function DailyScoreActivity({
                   <span
                     className={`${styles.dayBar} ${isGoalMet ? styles.dayBarGoal : ""}`}
                     style={{ height: `${height}%` }}
-                    aria-label={`${day.label} ${earned} puntos`}
+                    aria-label={`${day.label} ${earned} ${t('daily_score.points_unit')}`}
                   />
                 </div>
                 <span className={styles.dayLabel}>{day.label}</span>

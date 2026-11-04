@@ -6,20 +6,22 @@ import Sidebar from "../components/Sidebar";
 import CourseCard from "../components/CourseCard";
 import styles from "./CSS/Courses.module.css";
 import { getErrorMessage } from "../api/client";
+import { useLanguage } from "../context/LanguageContext.jsx"; // <-- Importar hook de idioma
 
 const Courses = () => {
   const navigate = useNavigate();
+  const { t } = useLanguage(); // <-- Consumir la función de traducción
+
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [reloadKey, setReloadKey] = useState(0);
 
   const token = localStorage.getItem("token");
-
   const user = JSON.parse(localStorage.getItem("user") || "null");
 
   /* ==========================================
-      INIT
+     INIT
   ========================================== */
 
   useEffect(() => {
@@ -35,7 +37,7 @@ const Courses = () => {
         );
         if (active) setCourses(response.data);
       } catch (error) {
-        if (active) setError(getErrorMessage(error, "No pudimos cargar tus cursos."));
+        if (active) setError(getErrorMessage(error, t("courses_page.errors.load_failed")));
       } finally {
         if (active) setLoading(false);
       }
@@ -43,10 +45,10 @@ const Courses = () => {
 
     init();
     return () => { active = false; };
-  }, [token, reloadKey]);
+  }, [token, reloadKey, t]);
 
   /* ==========================================
-      LOADING
+     LOADING
   ========================================== */
 
   if (loading) {
@@ -66,10 +68,9 @@ const Courses = () => {
 
         <div className={styles.courses_header}>
           <div>
-            <h1>Mis Cursos</h1>
+            <h1>{t("courses_page.title")}</h1>
             <p>
-              Continuá aprendiendo donde
-              lo dejaste.
+              {t("courses_page.subtitle")}
             </p>
           </div>
           <div className={styles.catalog_header_actions}>
@@ -80,19 +81,19 @@ const Courses = () => {
               className={styles.catalog_back_btn}
               onClick={() => navigate("/courses/catalog")}
             >
-              Explorar catálogo
+              {t("courses_page.explore_catalog")}
             </button>
           </div>
 
         </div>
 
-        {/* EMPTY */}
+        {/* EMPTY / ERROR */}
 
         {error && (
           <div className={styles.catalog_message_error} role="alert">
             {error}{" "}
             <button type="button" className={styles.catalog_back_btn} onClick={() => setReloadKey((k) => k + 1)}>
-              Reintentar
+              {t("courses_page.retry")}
             </button>
           </div>
         )}
@@ -101,12 +102,10 @@ const Courses = () => {
           !error && courses.length === 0 && (
             <div className={styles.empty_state}>
               <h2>
-                Todavía no estás anotado
-                a ningún curso
+                {t("courses_page.empty.title")}
               </h2>
               <p>
-                Cuando te inscribas a un
-                curso aparecerá aquí.
+                {t("courses_page.empty.desc")}
               </p>
             </div>
           )

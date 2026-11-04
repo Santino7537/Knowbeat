@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import BrandLogo from "../components/general/BrandLogo.jsx";
 import ThemeToggle from "../components/general/ThemeToggle.jsx";
 import MusicStaff from "../components/general/MusicStaff.jsx";
+import { useLanguage } from "../context/LanguageContext.jsx"; // <-- Importar hook de idioma
 import styles from "./CSS/Landing.module.css";
 
 /* =====================================================================
@@ -37,25 +38,6 @@ const KEY_MAP = Object.fromEntries(
 );
 
 const EQ_BARS = 28;
-
-const STEPS = [
-  { title: "Creá tu cuenta", text: "Es gratis y no necesitás saber nada de música para empezar." },
-  { title: "Elegí un curso", text: "Guitarra o piano, con lecciones cortas que avanzan de a poco." },
-  { title: "Practicá", text: "Ejercicios de acordes, escalas e intervalos, en el orden que quieras." },
-  { title: "Compartí", text: "Publicá tus avances, resolvé dudas y seguí a otros músicos." },
-];
-
-const TOPICS = [
-  { title: "Acordes de séptima", text: "Mayores, menores, dominantes y disminuidos: escuchalos y armalos.", level: "Intermedio" },
-  { title: "Escalas mayores", text: "La base de todo: aprendé el patrón de tonos y semitonos.", level: "Inicial" },
-  { title: "Lectura en pentagrama", text: "Leé notas en clave de sol y de fa sin contar líneas.", level: "Inicial" },
-  { title: "Intervalos", text: "Reconocé la distancia entre dos notas de oído y en papel.", level: "Intermedio" },
-  { title: "Ritmo y compás", text: "Figuras, silencios y subdivisiones con metrónomo.", level: "Inicial" },
-  { title: "Partes de la guitarra", text: "Conocé tu instrumento antes de tocar el primer acorde.", level: "Inicial" },
-  { title: "Armonía básica", text: "Por qué algunos acordes suenan bien juntos.", level: "Intermedio" },
-  { title: "Solfeo", text: "Entoná melodías y entrená tu oído musical.", level: "Inicial" },
-  { title: "Progresiones", text: "Las secuencias de acordes de tus canciones favoritas.", level: "Avanzado" },
-];
 
 const TEAM = [
   { name: "Renata Gallucci", github: "Renaaa189" },
@@ -95,7 +77,7 @@ function usePianoSound() {
       out.gain.exponentialRampToValueAtTime(0.0001, now + 1.6);
       out.connect(ctx.destination);
 
-      // Fundamental + armónicos suaves: suena más a piano eléctrico que a "beep"
+      // Fundamental + armónicos suaves
       [[1, "triangle", 1], [2, "sine", 0.35], [3, "sine", 0.12]].forEach(([mult, type, vol]) => {
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
@@ -157,7 +139,7 @@ function Equalizer({ energy, bars = EQ_BARS, className = "" }) {
         <span
           key={i}
           style={{
-            animationDelay: `${((i * 137) % 1000) / 1000 - 1}s`,
+            animationDelay: `${((i * 137) % 1000) / 1000}s`,
             animationDuration: `${0.9 + ((i * 53) % 70) / 100}s`,
           }}
         />
@@ -167,8 +149,9 @@ function Equalizer({ energy, bars = EQ_BARS, className = "" }) {
 }
 
 function MiniKeyboard({ onPlay, activeKeys }) {
+  const { t } = useLanguage();
   return (
-    <div className={styles.keyboard} role="group" aria-label="Piano de una octava">
+    <div className={styles.keyboard} role="group" aria-label={t("landing.piano_aria")}>
       {WHITE_KEYS.map((k, i) => (
         <button
           key={`w${i}`}
@@ -200,8 +183,21 @@ function MiniKeyboard({ onPlay, activeKeys }) {
 }
 
 function TopicsCarousel() {
+  const { t } = useLanguage();
   const trackRef = useRef(null);
   const [active, setActive] = useState(0);
+
+  const TOPICS = [
+    { title: t("landing.topics.t1_title"), text: t("landing.topics.t1_text"), level: t("landing.levels.intermediate") },
+    { title: t("landing.topics.t2_title"), text: t("landing.topics.t2_text"), level: t("landing.levels.initial") },
+    { title: t("landing.topics.t3_title"), text: t("landing.topics.t3_text"), level: t("landing.levels.initial") },
+    { title: t("landing.topics.t4_title"), text: t("landing.topics.t4_text"), level: t("landing.levels.intermediate") },
+    { title: t("landing.topics.t5_title"), text: t("landing.topics.t5_text"), level: t("landing.levels.initial") },
+    { title: t("landing.topics.t6_title"), text: t("landing.topics.t6_text"), level: t("landing.levels.initial") },
+    { title: t("landing.topics.t7_title"), text: t("landing.topics.t7_text"), level: t("landing.levels.intermediate") },
+    { title: t("landing.topics.t8_title"), text: t("landing.topics.t8_text"), level: t("landing.levels.initial") },
+    { title: t("landing.topics.t9_title"), text: t("landing.topics.t9_text"), level: t("landing.levels.advanced") },
+  ];
 
   const scrollToIndex = useCallback((index) => {
     const track = trackRef.current;
@@ -211,16 +207,14 @@ function TopicsCarousel() {
     const card = track.children[next];
     if (card) track.scrollTo({ left: card.offsetLeft - track.offsetLeft, behavior: "smooth" });
     setActive(next);
-  }, []);
+  }, [TOPICS.length]);
 
-  // Avance automático; los controles manuales siguen disponibles.
   useEffect(() => {
     if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return undefined;
     const id = setInterval(() => scrollToIndex(active + 1), 3800);
     return () => clearInterval(id);
   }, [active, scrollToIndex]);
 
-  // Si el usuario arrastra/scrollea a mano, actualizamos el punto activo
   const handleScroll = () => {
     const track = trackRef.current;
     if (!track) return;
@@ -233,43 +227,43 @@ function TopicsCarousel() {
     <section
       className={styles.carousel}
       aria-roledescription="carrusel"
-      aria-label="Temas que vas a aprender"
+      aria-label={t("landing.topics_aria")}
     >
       <div className={styles.carouselHead}>
-        <h2>Lo que vas a aprender</h2>
+        <h2>{t("landing.topics_title")}</h2>
         <div className={styles.carouselNav}>
-          <button type="button" className={styles.carouselBtn} onClick={() => scrollToIndex(active - 1)} aria-label="Tema anterior">
+          <button type="button" className={styles.carouselBtn} onClick={() => scrollToIndex(active - 1)} aria-label={t("landing.prev_topic")}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true"><path d="M15 5l-7 7 7 7" /></svg>
           </button>
-          <button type="button" className={styles.carouselBtn} onClick={() => scrollToIndex(active + 1)} aria-label="Tema siguiente">
+          <button type="button" className={styles.carouselBtn} onClick={() => scrollToIndex(active + 1)} aria-label={t("landing.next_topic")}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true"><path d="M9 5l7 7-7 7" /></svg>
           </button>
         </div>
       </div>
 
       <div ref={trackRef} className={styles.carouselTrack} onScroll={handleScroll}>
-        {TOPICS.map((t, i) => (
+        {TOPICS.map((item, i) => (
           <article
-            key={t.title}
+            key={item.title}
             className={`${styles.topicCard} ${i === active ? styles.topicActive : ""}`}
             aria-roledescription="diapositiva"
-            aria-label={`${i + 1} de ${TOPICS.length}: ${t.title}`}
+            aria-label={`${i + 1} de ${TOPICS.length}: ${item.title}`}
           >
-            <h3>{t.title}</h3>
-            <p>{t.text}</p>
-            <span className={styles.topicLevel}>{t.level}</span>
+            <h3>{item.title}</h3>
+            <p>{item.text}</p>
+            <span className={styles.topicLevel}>{item.level}</span>
           </article>
         ))}
       </div>
 
-      <div className={styles.dots} role="tablist" aria-label="Elegí un tema">
-        {TOPICS.map((t, i) => (
+      <div className={styles.dots} role="tablist" aria-label={t("landing.select_topic_aria")}>
+        {TOPICS.map((item, i) => (
           <button
-            key={t.title}
+            key={item.title}
             type="button"
             role="tab"
             aria-selected={i === active}
-            aria-label={t.title}
+            aria-label={item.title}
             className={`${styles.dot} ${i === active ? styles.dotActive : ""}`}
             onClick={() => scrollToIndex(i)}
           />
@@ -286,6 +280,14 @@ function TopicsCarousel() {
 const Landing = () => {
   const navigate = useNavigate();
   const playSound = usePianoSound();
+  const { t } = useLanguage(); // <-- Consumir hook de idioma
+
+  const STEPS = [
+    { title: t("landing.steps.s1_title"), text: t("landing.steps.s1_text") },
+    { title: t("landing.steps.s2_title"), text: t("landing.steps.s2_text") },
+    { title: t("landing.steps.s3_title"), text: t("landing.steps.s3_text") },
+    { title: t("landing.steps.s4_title"), text: t("landing.steps.s4_text") },
+  ];
 
   const [activeKeys, setActiveKeys] = useState(() => new Set());
   const [energy, setEnergy] = useState(false);
@@ -311,7 +313,6 @@ const Landing = () => {
     clearTimeout(energyTimer.current);
     energyTimer.current = setTimeout(() => setEnergy(false), 650);
 
-    // Nota que "sale volando" del piano
     const id = noteId.current++;
     const glyphs = ["♪", "♫", "♩", "♬"];
     setFloating((prev) => [
@@ -321,7 +322,6 @@ const Landing = () => {
     setTimeout(() => setFloating((prev) => prev.filter((n) => n.id !== id)), 1800);
   }, [playSound]);
 
-  // Teclado de la computadora → piano (salvo que se esté escribiendo en un campo)
   useEffect(() => {
     const onKeyDown = (e) => {
       if (e.repeat || e.metaKey || e.ctrlKey || e.altKey) return;
@@ -337,7 +337,6 @@ const Landing = () => {
     };
   }, [play]);
 
-  // Revelado al hacer scroll (una sola vez por sección)
   const revealRefs = useRef([]);
   const [revealed, setRevealed] = useState(() => new Set());
   const registerReveal = (index) => (el) => { revealRefs.current[index] = el; };
@@ -373,18 +372,18 @@ const Landing = () => {
 
       {/* ============ NAV ============ */}
       <header className={styles.nav}>
-        <a href="/" className={styles.navLogo} aria-label="Knowbeat, inicio">
+        <a href="/" className={styles.navLogo} aria-label={t("landing.nav.logo_aria")}>
           <BrandLogo />
         </a>
-        <nav className={styles.navLinks} aria-label="Secciones">
-          <a href="#funciones">Qué podés hacer</a>
-          <a href="#como-empezar">Cómo empezar</a>
-          <a href="#comunidad">Comunidad</a>
+        <nav className={styles.navLinks} aria-label={t("landing.nav.sections_aria")}>
+          <a href="#funciones">{t("landing.nav.features")}</a>
+          <a href="#como-empezar">{t("landing.nav.how_to_start")}</a>
+          <a href="#comunidad">{t("landing.nav.community")}</a>
         </nav>
         <div className={styles.navActions}>
           <ThemeToggle />
           <button type="button" className={styles.navLogin} onClick={goToLogin}>
-            Iniciar sesión
+            {t("landing.nav.login")}
           </button>
         </div>
       </header>
@@ -393,25 +392,24 @@ const Landing = () => {
       <section className={styles.cover}>
         <MusicStaff staves={1} notes={30} lineGap={46} className={styles.coverStaff} />
         <Sparkles count={7} />
-        <p className={styles.coverKicker}>Aprendé · Practicá · Compartí</p>
+        <p className={styles.coverKicker}>{t("landing.cover.kicker")}</p>
         <h1 className={styles.wordmark} aria-label="Knowbeat">
           {"KNOWBEAT".split("").map((letter, i) => (
             <span key={i} className={styles.wordmarkLetter} style={{ "--i": i }} aria-hidden="true">{letter}</span>
           ))}
         </h1>
         <p className={styles.coverText}>
-          La plataforma para aprender música desde cero, practicar con ejercicios
-          interactivos y crecer junto a una comunidad de músicos.
+          {t("landing.cover.text")}
         </p>
         <div className={styles.coverActions}>
           <button type="button" className={styles.ctaPrimary} onClick={goToRegister}>
-            Empezar gratis
+            {t("landing.cover.cta_primary")}
           </button>
           <a href="#probalo" className={styles.ctaSecondary}>
-            Probá el piano
+            {t("landing.cover.cta_secondary")}
           </a>
         </div>
-        <a href="#probalo" className={styles.scrollCue} aria-label="Bajar a la siguiente sección">
+        <a href="#probalo" className={styles.scrollCue} aria-label={t("landing.cover.scroll_aria")}>
           <span />
         </a>
       </section>
@@ -423,20 +421,19 @@ const Landing = () => {
 
         <div className={styles.heroCopy}>
           <h2 className={styles.heroTitle}>
-            <span className={styles.heroLine}>La música</span>
-            <span className={styles.heroLine}>se aprende</span>
-            <span className={`${styles.heroLine} ${styles.heroLineGlow}`}>tocando.</span>
+            <span className={styles.heroLine}>{t("landing.hero.title_1")}</span>
+            <span className={styles.heroLine}>{t("landing.hero.title_2")}</span>
+            <span className={`${styles.heroLine} ${styles.heroLineGlow}`}>{t("landing.hero.title_3")}</span>
           </h2>
           <p className={styles.heroText}>
-            Lecciones guiadas, ejercicios para practicar a tu ritmo y una comunidad
-            para compartir lo que vas aprendiendo. No hace falta saber nada antes.
+            {t("landing.hero.text")}
           </p>
           <div className={styles.heroActions}>
             <button type="button" className={styles.ctaPrimary} onClick={goToRegister}>
-              Crear mi cuenta
+              {t("landing.hero.cta_register")}
             </button>
             <button type="button" className={styles.ctaSecondary} onClick={goToLogin}>
-              Ya tengo cuenta
+              {t("landing.hero.cta_login")}
             </button>
           </div>
         </div>
@@ -450,8 +447,8 @@ const Landing = () => {
                 <BrandLogo variant="mark" className={styles.mark} label="" />
               </div>
               <div className={styles.nowPlaying} aria-live="polite">
-                <span className={styles.nowLabel}>{lastNote ? "Sonando" : "Probalo"}</span>
-                <strong className={styles.nowNote}>{lastNote ?? "Tocá una tecla"}</strong>
+                <span className={styles.nowLabel}>{lastNote ? t("landing.instrument.playing") : t("landing.instrument.try_it")}</span>
+                <strong className={styles.nowNote}>{lastNote ?? t("landing.instrument.prompt")}</strong>
               </div>
             </div>
 
@@ -467,7 +464,7 @@ const Landing = () => {
             </div>
 
             <p className={styles.instrumentHint}>
-              Hacé clic en las teclas o usá <kbd>A</kbd> a <kbd>K</kbd> en tu teclado.
+              {t("landing.instrument.hint")} <kbd>A</kbd> {t("landing.instrument.hint_to")} <kbd>K</kbd> {t("landing.instrument.hint_keyboard")}.
             </p>
           </div>
         </div>
@@ -479,16 +476,16 @@ const Landing = () => {
       {/* ============ FUNCIONES (bento) ============ */}
       <section id="funciones" className={styles.section}>
         <div ref={registerReveal(0)} data-reveal="0" className={`${styles.sectionHead} ${revealClass(0)}`}>
-          <h2>Todo lo que necesitás para aprender, practicar y compartir</h2>
-          <p>Teoría, práctica y gente con la que tocar, en un solo lugar.</p>
+          <h2>{t("landing.bento.main_title")}</h2>
+          <p>{t("landing.bento.main_subtitle")}</p>
         </div>
 
         <div className={styles.bento}>
           {/* Clases guiadas */}
           <article ref={registerReveal(1)} data-reveal="1" className={`${styles.tile} ${styles.tileWide} ${revealClass(1)}`}>
             <div className={styles.tileText}>
-              <h3>Clases guiadas</h3>
-              <p>Cada curso es un recorrido sobre el pentagrama: completás una lección y se ilumina la siguiente. Podés repetir las que quieras.</p>
+              <h3>{t("landing.bento.classes_title")}</h3>
+              <p>{t("landing.bento.classes_text")}</p>
             </div>
             <div className={styles.lessonMap} aria-hidden="true">
               <svg viewBox="0 0 520 150" className={styles.lessonSvg}>
@@ -503,7 +500,7 @@ const Landing = () => {
                 ))}
               </svg>
               <div className={styles.lessonMeta}>
-                <span>Lección 3 de 12</span>
+                <span>{t("landing.bento.lesson_progress")}</span>
                 <div className={styles.miniProgress}><span style={{ width: "25%" }} /></div>
               </div>
             </div>
@@ -512,8 +509,8 @@ const Landing = () => {
           {/* Ejercicios */}
           <article ref={registerReveal(2)} data-reveal="2" className={`${styles.tile} ${revealClass(2)}`}>
             <div className={styles.tileText}>
-              <h3>Ejercicios a tu medida</h3>
-              <p>Elegí qué practicar y con qué dificultad, sin seguir un orden.</p>
+              <h3>{t("landing.bento.exercises_title")}</h3>
+              <p>{t("landing.bento.exercises_text")}</p>
             </div>
             <div className={styles.chordGame} aria-hidden="true">
               <span className={styles.chordName}>Cmaj7</span>
@@ -529,18 +526,18 @@ const Landing = () => {
           {/* Comunidad */}
           <article id="comunidad" ref={registerReveal(3)} data-reveal="3" className={`${styles.tile} ${revealClass(3)}`}>
             <div className={styles.tileText}>
-              <h3>Comunidad</h3>
-              <p>Publicá dudas y avances, dale me gusta a otros y seguí a quien te inspire.</p>
+              <h3>{t("landing.bento.community_title")}</h3>
+              <p>{t("landing.bento.community_text")}</p>
             </div>
             <div className={styles.postPreview} aria-hidden="true">
               <div className={styles.postHead}>
                 <span className={styles.postAvatar}>A</span>
                 <div>
                   <strong>ana_piano</strong>
-                  <small>hace 5 horas</small>
+                  <small>{t("landing.bento.post_time")}</small>
                 </div>
               </div>
-              <p>Terminé el curso de armonía básica. Ahora entiendo las progresiones.</p>
+              <p>{t("landing.bento.post_text")}</p>
               <span className={styles.postLikes}>♥ 42</span>
             </div>
           </article>
@@ -548,25 +545,25 @@ const Landing = () => {
           {/* Mensajes */}
           <article ref={registerReveal(4)} data-reveal="4" className={`${styles.tile} ${revealClass(4)}`}>
             <div className={styles.tileText}>
-              <h3>Mensajes en tiempo real</h3>
-              <p>Chateá con tus amigos o sumate a conversaciones grupales.</p>
+              <h3>{t("landing.bento.messages_title")}</h3>
+              <p>{t("landing.bento.messages_text")}</p>
             </div>
             <div className={styles.chatPreview} aria-hidden="true">
-              <span className={styles.bubbleOther}>¿Practicamos los acordes mañana?</span>
-              <span className={styles.bubbleOwn}>Dale, a las 18.</span>
+              <span className={styles.bubbleOther}>{t("landing.bento.chat_other")}</span>
+              <span className={styles.bubbleOwn}>{t("landing.bento.chat_own")}</span>
             </div>
           </article>
 
           {/* Carpetas */}
           <article ref={registerReveal(5)} data-reveal="5" className={`${styles.tile} ${revealClass(5)}`}>
             <div className={styles.tileText}>
-              <h3>Carpetas para tu material</h3>
-              <p>Guardá partituras y archivos, públicos o privados, y explorá los de otros.</p>
+              <h3>{t("landing.bento.folders_title")}</h3>
+              <p>{t("landing.bento.folders_text")}</p>
             </div>
             <div className={styles.folders} aria-hidden="true">
-              <span>Partituras</span>
-              <span>Tablaturas</span>
-              <span>Mis grabaciones</span>
+              <span>{t("landing.bento.folder_1")}</span>
+              <span>{t("landing.bento.folder_2")}</span>
+              <span>{t("landing.bento.folder_3")}</span>
             </div>
           </article>
         </div>
@@ -575,8 +572,8 @@ const Landing = () => {
       {/* ============ CÓMO EMPEZAR (escala ascendente) ============ */}
       <section id="como-empezar" className={styles.section}>
         <div ref={registerReveal(6)} data-reveal="6" className={`${styles.sectionHead} ${revealClass(6)}`}>
-          <h2>Empezá en cuatro pasos</h2>
-          <p>Como una escala: cada paso un poco más arriba.</p>
+          <h2>{t("landing.steps_title")}</h2>
+          <p>{t("landing.steps_subtitle")}</p>
         </div>
 
         <ol ref={registerReveal(7)} data-reveal="7" className={`${styles.steps} ${revealClass(7)}`}>
@@ -593,10 +590,10 @@ const Landing = () => {
       {/* ============ CTA FINAL ============ */}
       <section ref={registerReveal(8)} data-reveal="8" className={`${styles.finalCta} ${revealClass(8)}`}>
         <Equalizer energy={false} bars={40} className={styles.finalEq} />
-        <h2>Tu primera lección te está esperando</h2>
-        <p>Creá tu cuenta gratis y empezá hoy, con o sin experiencia.</p>
+        <h2>{t("landing.final_cta.title")}</h2>
+        <p>{t("landing.final_cta.text")}</p>
         <button type="button" className={styles.ctaPrimary} onClick={goToRegister}>
-          Crear mi cuenta
+          {t("landing.final_cta.btn")}
         </button>
       </section>
 
@@ -609,29 +606,29 @@ const Landing = () => {
         <div className={styles.footerInner}>
           <div className={styles.footerBrand}>
             <BrandLogo className={styles.footerLogo} />
-            <p>Aprendé música a tu ritmo, practicá todos los días y compartí lo que vas descubriendo.</p>
+            <p>{t("landing.footer.brand_desc")}</p>
             <button type="button" className={styles.ctaPrimary} onClick={goToRegister}>
-              Empezar gratis
+              {t("landing.footer.start_free")}
             </button>
           </div>
 
-          <nav className={styles.footerCol} aria-label="Plataforma">
-            <h3>Plataforma</h3>
-            <a href="#funciones">Clases guiadas</a>
-            <a href="#funciones">Ejercicios</a>
-            <a href="#comunidad">Comunidad</a>
-            <a href="#probalo">Probá el piano</a>
+          <nav className={styles.footerCol} aria-label={t("landing.footer.col_platform")}>
+            <h3>{t("landing.footer.platform")}</h3>
+            <a href="#funciones">{t("landing.nav.features")}</a>
+            <a href="#funciones">{t("landing.bento.exercises_title")}</a>
+            <a href="#comunidad">{t("landing.nav.community")}</a>
+            <a href="#probalo">{t("landing.cover.cta_secondary")}</a>
           </nav>
 
-          <nav className={styles.footerCol} aria-label="Cuenta">
-            <h3>Tu cuenta</h3>
-            <button type="button" onClick={goToLogin}>Iniciar sesión</button>
-            <button type="button" onClick={goToRegister}>Crear cuenta</button>
-            <a href="#como-empezar">Cómo empezar</a>
+          <nav className={styles.footerCol} aria-label={t("landing.footer.col_account")}>
+            <h3>{t("landing.footer.your_account")}</h3>
+            <button type="button" onClick={goToLogin}>{t("landing.nav.login")}</button>
+            <button type="button" onClick={goToRegister}>{t("landing.hero.cta_register")}</button>
+            <a href="#como-empezar">{t("landing.nav.how_to_start")}</a>
           </nav>
 
           <div className={styles.footerCol}>
-            <h3>Equipo</h3>
+            <h3>{t("landing.footer.team")}</h3>
             {TEAM.map((m) => (
               <a key={m.github} href={`https://github.com/${m.github}`} target="_blank" rel="noreferrer" className={styles.teamLink}>
                 <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -644,13 +641,13 @@ const Landing = () => {
         </div>
 
         <div className={styles.footerBottom}>
-          <span>© {new Date().getFullYear()} Knowbeat. Hecho con ♪ por estudiantes, para músicos.</span>
+          <span>© {new Date().getFullYear()} Knowbeat. {t("landing.footer.made_with")}</span>
           <button
             type="button"
             className={styles.backToTop}
             onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
           >
-            Volver arriba ↑
+            {t("landing.footer.back_to_top")}
           </button>
         </div>
       </footer>

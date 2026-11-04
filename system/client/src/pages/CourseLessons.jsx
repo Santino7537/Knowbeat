@@ -7,6 +7,7 @@ import CourseLessonMap from "../components/course-map/CourseLessonMap";
 import LessonPlayer from "../components/lesson-player/LessonPlayer.jsx";
 import { getLessonForCourse } from "../components/lesson-player/lessonCatalog.js";
 import styles from "./CSS/CourseLessonMapPage.module.css";
+import { useLanguage } from "../context/LanguageContext.jsx"; // <-- Importar hook de idioma
 
 const pianoIcon = (
   <svg fill="currentColor" width="800" height="800" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" aria-label="Curso de piano" role="img">
@@ -35,16 +36,17 @@ const CourseLessonMapPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { courseId } = useParams();
+  const { t } = useLanguage(); // <-- Consumir la función de traducción
+
   const [course, setCourse] = useState(null);
   const [currentLesson, setCurrentLesson] = useState(null);
   const [activeLesson, setActiveLesson] = useState(null);
   const [loading, setLoading] = useState(true);
   const [startingLesson, setStartingLesson] = useState(false);
   const [error, setError] = useState("");
-  const courseName = course?.name || location.state?.courseName || `Curso ${courseId}`;
+  const courseName = course?.name || location.state?.courseName || `${t("lesson_map_page.course_fallback")} ${courseId}`;
   const courseIcon = getCourseIcon(courseName);
   const token = localStorage.getItem("token");
-
 
   useEffect(() => {
     let active = true;
@@ -58,7 +60,7 @@ const CourseLessonMapPage = () => {
 
       const requestedCourseId = Number(courseId);
       if (!Number.isSafeInteger(requestedCourseId) || requestedCourseId <= 0) {
-        setError("El curso solicitado no es válido.");
+        setError(t("lesson_map_page.errors.invalid_course"));
         setLoading(false);
         return;
       }
@@ -69,21 +71,21 @@ const CourseLessonMapPage = () => {
           { headers: { Authorization: `Bearer ${token}` } }
         );
         if (!Array.isArray(response.data)) {
-          throw new Error("La respuesta de progreso del servidor no es válida.");
+          throw new Error(t("lesson_map_page.errors.invalid_progress_response"));
         }
 
         const courseProgress = response.data.find(
           (item) => Number(item.course_id) === requestedCourseId
         );
         if (!courseProgress) {
-          throw new Error("No estás anotado a este curso.");
+          throw new Error(t("lesson_map_page.errors.not_enrolled"));
         }
 
         const totalLessons = Number(courseProgress.total_lessons);
         const storedLesson = Number(courseProgress.current_lesson);
         if (!Number.isSafeInteger(totalLessons) || totalLessons < 0
           || !Number.isSafeInteger(storedLesson) || storedLesson < 0) {
-          throw new Error("Los datos de progreso del curso no son válidos.");
+          throw new Error(t("lesson_map_page.errors.invalid_progress_data"));
         }
 
         if (active) {
@@ -92,7 +94,7 @@ const CourseLessonMapPage = () => {
         }
       } catch (requestError) {
         if (active) {
-          setError(requestError.response?.data?.error || requestError.message || "No se pudo cargar el progreso del curso.");
+          setError(requestError.response?.data?.error || requestError.message || t("lesson_map_page.errors.load_progress_failed"));
         }
       } finally {
         if (active) setLoading(false);
@@ -101,11 +103,11 @@ const CourseLessonMapPage = () => {
 
     fetchCourseProgress();
     return () => { active = false; };
-  }, [courseId, token]);
+  }, [courseId, token, t]);
 
   const completeLesson = async (lessonNumber) => {
     if (!course || lessonNumber !== currentLesson || startingLesson) {
-      throw new Error("El progreso del curso cambió. Volvé al curso y actualizá el mapa.");
+      throw new Error(t("lesson_map_page.errors.progress_changed"));
     }
 
     setStartingLesson(true);
@@ -117,7 +119,7 @@ const CourseLessonMapPage = () => {
       );
       const nextLesson = Number(response.data?.current_lesson);
       if (!Number.isSafeInteger(nextLesson) || nextLesson !== lessonNumber + 1) {
-        throw new Error("La respuesta de actualización del progreso no es válida.");
+        throw new Error(t("lesson_map_page.errors.invalid_update_response"));
       }
       setCurrentLesson(nextLesson);
     } catch (requestError) {
@@ -129,7 +131,7 @@ const CourseLessonMapPage = () => {
       throw new Error(
         requestError.response?.data?.error
         || requestError.message
-        || "No se pudo guardar el progreso. Intentá nuevamente."
+        || t("lesson_map_page.errors.save_progress_failed")
       );
     } finally {
       setStartingLesson(false);
@@ -139,9 +141,9 @@ const CourseLessonMapPage = () => {
   const startLesson = (selectedLesson) => {
     if (!course || currentLesson === null || !selectedLesson || selectedLesson.status === "locked") return;
     const lessonNumber = Number(selectedLesson.id);
-    const lessonContent = getLessonForCourse(course.name, lessonNumber);
+    const lessonContent = getLessonForCourse(course.name, lessonNumber, t);
     if (!lessonContent?.lesson) {
-      setError(lessonContent?.error || "El contenido de esta lección todavía no está disponible.");
+      setError(lessonContent?.error || t("lesson_map_page.errors.lesson_not_available"));
       return;
     }
 
@@ -169,7 +171,7 @@ const CourseLessonMapPage = () => {
   const lessons = course && currentLesson !== null
     ? Array.from({ length: totalLessons }, (_, index) => {
       const lessonNumber = index + 1;
-      const lessonContent = getLessonForCourse(course.name, lessonNumber);
+      const lessonContent = getLessonForCourse(course.name, lessonNumber, t);
       const lessonData = lessonContent?.lesson;
       const hasContent = Boolean(lessonData);
       const status = lessonNumber < currentLesson
@@ -182,11 +184,11 @@ const CourseLessonMapPage = () => {
         id: lessonNumber,
         title: hasContent
           ? lessonData.title
-          : `Lección ${lessonNumber}`,
+          : `${t("lesson_map_page.lesson_fallback")} ${lessonNumber}`,
         description: hasContent
           ? lessonData.description
-          : "El contenido de esta lección estará disponible próximamente.",
-        type: "Lección",
+          : t("lesson_map_page.lesson_upcoming"),
+        type: t("lesson_map_page.lesson_type"),
         status,
         sectionId: lessonData?.sectionId,
         level: lessonData?.level,
@@ -207,7 +209,7 @@ const CourseLessonMapPage = () => {
             type="button"
             onClick={() => navigate("/courses")}
           >
-            Volver a mis cursos
+            {t("lesson_map_page.back_to_courses")}
           </button>
           <div className={styles.courseTitleWrap} aria-label={courseName} title={courseName}>
             <span className={styles.srOnly}>{courseName}</span>
@@ -215,16 +217,16 @@ const CourseLessonMapPage = () => {
           </div>
         </header>
 
-        <section className={styles.mapSection} aria-label="Recorrido de lecciones">
+        <section className={styles.mapSection} aria-label={t("lesson_map_page.map_aria")}>
           {loading ? (
-            <p role="status">Cargando el progreso del curso...</p>
+            <p role="status">{t("lesson_map_page.loading_progress")}</p>
           ) : error && !course ? (
             <p role="alert">{error}</p>
           ) : (
             <>
               {error && <p role="alert">{error}</p>}
               {currentLesson > totalLessons && (
-                <p role="status">Completaste todas las lecciones de este curso.</p>
+                <p role="status">{t("lesson_map_page.all_completed")}</p>
               )}
               <CourseLessonMap
                 lessons={lessons}
