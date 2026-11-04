@@ -94,6 +94,31 @@ services:
       - mysql_data:/var/lib/mysql
       - ./mysql/init:/docker-entrypoint-initdb.d
 
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "--host=127.0.0.1", "--silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+
+    restart: unless-stopped
+
+  dvv-worker:
+    build:
+      context: .
+      dockerfile: worker/Dockerfile
+    environment:
+      SQL_DATABASE_HOST: mysql
+      SQL_DATABASE_PORT: 3306
+      SQL_DATABASE_NAME: ${SQL_DATABASE_NAME}
+      SQL_BACKEND_USER: ${SQL_BACKEND_USER}
+      SQL_BACKEND_PASSWORD: ${SQL_BACKEND_PASSWORD}
+      DVV_TIME_ZONE: America/Argentina/Buenos_Aires
+      DVV_SCHEDULE_HOUR: ${DVV_SCHEDULE_HOUR:-2}
+      DVV_SCHEDULE_MINUTE: ${DVV_SCHEDULE_MINUTE:-0}
+    depends_on:
+      mysql:
+        condition: service_healthy
     restart: unless-stopped
   
   ffmpeg:

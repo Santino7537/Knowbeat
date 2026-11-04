@@ -13,7 +13,23 @@ const crc32FromHex = (hex) => {
     return (signed >>> 0);
 };
 
+const createDVVAccumulator = () => {
+    let checksum = 0;
+
+    return {
+        addHash: (hash) => {
+            if (typeof hash !== 'string' || !/^[\da-f]{64}$/i.test(hash)) {
+                throw new Error('DVH must be a 64-character hexadecimal SHA-256 hash');
+            }
+
+            checksum = CRC32.buf(Buffer.from(hash, 'hex'), checksum);
+        },
+        value: () => checksum >>> 0
+    };
+};
+
 module.exports = {
     computeDVHFromObject,
-    crc32FromHex
+    crc32FromHex,
+    createDVVAccumulator
 };
