@@ -136,8 +136,6 @@ const startServer = async () => {
   await require('./config/createPermissions')();
   await require('./config/createAdmin')();
   await require('./config/createCourses')();
-  await require('./config/initUserDailyScore')();
-  await require('./config/initAdminAccess')();
 
   try {
     await connectMongo();
