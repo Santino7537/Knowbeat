@@ -4,32 +4,50 @@ const db = require('../config/db');
 const SECRET = process.env.SECRET;
 
 // Middleware para verificar token y cargar usuario en req.user
-const checkToken = (req, res, next) => {
+const checkToken = async (req, res, next) => {
   const authHeader = req.headers['authorization'];
 
-    if (!authHeader) {
-      return res.status(401).json({ message: 'Token no proporcionado' });
+  if (!authHeader) {
+    return res.status(401).json({ message: 'Token no proporcionado' });
+  }
+
+  const token = authHeader.replace(/^Bearer\s+/i, '').trim();
+
+  try {
+    const decoded = jwt.verify(token, SECRET);
+    if (!Number.isSafeInteger(decoded.user_id) || decoded.user_id <= 0) {
+      return res.status(401).json({ message: 'Token inválido o expirado' });
     }
 
-    const token = authHeader.replace(/^Bearer\s+/i, '').trim();
+    const [users] = await db.query(
+      `SELECT u.id, u.role_id, u.eliminated, r.role
+       FROM User u
+       JOIN Role r ON r.id = u.role_id
+       WHERE u.id = ?
+       LIMIT 1`,
+      [decoded.user_id]
+    );
+    const user = users[0];
+    if (!user || user.eliminated) {
+      return res.status(401).json({ message: 'Token inválido o expirado' });
+    }
 
-    jwt.verify(token, SECRET, async (err, decoded) => {
-        if (err) return res.status(401).json({ message: 'Token inválido o expirado' });
+    req.user = {
+      sessionToken: token,
+      role_id: user.role_id,
+      role: user.role,
+      user_id: user.id
+    };
 
-        // Buscar usuario por primary key
-        let [user] = await db.query('SELECT id, role_id FROM User WHERE id = ?', [decoded.user_id]);
-        if (user.length === 0) return res.status(404).json({ message: 'Usuario no encontrado' });
-        user = user[0];
+    return next();
+  } catch (error) {
+    if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {
+      return res.status(401).json({ message: 'Token inválido o expirado' });
+    }
 
-        // Guardar info del usuario en req.user
-        req.user = {
-            sessionToken: token,
-            role_id: user.role_id,
-            user_id: user.id
-        };
-
-        next();
-    });
+    console.error('Error al validar el token:', error);
+    return res.status(500).json({ message: 'No se pudo validar la sesión.' });
+  }
 };
 
 module.exports = checkToken;

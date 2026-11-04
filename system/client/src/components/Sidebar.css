@@ -203,6 +203,19 @@
   color: var(--kb-accent-text);
 }
 
+.admin-nav-item .nav-icon svg {
+  fill: #fff;
+  stroke: #fff;
+}
+
+.sidebar-logout {
+  margin-top: 8px;
+}
+
+.sidebar-logout .nav-icon svg {
+  fill: none;
+}
+
 /* ---------- Parte inferior: perfil + tema + configuración ---------- */
 
 .sidebar-bottom {

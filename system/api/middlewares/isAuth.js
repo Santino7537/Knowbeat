@@ -16,12 +16,15 @@ const getPermissionCandidates = (req) => {
 };
 
 const isAuth = async (req, res, next) => {
-    const roleId = req.user.role_id;
-    const role = Object.keys(ROLES_PERMISSIONS)[roleId - 1];
+    const role = req.user?.role;
+    const permissions = ROLES_PERMISSIONS[role];
+    if (!permissions) {
+        return res.status(403).json({ message: 'No está autorizado' });
+    }
 
     const permissionCandidates = getPermissionCandidates(req);
     const hasPermission = permissionCandidates.some(candidate =>
-        ROLES_PERMISSIONS[role].includes(candidate)
+        permissions.includes(candidate)
     );
 
     if (!hasPermission) {

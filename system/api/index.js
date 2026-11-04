@@ -4,10 +4,11 @@ const cors = require('cors');
 
 const { login, register, getUserById, getUserByUsername, getUserByToken, getUsers, getConfig, changeConfig, changeProfile, reportUser } = require('./controllers/userController');
 const { changeRole, deleteUser, getReports, getReportDetail, resolveReport } = require('./controllers/adminController');
+const { verifyAdminPassword, getAdminSession, revokeAdminSession, logout } = require('./controllers/adminAccessController');
 
 const { getCourses, getUserProgress, registerCourse, updateUserProgress } = require('./controllers/coursesController');
 const { getUserStats, getUserScoreHistory, changeGoal } = require('./controllers/streakController');
-const { createFolder, updateFolder, deleteFolder, getFolderFiles } = require('./controllers/folderController');
+const { createFolder, updateFolder, deleteFolder, getFolders, getFolderFiles, shareFolder, unshareFolder } = require('./controllers/folderController');
 const { uploadFileInFolder, deleteFileFromFolder, getFileUrlFromFolder } = require('./controllers/fileController');
 const { searchCommunity, searchThread, createThread, createResponse, searchResponses, likePublication, getPublicationLike } = require('./controllers/communityController');
 const { getFriendshipRequests, getFriends, sendFriendRequest, acceptFriendRequest, rejectFriendRequest, cancelFriendRequest, deleteFriendship } = require('./controllers/friendshipController');
@@ -22,6 +23,7 @@ const { checkFilesUpload } = require('./middlewares/checkFiles');
 const { checkRequestDataSize } = require('./middlewares/checkReq');
 const isAuth = require('./middlewares/isAuth');
 const checkToken = require('./middlewares/checkToken');
+const requireAdminAccess = require('./middlewares/requireAdminAccess');
 
 const server = express();
 const httpServer = createServer(server);
@@ -47,7 +49,7 @@ server.use(cors({ // No permite solicitudes de otros orígenes que no estén en 
     }
   },
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Admin-Authorization'],
   credentials: true
 }));
 
@@ -58,9 +60,10 @@ server.get('/', (req, res) => { res.status(200).send('Bienvenido a la API de Kno
 // Users
 server.post('/register', postResponseLog, register);
 server.post('/login', postResponseLog, login);
+server.post('/user/logout', postResponseLog, checkToken, logout);
 server.get('/user/get/user/:id', checkToken, isAuth, getUserById);
 server.get('/user/get/user/username/:username', checkToken, isAuth, getUserByUsername);
-server.get('/user/get/users', checkToken, isAuth, getUsers);
+server.get('/user/get/users', checkToken, isAuth, requireAdminAccess, getUsers);
 server.get('/user/get/config', checkToken, isAuth, getConfig);
 server.patch('/user/update/config', postResponseLog, checkToken, isAuth, changeConfig);
 
@@ -69,7 +72,10 @@ server.patch('/user/update/profile', postResponseLog, checkToken, isAuth, checkF
 server.post('/user/create/folder/:folder_name', postResponseLog, checkToken, isAuth, createFolder);
 server.patch('/user/update/folder', postResponseLog, checkToken, isAuth, updateFolder);
 server.delete('/user/delete/folder/:folder_name', postResponseLog, checkToken, isAuth, deleteFolder);
+server.get('/user/get/folders', checkToken, isAuth, getFolders);
 server.get('/user/get/folder/files/:folder_name', checkToken, isAuth, getFolderFiles);
+server.post('/user/share/folder/:folder_id', postResponseLog, checkToken, isAuth, shareFolder);
+server.delete('/user/unshare/folder/:folder_id/:user_id', postResponseLog, checkToken, isAuth, unshareFolder);
 server.post('/user/upload/file/:folder_id', postResponseLog, checkToken, isAuth, checkFilesUpload('folder_file', 1), uploadFileInFolder);
 server.delete('/user/delete/file/:file_id/:folder_id', postResponseLog, checkToken, isAuth, deleteFileFromFolder);
 server.get('/user/get/file/:file_id/:folder_id', checkToken, isAuth, getFileUrlFromFolder);
@@ -111,14 +117,17 @@ server.get('/user/get/stats', checkToken, isAuth, getUserStats)
 server.get('/user/get/score/history', checkToken, isAuth, getUserScoreHistory)
 server.patch('/user/update/goal', postResponseLog, checkToken, isAuth, changeGoal)
 
-// Moderators
-server.get('/admin/reports', postResponseLog, checkToken, isAuth, getReports);
-server.get('/admin/reports/:id', postResponseLog, checkToken, isAuth, getReportDetail);
-server.patch('/admin/reports/:id', postResponseLog, checkToken, isAuth, resolveReport);
+// Administrative re-authentication and temporary access
+server.post('/admin/reauth', postResponseLog, checkToken, verifyAdminPassword);
+server.get('/admin/session', checkToken, requireAdminAccess, getAdminSession);
+server.delete('/admin/session', checkToken, revokeAdminSession);
 
-// Admins
-server.patch('/user/update/role/:id', postResponseLog, checkToken, isAuth, changeRole);
-server.patch('/user/delete/user/:id', postResponseLog, checkToken, isAuth, deleteUser);
+// Administrative endpoints
+server.get('/admin/reports', postResponseLog, checkToken, isAuth, requireAdminAccess, getReports);
+server.get('/admin/reports/:id', postResponseLog, checkToken, isAuth, requireAdminAccess, getReportDetail);
+server.patch('/admin/reports/:id', postResponseLog, checkToken, isAuth, requireAdminAccess, resolveReport);
+server.patch('/user/update/role/:id', postResponseLog, checkToken, isAuth, requireAdminAccess, changeRole);
+server.patch('/user/delete/user/:id', postResponseLog, checkToken, isAuth, requireAdminAccess, deleteUser);
 
 // Token
 server.get('/token/get/user', checkToken, getUserByToken)

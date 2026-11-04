@@ -2,16 +2,17 @@ const ADMINISTRATOR_ROLE = "Administrator";
 const MODERATOR_ROLE = "Moderator";
 const USER_ROLE = "User";
 
-const USER_PERMISSIONS = ['user-get-user', 'user-get-user-username', 'user-get-users', 'user-get-config', 
+const USER_PERMISSIONS = ['user-get-user', 'user-get-user-username', 'user-get-config',
   'user-update-config', 'user-update-profile', 'user-create-folder', 
-  'user-update-folder', 'user-delete-folder', 'user-get-folder-files', 'user-upload-file', 'user-delete-file', 
+  'user-update-folder', 'user-delete-folder', 'user-get-folder-files', 'user-get-folders',
+  'user-share-folder', 'user-unshare-folder', 'user-upload-file', 'user-delete-file',
   'user-get-file', 'course-get-courses', 'user-get-progress', 'user-register-course', 'user-update-progress',
   'user-get-stats', 'user-get-score-history', 'user-update-goal', 'user-report', 'community-search', 'community-search-thread',
   'community-create-thread', 'community-create-response', 'community-like-thread', 'community-like-response', 'community-search-responses',
   'friend', 'friend-request', 'friend-request-accept', 'friend-request-reject', 'friend-request-cancel', 'friend-delete', 'friend-list', 'friend-requests',
   'chat', 'chat-send', 'chat-messages', 'chat-read'];
 
-  const ADMIN_PERMISSIONS = ['admin-reports', 'user-update-role', 'user-delete-user'];
+  const ADMIN_PERMISSIONS = ['admin-reports', 'user-get-users', 'user-update-role', 'user-delete-user'];
 
 const ROLES_PERMISSIONS = {
     [USER_ROLE]: USER_PERMISSIONS,
@@ -87,8 +88,8 @@ const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50 MB
 const VALID_FILES_FORMATS = {
     'images': ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'],
     'texts': ['application/pdf', 'text/plain'],
-    'audios': ['audio/mpeg', 'audio/wav', 'audio/x-wav'],
-    'videos': ['video/mp4']
+    'audios': ['audio/mpeg', 'audio/wav', 'audio/x-wav', 'audio/ogg'],
+    'videos': ['video/mp4', 'video/webm']
 }
 
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5 MB

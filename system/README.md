@@ -4,6 +4,7 @@ Los archivos y directorios importantes son:
 
 ### Directorio 'api'
 El directorio 'api' contiene la totalidad del Backend.
+La documentación de las rutas de archivos y carpetas está en `api/README.md`.
 ### Directorio 'client'
 El directorio 'client' contiene la totalidad del Frontend.
 ### Directorio 'mongo/init'
