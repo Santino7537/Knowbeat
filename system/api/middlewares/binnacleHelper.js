@@ -9,7 +9,7 @@ const sanitizeForLog = (value) => {
 
   return Object.fromEntries(Object.entries(value).map(([key, entry]) => [
     key,
-    /password|authorization|token|secret|cookie/i.test(key)
+    /password|authorization|token|secret|cookie|description|admin_comment/i.test(key)
       ? "[REDACTED]"
       : sanitizeForLog(entry)
   ]));

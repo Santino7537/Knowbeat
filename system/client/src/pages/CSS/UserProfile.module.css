@@ -139,6 +139,38 @@
   composes: kb-btn kb-btn-secondary from global;
 }
 
+.reportUserButton {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--kb-danger) 38%, transparent);
+  border-radius: 50%;
+  background: var(--kb-danger-soft);
+  color: var(--kb-danger);
+  cursor: pointer;
+  transition: background-color var(--kb-dur) var(--kb-ease), transform var(--kb-dur) var(--kb-ease);
+}
+
+.reportUserButton:hover {
+  transform: translateY(-1px);
+  background: color-mix(in srgb, var(--kb-danger-soft) 70%, var(--kb-danger));
+}
+
+.reportUserButton:focus-visible {
+  outline: 3px solid var(--kb-danger);
+  outline-offset: 3px;
+}
+
+.reportUserButton svg {
+  width: 19px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+}
+
 .actionIcon {
   width: 18px;
   height: 18px;
@@ -280,6 +312,50 @@
   display: grid;
   gap: 20px;
   padding: 24px 28px 28px;
+}
+
+.reportIntro {
+  margin: 0;
+  color: var(--kb-text-muted);
+  line-height: 1.55;
+}
+
+.reportField {
+  display: grid;
+  gap: 8px;
+  color: var(--kb-text-secondary);
+  font-size: var(--kb-fs-sm);
+  font-weight: 600;
+}
+
+.reportField select,
+.reportField textarea {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--kb-border);
+  border-radius: var(--kb-radius);
+  background: var(--kb-surface-inset);
+  color: var(--kb-text);
+  font: inherit;
+}
+
+.reportField textarea {
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.reportField select:focus,
+.reportField textarea:focus {
+  outline: none;
+  border-color: var(--kb-accent);
+  box-shadow: var(--kb-ring);
+}
+
+.characterCount {
+  justify-self: end;
+  color: var(--kb-text-muted);
+  font-size: var(--kb-fs-xs);
+  font-weight: 400;
 }
 
 .formActions {

@@ -326,6 +326,17 @@
   color: var(--kb-text-muted);
 }
 
+.suspendedBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: var(--kb-danger-soft);
+  color: var(--kb-danger);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
 .roleSelect {
   composes: kb-input from global;
   min-width: 130px;
@@ -371,6 +382,16 @@
   color: var(--kb-warning);
 }
 
+.resolvedBadge {
+  background: var(--kb-success-soft);
+  color: var(--kb-success);
+}
+
+.rejectedBadge {
+  background: var(--kb-surface-2);
+  color: var(--kb-text-muted);
+}
+
 .reportDescription {
   margin: 14px 0;
   color: var(--kb-text-secondary);
@@ -389,6 +410,165 @@
 
 .reportMeta strong {
   color: var(--kb-text);
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 20px;
+  color: var(--kb-text-muted);
+  font-size: var(--kb-fs-sm);
+}
+
+.reportDetailModal {
+  width: min(100%, 720px);
+  max-height: min(90dvh, 900px);
+  overflow: auto;
+  border: 1px solid var(--kb-border);
+  border-radius: var(--kb-radius-xl);
+  background: var(--kb-surface);
+  box-shadow: var(--kb-shadow-lg);
+}
+
+.reportDetailHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 22px 26px;
+  border-bottom: 1px solid var(--kb-border);
+}
+
+.reportDetailHeader h2 {
+  margin: 0;
+  font-size: var(--kb-fs-xl);
+}
+
+.reportDetailHeader .eyebrow {
+  margin-bottom: 6px;
+}
+
+.closeModalButton {
+  composes: kb-btn kb-btn-ghost kb-btn-icon from global;
+  flex: 0 0 auto;
+  font-size: 1.4rem;
+}
+
+.reportDetailBody {
+  display: grid;
+  gap: 18px;
+  padding: 22px 26px 26px;
+}
+
+.reportDetailMeta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 18px;
+  color: var(--kb-text-muted);
+  font-size: var(--kb-fs-sm);
+}
+
+.reportDetailMeta strong {
+  color: var(--kb-text);
+}
+
+.inlineLink {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--kb-accent-text);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.inlineLink:hover {
+  text-decoration: underline;
+}
+
+.reportDetailDescription {
+  padding: 16px;
+  border: 1px solid var(--kb-border);
+  border-radius: var(--kb-radius);
+  background: var(--kb-surface-inset);
+}
+
+.reportDetailDescription h3,
+.resolutionForm h3 {
+  margin: 0 0 8px;
+  font-size: var(--kb-fs-md);
+}
+
+.reportDetailDescription p {
+  margin: 0;
+  color: var(--kb-text-secondary);
+  line-height: 1.6;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.resolutionForm {
+  display: grid;
+  gap: 14px;
+  padding-top: 16px;
+  border-top: 1px solid var(--kb-border);
+}
+
+.adminField {
+  display: grid;
+  gap: 7px;
+  color: var(--kb-text-secondary);
+  font-size: var(--kb-fs-sm);
+  font-weight: 600;
+}
+
+.adminField select,
+.adminField input,
+.adminField textarea {
+  width: 100%;
+  min-height: 42px;
+  padding: 10px 12px;
+  border: 1px solid var(--kb-border);
+  border-radius: var(--kb-radius);
+  background: var(--kb-surface-inset);
+  color: var(--kb-text);
+  font: inherit;
+}
+
+.adminField textarea {
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.adminField :is(select, input, textarea):focus {
+  outline: none;
+  border-color: var(--kb-accent);
+  box-shadow: var(--kb-ring);
+}
+
+.resolutionForm .characterCount {
+  justify-self: end;
+  color: var(--kb-text-muted);
+  font-size: var(--kb-fs-xs);
+  font-weight: 400;
+}
+
+.permanentWarning {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: var(--kb-radius);
+  background: var(--kb-danger-soft);
+  color: var(--kb-danger);
+  line-height: 1.5;
+}
+
+.sanctionPreview {
+  margin: 0;
+  color: var(--kb-text-muted);
+  font-size: var(--kb-fs-sm);
+  line-height: 1.5;
 }
 
 .reportActions,

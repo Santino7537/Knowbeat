@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const db = require('../config/db');
+const { getActiveSanction, toSuspensionResponse } = require('../utils/sanctions');
 
 const SECRET = process.env.SECRET;
 
@@ -30,6 +31,14 @@ const checkToken = async (req, res, next) => {
     const user = users[0];
     if (!user || user.eliminated) {
       return res.status(401).json({ message: 'Token inválido o expirado' });
+    }
+
+    const sanction = await getActiveSanction(db, user.id);
+    if (sanction) {
+      return res.status(403).json({
+        code: 'ACCOUNT_SUSPENDED',
+        suspension: toSuspensionResponse(sanction)
+      });
     }
 
     req.user = {

@@ -8,6 +8,7 @@ const fs = require('fs/promises');
 const db = require('../config/db');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const { getActiveSanction, toSuspensionResponse } = require('../utils/sanctions');
 
 const SECRET = process.env.SECRET;
 
@@ -37,6 +38,19 @@ const login = async (req, res) => {
   // Comprueba si la contraseña es correcta
   const compare = await bcrypt.compare(password, user.password);
   if (!compare) return res.status(400).json({ message: 'Usuario o contraseña incorrecta' });
+
+  try {
+    const sanction = await getActiveSanction(db, user.id);
+    if (sanction) {
+      return res.status(403).json({
+        code: 'ACCOUNT_SUSPENDED',
+        suspension: toSuspensionResponse(sanction)
+      });
+    }
+  } catch (error) {
+    console.error('Error al comprobar sanciones al iniciar sesión:', error);
+    return res.status(500).json({ message: 'No se pudo validar el estado de la cuenta.' });
+  }
 
   const token = jwt.sign({ user_id: user.id }, SECRET, { expiresIn: '8h' });
   res.json({ message: 'Logueo exitoso!', token });
@@ -233,9 +247,25 @@ const getUsers = async (req, res) => {
   try {
     const [[users], [roles]] = await Promise.all([
       db.query(
-        `SELECT u.id, u.username, u.email, u.role_id, r.role AS role_name
+        `SELECT
+           u.id,
+           u.username,
+           u.email,
+           u.role_id,
+           r.role AS role_name,
+           active_sanction.is_permanent AS is_permanently_banned,
+           DATE_FORMAT(active_sanction.expires_at, '%Y-%m-%dT%H:%i:%s.000Z') AS sanction_expires_at
          FROM User u
          JOIN Role r ON r.id = u.role_id
+         LEFT JOIN UserSanction active_sanction ON active_sanction.id = (
+           SELECT s.id
+           FROM UserSanction s
+           WHERE s.user_id = u.id
+             AND s.revoked_at IS NULL
+             AND (s.is_permanent = 1 OR s.expires_at > UTC_TIMESTAMP())
+           ORDER BY s.id DESC
+           LIMIT 1
+         )
          WHERE u.eliminated = 0
          ORDER BY u.username ASC`
       ),
@@ -532,7 +562,7 @@ const changeProfile = async (req, res) => {
 };
 
 const reportUser = async (req, res) => {
-  const { reported_id, reason, description } = req.body;
+  const { reported_id, reason, description } = req.body ?? {};
   req.actions_data = {};
 
   const reporterId = req.user?.user_id;
@@ -548,7 +578,7 @@ const reportUser = async (req, res) => {
 
   const normalizedReason = typeof reason === 'string' ? reason.trim().toUpperCase() : '';
   const normalizedDescription = typeof description === 'string'
-    ? description.replace(/[\u0000-\u001F\u007F]/g, '').trim()
+    ? description.trim()
     : '';
 
   if (!REPORT_REASONS.includes(normalizedReason)) {
@@ -559,35 +589,70 @@ const reportUser = async (req, res) => {
     return res.status(422).json({ status: 'error', message: 'No puedes reportarte a ti mismo' });
   }
 
-  if (!normalizedDescription) {
-    return res.status(422).json({ status: 'error', message: 'La descripción es obligatoria' });
+  if (normalizedDescription.length < 20) {
+    return res.status(422).json({ status: 'error', message: 'La descripción debe tener al menos 20 caracteres' });
   }
 
-  if (normalizedDescription.length > 500) {
+  if (normalizedDescription.length > 2000) {
     return res.status(422).json({ status: 'error', message: 'La descripción es demasiado larga' });
   }
 
+  let connection;
+  let transactionStarted = false;
   try {
-    const [reportedUser] = await db.query(
+    connection = await db.getConnection();
+    await connection.beginTransaction();
+    transactionStarted = true;
+
+    const [reporterRows] = await connection.query(
+      'SELECT id FROM User WHERE id = ? AND eliminated = 0 FOR UPDATE;',
+      [reporterId]
+    );
+    if (reporterRows.length === 0) {
+      await connection.rollback();
+      transactionStarted = false;
+      return res.status(401).json({ status: 'error', message: 'Usuario no autenticado' });
+    }
+
+    const [reportedUser] = await connection.query(
       'SELECT id FROM User WHERE id = ? AND eliminated = 0;',
       [reportedId]
     );
     if (reportedUser.length === 0) {
+      await connection.rollback();
+      transactionStarted = false;
       return res.status(404).json({ status: 'error', message: 'El usuario reportado no existe' });
     }
 
-    const [pendingReport] = await db.query(
-      'SELECT id FROM Report WHERE reporter_id = ? AND reported_id = ? AND status = ?;',
+    const [pendingReport] = await connection.query(
+      'SELECT id FROM Report WHERE reporter_id = ? AND reported_id = ? AND status = ? LIMIT 1;',
       [reporterId, reportedId, 'PENDING']
     );
     if (pendingReport.length !== 0) {
+      await connection.rollback();
+      transactionStarted = false;
       return res.status(409).json({ status: 'error', message: 'Ya existe un reporte pendiente para este usuario' });
     }
 
-    const [result] = await db.query(
-      'INSERT INTO Report (reporter_id, reported_id, status, reason, description, date) VALUES (?, ?, ?, ?, ?, NOW());',
+    const [[rateLimit]] = await connection.query(
+      `SELECT COUNT(*) AS report_count
+       FROM Report
+       WHERE reporter_id = ? AND date >= UTC_TIMESTAMP() - INTERVAL 1 HOUR`,
+      [reporterId]
+    );
+    if (Number(rateLimit.report_count) >= 5) {
+      await connection.rollback();
+      transactionStarted = false;
+      return res.status(429).json({ status: 'error', message: 'Alcanzaste el límite de reportes. Intentá nuevamente más tarde.' });
+    }
+
+    const [result] = await connection.query(
+      'INSERT INTO Report (reporter_id, reported_id, status, reason, description, date) VALUES (?, ?, ?, ?, ?, UTC_TIMESTAMP());',
       [reporterId, reportedId, 'PENDING', normalizedReason, normalizedDescription]
     );
+
+    await connection.commit();
+    transactionStarted = false;
 
     const reportId = result.insertId;
     req.actions_data['user-report'] = {
@@ -604,8 +669,17 @@ const reportUser = async (req, res) => {
       data: { reportId }
     });
   } catch (error) {
+    if (transactionStarted) {
+      try {
+        await connection.rollback();
+      } catch (rollbackError) {
+        console.error('Error al revertir el reporte:', rollbackError);
+      }
+    }
     console.error('Error al reportar usuario:', error);
     return res.status(500).json({ status: 'error', message: 'Error al procesar el reporte' });
+  } finally {
+    connection?.release();
   }
 };
 

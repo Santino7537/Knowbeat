@@ -112,3 +112,50 @@ los tres respaldos podrían reflejar instantes distintos. Los archivos no están
 host puede destruir tanto los datos como sus backups; copiar periódicamente el volumen
 a otro medio/servidor y restringir el acceso al host es responsabilidad del operador.
 `docker compose down -v` también elimina este volumen.
+
+### Reportes y sanciones de usuarios
+
+La API usa consultas `mysql2` directas; no hay modelos Sequelize ni un ejecutor de
+migraciones. Antes de desplegar reportes y sanciones, respaldar la base y comprobar en
+MySQL Workbench:
+
+```sql
+USE knowbeat;
+SHOW CREATE TABLE `User`;
+SHOW CREATE TABLE `Report`;
+```
+
+`User.id` y `Report.id` deben ser `INT UNSIGNED`. Si `Report` no existe, la migración
+crea la tabla con el esquema indicado en la especificación de moderación. Si ya existe,
+`CREATE TABLE IF NOT EXISTS` no la altera: verificar que tenga los campos que consume
+la API (`reporter_id`, `reported_id`, `reviser_id`, `status`, `reason`, `description`,
+`admin_comment`, `date` y `review_date`) antes de continuar.
+
+Ejecutar manualmente `mysql/migrations/20261104-moderation.sql` sobre la base
+configurada en la API; el archivo selecciona `knowbeat`, así que ajustar esa línea si el
+nombre real es distinto. Después reiniciar la API. Esta migración agrega `UserSanction`
+sin alterar usuarios ni cambiar el historial existente de reportes. La tabla almacena
+cada sanción, su comentario, su fecha de expiración o su indicador explícito de
+permanencia, además de las revocaciones. No se debe ejecutar de nuevo sobre un esquema
+incompatible ni borrar tablas para resolver errores.
+
+Los reportes nuevos usan `PENDING`, `RESOLVED` y `REJECTED`; `ACCEPTED` se conserva
+solo para mostrar registros antiguos. Las sanciones temporales guardan también la fecha
+en `User.penalty_date`; las permanentes se identifican en `UserSanction`, sin fechas
+mágicas. Una sanción temporal vence al llegar `expires_at` en UTC. El backend consulta
+esa tabla en el login, en cada solicitud JWT y en cada acción Socket.IO de chat; al
+aplicarse una sanción también desconecta los sockets activos locales. El motivo visible
+al usuario se toma de la sanción vigente, no del reporte más reciente.
+El archivo `mysql/migrations/20261104-moderation-down.sql` revierte solo la tabla nueva
+`UserSanction`; exportar su historial antes de ejecutarlo. Intencionalmente no elimina
+`Report`, que puede contener datos existentes.
+
+El endpoint de reportes limita cada cuenta a cinco envíos por hora y rechaza duplicados
+pendientes contra el mismo usuario. Solo una cuenta con rol `Administrator` y
+autorización administrativa vigente puede revisar o revocar sanciones. No se permite
+sancionar cuentas administradoras.
+
+La migración debe aplicarse antes de iniciar la versión nueva de la API. El repositorio
+no contiene el esquema real que se creó manualmente en Workbench, por lo que la
+validación de compatibilidad y las pruebas integrales contra esa base deben hacerse en
+el entorno de desarrollo antes de usarla con datos reales.

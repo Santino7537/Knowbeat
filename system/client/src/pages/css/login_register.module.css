@@ -77,6 +77,89 @@
   animation: popIn var(--kb-dur-slow) var(--kb-ease);
 }
 
+.suspensionCard {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  width: min(100%, 560px);
+  padding: clamp(24px, 5vw, 44px);
+  border: 1px solid var(--kb-border);
+  border-radius: var(--kb-radius-xl);
+  background: var(--kb-surface);
+  box-shadow: var(--kb-shadow-lg);
+  color: var(--kb-text-secondary);
+  text-align: center;
+}
+
+.suspensionIcon {
+  display: grid;
+  width: 58px;
+  height: 58px;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--kb-danger-soft);
+  color: var(--kb-danger);
+}
+
+.suspensionIcon svg {
+  width: 34px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2.5;
+}
+
+.suspensionEyebrow {
+  margin: 4px 0 0;
+  color: var(--kb-accent-text);
+  font-size: var(--kb-fs-xs);
+  font-weight: 700;
+  letter-spacing: var(--kb-tracking-label);
+  text-transform: uppercase;
+}
+
+.suspensionCard h1 {
+  margin: 0;
+  color: var(--kb-text);
+  font-size: clamp(1.7rem, 4vw, 2.3rem);
+}
+
+.suspensionCard > p {
+  margin: 0;
+  line-height: 1.55;
+}
+
+.suspensionReason {
+  width: 100%;
+  margin: 8px 0;
+  padding: 16px;
+  border: 1px solid var(--kb-border);
+  border-radius: var(--kb-radius);
+  background: var(--kb-surface-inset);
+  text-align: left;
+}
+
+.suspensionReason strong {
+  color: var(--kb-text);
+}
+
+.suspensionReason p {
+  margin: 6px 0 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.suspensionExpiry,
+.suspensionDays {
+  color: var(--kb-text-muted);
+}
+
+.suspensionButton {
+  composes: kb-btn kb-btn-primary from global;
+  margin-top: 8px;
+}
+
 @keyframes drift {
   to { transform: translate(80px, 60px) scale(1.08); }
 }

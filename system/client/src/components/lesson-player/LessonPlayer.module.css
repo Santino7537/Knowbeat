@@ -133,6 +133,8 @@
   display: grid;
   place-items: center;
   min-width: 0;
+  width: fit-content;
+  max-width: 100%;
   max-height: min(58vh, 590px);
   margin: 0;
   overflow: hidden;
@@ -143,17 +145,11 @@
 
 .imageFrame img {
   display: block;
-  width: 100%;
+  width: auto;
+  height: auto;
+  max-width: 100%;
   max-height: inherit;
   object-fit: contain;
-}
-
-.horizontal img {
-  aspect-ratio: 4 / 3;
-}
-
-.vertical img {
-  aspect-ratio: 3 / 4;
 }
 
 .imageFallback {
@@ -382,7 +378,6 @@
   }
 
   .imageFrame {
-    width: min(100%, 460px);
     max-height: 38vh;
     justify-self: center;
   }

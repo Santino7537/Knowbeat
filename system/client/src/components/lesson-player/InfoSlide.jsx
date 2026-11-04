@@ -26,7 +26,7 @@ const InfoSlide = ({ slide }) => {
         </div>
       </div>
       {hasImage && (
-        <figure className={`${styles.imageFrame} ${styles[slide.image.orientation || "vertical"]}`}>
+        <figure className={styles.imageFrame}>
           <img
             src={slide.image.src}
             alt={slide.image.alt}

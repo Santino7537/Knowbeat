@@ -52,10 +52,10 @@ function DocumentTitle() {
 }
 
 function ProtectedRoutes() {
-  const { loggedUser, loadingAuth } = useAuth();
+  const { loggedUser, loadingAuth, suspension } = useAuth();
 
   if (loadingAuth) return null;
-  if (!loggedUser) return <Navigate to="/" replace />;
+  if (!loggedUser) return <Navigate to={suspension ? "/Login" : "/"} replace />;
 
   return <Outlet />;
 }
@@ -159,8 +159,8 @@ function App() {
             <Route path="/folders" element={<Folders />} />
             <Route path="/folders/:folderId" element={<Folders />} />
             <Route path="/user/:username" element={<UserProfile />} />
+            <Route path="/community" element={<Community/>} />
           </Route>
-          <Route path="/community" element={<Community/>} />
       </Routes>
         </RouteTransition>
       </AuthProvider>
