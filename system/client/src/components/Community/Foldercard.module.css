@@ -1,61 +1,102 @@
+/*
+  Misma card que UserCard: mismo ancho (100% de la columna, tope 29.25rem)
+  y mismo alto (468 / 100 con aspect-ratio). Las medidas internas están en cqw
+  (1cqw = 1% del ancho de la card): px del diseño / 468 * 100, así todo escala
+  junto con la card y se alinea con las publicaciones y los perfiles.
+*/
 .card {
+  container-type: inline-size;
   width: 100%;
-  border: 1px solid var(--kb-border);
-  border-radius: var(--kb-radius-xl);
-  background: var(--kb-surface);
-  box-shadow: var(--kb-shadow-sm);
-  animation: cardIn var(--kb-dur-slow) var(--kb-ease) both;
+  max-width: 29.25rem;
+  aspect-ratio: 468 / 100;
+  background-color: #1e293b;
+  border: 0.0625rem solid #334155;
+  border-radius: 0.6rem;
+  box-sizing: border-box;
+  overflow: hidden; /* un texto largo nunca estira la card */
 }
 
 .inner {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 16px 18px;
+  gap: 2.1cqw; /* ~10px entre el cuadrado y el texto */
+  height: 100%;
+  padding: 0 4.7cqw; /* ~22px a los costados */
+  box-sizing: border-box;
 }
 
+/*
+  Cuadrado del mismo tamaño que el avatar (58px -> 12.39cqw), con esquinas
+  curvadas (~10px -> 2.1cqw) y fondo 2A3952. aspect-ratio lo mantiene cuadrado.
+*/
 .iconBox {
-  display: grid;
-  place-items: center;
   flex-shrink: 0;
-  width: 52px;
-  height: 52px;
-  border-radius: var(--kb-radius-lg);
-  background: var(--kb-gradient-accent);
-  box-shadow: var(--kb-shadow-glow);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 12.39cqw;
+  aspect-ratio: 1 / 1;
+  border-radius: 2.1cqw;
+  background-color: #2a3952;
 }
 
+/* El ícono ocupa un poco menos de la mitad del cuadrado (~29px -> 6.2cqw) */
 .icon {
-  width: 26px;
-  height: 26px;
+  width: 6.2cqw;
+  height: 6.2cqw;
   object-fit: contain;
 }
 
+/* min-width: 0 deja que los textos largos se corten con "..." en vez de desbordar */
 .folderInfo {
-  display: flex;
   flex: 1;
-  flex-direction: column;
-  gap: 2px;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4cqw;
 }
 
 .name {
-  overflow: hidden;
-  color: var(--kb-text);
+  font-size: 4.5cqw;
   font-weight: 700;
-  text-overflow: ellipsis;
+  line-height: 1.2;
+  color: #ffffff;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .creator {
-  overflow: hidden;
-  color: var(--kb-text-muted);
-  font-size: var(--kb-fs-sm);
-  text-overflow: ellipsis;
+  font-size: 3.2cqw;
+  font-weight: 600;
+  line-height: 1.2;
+  color: #94a3b8;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-@keyframes cardIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to   { opacity: 1; transform: none; }
+/*
+  Cuando la card es un enlace (<a>): los enlaces son "inline" por defecto y así
+  ignorarían el ancho y el aspect-ratio, por eso display: block. También se
+  quita el subrayado y el color azul del enlace.
+  Hover: el borde pasa a azul 3B82F6 (el mismo del foco de los campos), para que
+  se note que se puede hacer clic. Foco de teclado: anillo del mismo color.
+  Va después de .card para ganar por orden (misma especificidad).
+*/
+.cardLink {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+}
+
+.cardLink:hover {
+  border-color: #3b82f6;
+}
+
+.cardLink:focus-visible {
+  outline: 0.125rem solid #3b82f6;
+  outline-offset: 0.125rem;
 }
