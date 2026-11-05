@@ -1,7 +1,6 @@
 const checkRequestDataSize = () => {
     const maxParams = 5;
     const maxQuery = 5;
-    const maxHeaders = 20;
     const maxKeyLength = 100;
     const maxValueLength = 300;
     return (req, res, next) => {
@@ -25,8 +24,6 @@ const checkRequestDataSize = () => {
         try {
             checkObject(req.params, maxParams, "params");
             checkObject(req.query, maxQuery, "query");
-            checkObject(req.headers, maxHeaders, "headers");
-
             next();
         } catch (err) { return res.status(400).json({ error: err.message}); }
     };

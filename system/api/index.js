@@ -38,11 +38,7 @@ const allowedOrigins = [
 
 server.set('trust proxy', true); // Confía en el proxy para obtener la IP real del cliente
 
-server.use(checkRequestDataSize()); // Verifica el tamaño de los datos del request
-server.use(express.json({ limit: '100kb' })); // Limita el tamaño del body a 100kb
-server.use(express.urlencoded({ limit: '100kb', extended: true })); // Limita el tamaño del body a 100kb para datos codificados en URL
-
-server.use(cors({ // No permite solicitudes de otros orígenes que no estén en la lista de allowedOrigins
+server.use(cors({ // No permite solicitudes de otros orígenes fuera de la lista
   origin: function (origin, callback) {
     if (allowedOrigins.includes(origin)) { // Se puede agregar "!origin ||" para testeos
       callback(null, true);
@@ -54,6 +50,10 @@ server.use(cors({ // No permite solicitudes de otros orígenes que no estén en 
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Admin-Authorization'],
   credentials: true
 }));
+
+server.use(checkRequestDataSize()); // Verifica el tamaño de los datos del request
+server.use(express.json({ limit: '100kb' })); // Limita el tamaño del body a 100kb
+server.use(express.urlencoded({ limit: '100kb', extended: true })); // Limita el tamaño del body a 100kb para datos codificados en URL
 
 // 'postResponseLog' es un middleware para registrar en la bitácora después de cada respuesta
 
