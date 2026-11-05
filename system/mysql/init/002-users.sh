@@ -1,0 +1,16 @@
+#!/bin/sh
+# ==============================
+# USERS
+# ==============================
+mysql -u root -p$MYSQL_ROOT_PASSWORD <<EOF
+
+CREATE USER IF NOT EXISTS '$SQL_BACKEND_USER'@'%'
+IDENTIFIED BY '$SQL_BACKEND_PASSWORD';
+
+GRANT SELECT, INSERT, UPDATE, DELETE
+ON $MYSQL_DATABASE.*
+TO '$SQL_BACKEND_USER'@'%';
+
+FLUSH PRIVILEGES;
+
+EOF

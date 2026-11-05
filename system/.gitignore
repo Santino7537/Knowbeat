@@ -1,10 +1,2 @@
 # Secrets
 .env
-
-# MongoDB init
-mongo/init/*
-!mongo/init/.gitkeep
-
-# MySQL init
-mysql/init/*
-!mysql/init/.gitkeep
