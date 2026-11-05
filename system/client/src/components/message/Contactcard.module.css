@@ -1,0 +1,73 @@
+.card {
+  position: relative;
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px;
+  border: 1px solid transparent;
+  border-radius: var(--kb-radius-lg);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color var(--kb-dur-fast) var(--kb-ease), border-color var(--kb-dur-fast) var(--kb-ease);
+}
+
+.card:hover {
+  background: rgb(var(--kb-tint-rgb) / 0.05);
+}
+
+.active,
+.active:hover {
+  border-color: rgb(var(--kb-accent-rgb) / 0.35);
+  background: var(--kb-accent-soft-strong);
+}
+
+.info {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.name,
+.lastMessage {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.name {
+  color: var(--kb-text);
+  font-weight: 700;
+}
+
+.lastMessage {
+  color: var(--kb-text-muted);
+  font-size: var(--kb-fs-sm);
+}
+
+.hasUnread .lastMessage {
+  color: var(--kb-text-secondary);
+  font-weight: 600;
+}
+
+.badge {
+  flex-shrink: 0;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 7px;
+  border-radius: var(--kb-radius-pill);
+  background: var(--kb-accent-strong);
+  box-shadow: 0 0 12px rgb(var(--kb-accent-rgb) / 0.55);
+  color: #ffffff;
+  font-size: var(--kb-fs-xs);
+  font-weight: 700;
+  line-height: 22px;
+  text-align: center;
+}

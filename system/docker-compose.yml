@@ -1,0 +1,179 @@
+services:
+  minio:
+    image: minio/minio:RELEASE.2025-09-07T16-13-09Z
+    container_name: minio
+
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+
+    volumes:
+      - minio_data:/data
+
+    command: server /data --console-address ":9001"
+
+    restart: unless-stopped
+
+  minio-init:
+    image: minio/mc:RELEASE.2025-08-13T08-35-41Z
+    container_name: minio-init
+
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+
+    volumes:
+      - ./client/public:/assets
+
+    depends_on:
+      - minio
+
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        until mc alias set local http://minio:9000 "$MINIO_ROOT_USER" "$MINIO_ROOT_PASSWORD"; do
+          echo "Esperando MinIO..."
+          sleep 2
+        done
+
+        mc mb local/profiles --ignore-existing
+        mc mb local/courses --ignore-existing
+        mc mb local/posts --ignore-existing
+        mc mb local/chat-files --ignore-existing
+        mc mb local/user-files --ignore-existing
+
+        mc anonymous set download local/profiles
+        mc anonymous set download local/courses
+        mc anonymous set download local/posts
+
+        mc anonymous set private local/chat-files
+        mc anonymous set private local/user-files
+        mc cp /assets/default_profile.webp local/profiles/
+
+    restart: "no"
+
+  mongo:
+    image: mongo:8.0.23
+    container_name: mongo
+
+    ports:
+      - "27018:27017"
+
+    environment:
+      MONGO_INITDB_DATABASE: ${MONGO_DATABASE_NAME}
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
+      MONGO_BACKEND_USER: ${MONGO_BACKEND_USER}
+      MONGO_BACKEND_PASSWORD: ${MONGO_BACKEND_PASSWORD}
+
+    volumes:
+      - mongo_data:/data/db
+      - ./mongo/init:/docker-entrypoint-initdb.d
+
+    restart: unless-stopped
+  
+  mysql:
+    image: mysql:8.4.8
+    container_name: mysql
+
+    ports:
+      - "3307:3306"
+
+    environment:
+      MYSQL_ROOT_PASSWORD: ${SQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${SQL_DATABASE_NAME}
+      SQL_BACKEND_USER: ${SQL_BACKEND_USER}
+      SQL_BACKEND_PASSWORD: ${SQL_BACKEND_PASSWORD}
+
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - mysql_socket:/var/run/mysqld
+      - ./mysql/init:/docker-entrypoint-initdb.d
+
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "--host=127.0.0.1", "--silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+
+    restart: unless-stopped
+
+  dvv-worker:
+    build:
+      context: .
+      dockerfile: worker/Dockerfile
+    environment:
+      SQL_DATABASE_HOST: mysql
+      SQL_DATABASE_PORT: 3306
+      SQL_DATABASE_NAME: ${SQL_DATABASE_NAME}
+      SQL_BACKEND_USER: ${SQL_BACKEND_USER}
+      SQL_BACKEND_PASSWORD: ${SQL_BACKEND_PASSWORD}
+      DVV_TIME_ZONE: America/Argentina/Buenos_Aires
+      DVV_SCHEDULE_HOUR: ${DVV_SCHEDULE_HOUR:-2}
+      DVV_SCHEDULE_MINUTE: ${DVV_SCHEDULE_MINUTE:-0}
+    depends_on:
+      mysql:
+        condition: service_healthy
+    restart: unless-stopped
+
+  backup-worker:
+    build:
+      context: .
+      dockerfile: backup/Dockerfile
+    environment:
+      SQL_DATABASE_SOCKET_PATH: /mysql-socket/mysqld.sock
+      SQL_DATABASE_NAME: ${SQL_DATABASE_NAME}
+      SQL_ROOT_PASSWORD: ${SQL_ROOT_PASSWORD}
+      MONGO_DATABASE_HOST: mongo
+      MONGO_DATABASE_PORT: 27017
+      MONGO_DATABASE_NAME: ${MONGO_DATABASE_NAME}
+      MONGO_ROOT_USER: ${MONGO_ROOT_USER}
+      MONGO_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
+      MINIO_ENDPOINT: http://minio:9000
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+      BACKUP_TIME_ZONE: America/Argentina/Buenos_Aires
+      BACKUP_DAY_OF_WEEK: ${BACKUP_DAY_OF_WEEK:-0}
+      BACKUP_SCHEDULE_HOUR: ${BACKUP_SCHEDULE_HOUR:-3}
+      BACKUP_SCHEDULE_MINUTE: ${BACKUP_SCHEDULE_MINUTE:-0}
+      BACKUP_RETENTION_WEEKS: ${BACKUP_RETENTION_WEEKS:-8}
+      BACKUP_DIR: /backups
+    volumes:
+      - backup_data:/backups
+      - mysql_socket:/mysql-socket
+    depends_on:
+      mysql:
+        condition: service_healthy
+      mongo:
+        condition: service_started
+      minio:
+        condition: service_started
+    restart: unless-stopped
+  
+  ffmpeg:
+    image: jrottenberg/ffmpeg:6.1-alpine
+    container_name: ffmpeg
+
+    entrypoint: ["tail", "-f", "/dev/null"]
+
+    volumes:
+      - ./temp/ffmpeg:/data
+
+    restart: unless-stopped
+
+volumes:
+  mongo_data:
+
+  mysql_data:
+
+  mysql_socket:
+
+  minio_data:
+
+  backup_data:

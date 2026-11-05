@@ -1,0 +1,387 @@
+/* =====================================================================
+   KNOWBEAT · COMPONENTES BASE
+   ---------------------------------------------------------------------
+   Clases globales reutilizables. Los CSS Modules las heredan con:
+
+     .miBoton { composes: kb-btn kb-btn-primary from global; }
+
+   y solo agregan lo propio (ancho, márgenes). Así todos los botones,
+   inputs, cards y badges se ven y se mueven igual en toda la app.
+   ===================================================================== */
+
+/* ---------------------------------------------------------------------
+   BOTONES
+   Forma pill (DESIGN.md), peso 600, transición y estados unificados.
+   --------------------------------------------------------------------- */
+.kb-btn {
+  --kb-btn-pad-y: 0.7rem;
+  --kb-btn-pad-x: 1.35rem;
+
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: var(--kb-btn-pad-y) var(--kb-btn-pad-x);
+  border: 1px solid transparent;
+  border-radius: var(--kb-radius-pill);
+  background: transparent;
+  color: var(--kb-text);
+  font-family: var(--kb-font-body);
+  font-size: var(--kb-fs-sm);
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+  user-select: none;
+  transition:
+    background-color var(--kb-dur) var(--kb-ease),
+    border-color var(--kb-dur) var(--kb-ease),
+    color var(--kb-dur) var(--kb-ease),
+    box-shadow var(--kb-dur) var(--kb-ease),
+    transform var(--kb-dur) var(--kb-ease),
+    opacity var(--kb-dur) var(--kb-ease);
+}
+
+.kb-btn:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.kb-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--kb-ring);
+}
+
+.kb-btn:disabled,
+.kb-btn[aria-disabled="true"] {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.kb-btn svg {
+  width: 1.1em;
+  height: 1.1em;
+  flex-shrink: 0;
+}
+
+/* Primario: azul sólido con brillo al pasar el mouse */
+.kb-btn-primary {
+  background: var(--kb-accent-strong);
+  border-color: var(--kb-accent-strong);
+  color: var(--kb-on-accent);
+}
+
+.kb-btn-primary:hover:not(:disabled) {
+  background: var(--kb-accent-hover);
+  border-color: var(--kb-accent-hover);
+  box-shadow: var(--kb-shadow-glow);
+  transform: translateY(-1px);
+}
+
+/* Secundario: contorno */
+.kb-btn-secondary {
+  background: transparent;
+  border-color: var(--kb-border-strong);
+  color: var(--kb-text-secondary);
+}
+
+.kb-btn-secondary:hover:not(:disabled) {
+  border-color: var(--kb-accent);
+  background: var(--kb-accent-soft);
+  color: var(--kb-accent-text);
+}
+
+/* Tonal: superficie suave (pestañas, acciones neutras) */
+.kb-btn-tonal {
+  background: rgb(var(--kb-tint-rgb) / 0.05);
+  border-color: var(--kb-border-subtle);
+  color: var(--kb-text-secondary);
+}
+
+.kb-btn-tonal:hover:not(:disabled) {
+  background: var(--kb-accent-soft);
+  color: var(--kb-text);
+}
+
+/* Estado "seleccionado" para tabs / filtros */
+.kb-btn-active,
+.kb-btn-active:hover:not(:disabled) {
+  background: var(--kb-accent-strong);
+  border-color: var(--kb-accent-strong);
+  color: var(--kb-on-accent);
+  box-shadow: var(--kb-shadow-glow);
+}
+
+/* Fantasma: sin borde, solo texto */
+.kb-btn-ghost {
+  background: transparent;
+  color: var(--kb-text-muted);
+}
+
+.kb-btn-ghost:hover:not(:disabled) {
+  background: rgb(var(--kb-tint-rgb) / 0.06);
+  color: var(--kb-text);
+}
+
+/* Peligro */
+.kb-btn-danger {
+  background: var(--kb-danger-soft);
+  color: var(--kb-danger);
+}
+
+.kb-btn-danger:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--kb-danger) 26%, transparent);
+}
+
+/* Tamaños */
+.kb-btn-sm {
+  --kb-btn-pad-y: 0.45rem;
+  --kb-btn-pad-x: 0.95rem;
+  font-size: var(--kb-fs-xs);
+}
+
+.kb-btn-lg {
+  --kb-btn-pad-y: 0.95rem;
+  --kb-btn-pad-x: 2rem;
+  font-size: var(--kb-fs-md);
+}
+
+/* Botón circular de ícono (play, configuración, cerrar) */
+.kb-btn-icon {
+  --kb-btn-pad-y: 0;
+  --kb-btn-pad-x: 0;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* ---------------------------------------------------------------------
+   CARDS
+   --------------------------------------------------------------------- */
+.kb-card {
+  background: var(--kb-surface);
+  border: 1px solid var(--kb-border);
+  border-radius: var(--kb-radius-lg);
+  box-shadow: var(--kb-shadow-sm);
+  transition:
+    border-color var(--kb-dur) var(--kb-ease),
+    box-shadow var(--kb-dur) var(--kb-ease),
+    transform var(--kb-dur) var(--kb-ease),
+    background-color var(--kb-dur) var(--kb-ease);
+}
+
+.kb-card-interactive {
+  cursor: pointer;
+}
+
+.kb-card-interactive:hover {
+  border-color: rgb(var(--kb-accent-rgb) / 0.55);
+  box-shadow: var(--kb-shadow-md);
+  transform: translateY(-3px);
+}
+
+.kb-card-interactive:focus-visible {
+  outline: none;
+  border-color: var(--kb-accent);
+  box-shadow: var(--kb-ring);
+}
+
+/* ---------------------------------------------------------------------
+   INPUTS
+   --------------------------------------------------------------------- */
+.kb-input {
+  width: 100%;
+  min-width: 0;
+  padding: 0.72rem 0.95rem;
+  border: 1px solid var(--kb-border);
+  border-radius: var(--kb-radius);
+  background: var(--kb-surface-inset);
+  color: var(--kb-text);
+  font-family: inherit;
+  font-size: 0.95rem;
+  outline: none;
+  transition:
+    border-color var(--kb-dur-fast) var(--kb-ease),
+    box-shadow var(--kb-dur-fast) var(--kb-ease),
+    background-color var(--kb-dur-fast) var(--kb-ease);
+}
+
+.kb-input::placeholder {
+  color: var(--kb-text-subtle);
+}
+
+.kb-input:hover {
+  border-color: var(--kb-border-strong);
+}
+
+.kb-input:focus,
+.kb-input:focus-within {
+  border-color: var(--kb-accent);
+  box-shadow: var(--kb-ring);
+}
+
+.kb-input-pill {
+  border-radius: var(--kb-radius-pill);
+}
+
+/* ---------------------------------------------------------------------
+   BADGES / CHIPS
+   --------------------------------------------------------------------- */
+.kb-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: var(--kb-radius-pill);
+  background: var(--kb-surface-2);
+  color: var(--kb-text-secondary);
+  font-size: var(--kb-fs-xs);
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.kb-badge-accent  { background: var(--kb-accent-soft);  color: var(--kb-accent-text); }
+.kb-badge-success { background: var(--kb-success-soft); color: var(--kb-success); }
+.kb-badge-warning { background: var(--kb-warning-soft); color: var(--kb-warning); }
+.kb-badge-danger  { background: var(--kb-danger-soft);  color: var(--kb-danger); }
+
+/* Etiqueta en mayúscula con tracking (la "voz de label" del sistema) */
+.kb-eyebrow {
+  display: inline-block;
+  color: var(--kb-accent-text);
+  font-size: var(--kb-fs-xs);
+  font-weight: 700;
+  letter-spacing: var(--kb-tracking-label);
+  text-transform: uppercase;
+}
+
+/* ---------------------------------------------------------------------
+   LOADER (spinner) — usado por varias páginas con className="loader"
+   --------------------------------------------------------------------- */
+.kb-loader,
+.loader {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 4px solid var(--kb-border);
+  border-top-color: var(--kb-accent);
+  animation: kb-spin 0.9s linear infinite;
+}
+
+/* ---------------------------------------------------------------------
+   SWITCH (toggle)
+   --------------------------------------------------------------------- */
+.kb-switch {
+  position: relative;
+  display: inline-block;
+  flex-shrink: 0;
+  width: 52px;
+  height: 30px;
+}
+
+.kb-switch input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+  z-index: 1;
+}
+
+.kb-switch-track {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--kb-radius-pill);
+  background: var(--kb-surface-3);
+  transition: background-color var(--kb-dur) var(--kb-ease), box-shadow var(--kb-dur) var(--kb-ease);
+}
+
+.kb-switch-track::before {
+  content: "";
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  transition: transform var(--kb-dur) var(--kb-ease);
+}
+
+.kb-switch input:checked + .kb-switch-track {
+  background: var(--kb-accent-strong);
+}
+
+.kb-switch input:checked + .kb-switch-track::before {
+  transform: translateX(22px);
+}
+
+.kb-switch input:focus-visible + .kb-switch-track {
+  box-shadow: var(--kb-ring);
+}
+
+/* ---------------------------------------------------------------------
+   MENSAJES DE ESTADO
+   --------------------------------------------------------------------- */
+.kb-alert {
+  padding: 0.8rem 1rem;
+  border: 1px solid transparent;
+  border-radius: var(--kb-radius);
+  font-size: var(--kb-fs-sm);
+}
+
+.kb-alert-danger {
+  border-color: color-mix(in srgb, var(--kb-danger) 35%, transparent);
+  background: var(--kb-danger-soft);
+  color: var(--kb-danger);
+}
+
+.kb-alert-success {
+  border-color: color-mix(in srgb, var(--kb-success) 35%, transparent);
+  background: var(--kb-success-soft);
+  color: var(--kb-success);
+}
+
+/* ---------------------------------------------------------------------
+   UTILIDADES
+   --------------------------------------------------------------------- */
+.kb-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------------------------------------------------------------------
+   LOGO (ver components/general/BrandLogo.jsx)
+   --------------------------------------------------------------------- */
+.kb-logo {
+  display: block;
+  background-color: currentColor;
+  -webkit-mask: var(--kb-logo-src) center / contain no-repeat;
+  mask: var(--kb-logo-src) center / contain no-repeat;
+}
+
+.kb-logo-wordmark {
+  --kb-logo-src: url("/Logo.png");
+  aspect-ratio: 869 / 287;
+}
+
+.kb-logo-mark {
+  --kb-logo-src: url("/favicon.png");
+  aspect-ratio: 461 / 541;
+}

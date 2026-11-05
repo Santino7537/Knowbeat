@@ -1,0 +1,63 @@
+.field {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 8px 8px 20px;
+  border: 1px solid var(--kb-border);
+  border-radius: 26px;
+  background: var(--kb-surface);
+  box-shadow: var(--kb-shadow-md);
+  cursor: text;
+  transition: border-color var(--kb-dur-fast) var(--kb-ease), box-shadow var(--kb-dur-fast) var(--kb-ease);
+}
+
+.field:focus-within {
+  border-color: var(--kb-accent);
+  box-shadow: var(--kb-shadow-md), var(--kb-ring);
+}
+
+.input {
+  --line: 1.5rem;
+  display: block;
+  flex: 1;
+  max-height: calc(3 * var(--line));
+  margin: 0 0 4px;
+  padding: 4px 0;
+  overflow-y: auto;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--kb-text);
+  font: inherit;
+  line-height: var(--line);
+  resize: none;
+}
+
+.input::placeholder {
+  color: var(--kb-text-subtle);
+}
+
+.send {
+  composes: kb-btn kb-btn-primary kb-btn-icon from global;
+  width: 40px;
+  height: 40px;
+}
+
+.send svg {
+  width: 18px;
+  height: 18px;
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgb(255 255 255 / 0.4);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

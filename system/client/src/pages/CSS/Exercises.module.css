@@ -1,0 +1,252 @@
+.exercises_layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+.exercises_main {
+  flex: 1;
+  min-width: 0;
+  margin-left: var(--kb-sidebar-width);
+  padding: 40px;
+}
+
+.exercises_header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+  margin-bottom: 40px;
+}
+
+.exercises_header h1 {
+  margin: 0 0 8px;
+  color: var(--kb-text);
+  font-size: var(--kb-fs-2xl);
+}
+
+.exercises_header p {
+  margin: 0;
+  color: var(--kb-text-muted);
+}
+
+.header_stats {
+  flex-shrink: 0;
+}
+
+.stat_pill {
+  composes: kb-badge from global;
+  padding: 0.5rem 0.95rem;
+  border: 1px solid var(--kb-border);
+  background: var(--kb-surface);
+  color: var(--kb-text-muted);
+  font-size: var(--kb-fs-sm);
+}
+
+.content_container {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 24px;
+}
+
+.types_panel {
+  composes: kb-card from global;
+  position: sticky;
+  top: 24px;
+  height: fit-content;
+  padding: 24px;
+}
+
+.types_panel h3 {
+  margin: 0 0 18px;
+  color: var(--kb-text);
+  font-size: var(--kb-fs-lg);
+}
+
+.type_button {
+  composes: kb-btn kb-btn-tonal from global;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  margin-bottom: 8px;
+  padding: 0.8rem 1rem;
+  text-align: left;
+}
+
+.type_button:hover:not(:disabled) {
+  transform: translateX(3px);
+}
+
+.type_button_active {
+  composes: kb-btn-active from global;
+}
+
+.type_count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: var(--kb-radius-pill);
+  background: rgb(var(--kb-tint-rgb) / 0.1);
+  font-size: var(--kb-fs-xs);
+  font-weight: 700;
+}
+
+.type_button_active .type_count {
+  background: rgb(255 255 255 / 0.2);
+}
+
+.exercises_panel {
+  min-width: 0;
+}
+
+.panel_header {
+  margin-bottom: 24px;
+}
+
+.panel_header h2 {
+  margin: 0 0 6px;
+  color: var(--kb-text);
+  font-size: var(--kb-fs-xl);
+}
+
+.panel_header p {
+  margin: 0;
+  color: var(--kb-text-muted);
+}
+
+.exercises_grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.exercise_card {
+  composes: kb-card from global;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 220px;
+  padding: 24px;
+  overflow: hidden;
+}
+
+/* Brillo sutil en la esquina, igual que las cards de la landing */
+.exercise_card::after {
+  content: "";
+  position: absolute;
+  top: -60px;
+  right: -60px;
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  background: var(--kb-accent-glow);
+  filter: blur(70px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--kb-dur-slow) var(--kb-ease);
+}
+
+.exercise_card_clickable {
+  composes: kb-card-interactive from global;
+}
+
+.exercise_card_clickable:hover::after {
+  opacity: 0.22;
+}
+
+.exercise_card_clickable:hover .enter_link {
+  gap: 10px;
+}
+
+.exercise_card_disabled {
+  opacity: 0.6;
+}
+
+.card_top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.type_badge {
+  composes: kb-badge from global;
+}
+
+.coming_soon_badge {
+  composes: kb-badge kb-badge-warning from global;
+}
+
+.exercise_card h3 {
+  margin: 0;
+  color: var(--kb-text);
+  font-size: var(--kb-fs-lg);
+  line-height: 1.4;
+}
+
+.exercise_card p {
+  flex: 1;
+  margin: 0;
+  color: var(--kb-text-muted);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+.enter_link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--kb-accent-text);
+  font-size: var(--kb-fs-sm);
+  font-weight: 600;
+  transition: gap var(--kb-dur) var(--kb-ease);
+}
+
+.empty_state {
+  composes: kb-card from global;
+  padding: 48px 24px;
+  border-style: dashed;
+  text-align: center;
+}
+
+.empty_icon {
+  display: block;
+  margin-bottom: 16px;
+  font-size: 2.5rem;
+}
+
+.empty_state h3 {
+  margin: 0 0 8px;
+  color: var(--kb-text);
+}
+
+.empty_state p {
+  max-width: 420px;
+  margin: 0 auto 24px;
+  color: var(--kb-text-muted);
+}
+
+.reset_filter_button {
+  composes: kb-btn kb-btn-primary from global;
+}
+
+@media (max-width: 900px) {
+  .exercises_main {
+    padding: 24px 16px;
+  }
+
+  .content_container {
+    grid-template-columns: 1fr;
+  }
+
+  .types_panel {
+    position: static;
+  }
+
+  .exercises_header {
+    flex-direction: column;
+  }
+}

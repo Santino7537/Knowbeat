@@ -1,121 +1,176 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
+import AdminView from './pages/AdminView.jsx'
+import AdminAccess from './pages/AdminAccess.jsx'
+import Settings from './pages/Settings.jsx'
+import Landing from './pages/Landing.jsx'
+import Courses from './pages/Courses.jsx';
+import CoursesCatalog from './pages/CoursesCatalog.jsx';
+import CourseLessonMapPage from './pages/CourseLessons.jsx';
+import UserProfile from './pages/UserProfile.jsx'
+import Exercises from './pages/Exercises.jsx';
+import SeventhChordsExercise from './exercises-pages/seventh-chords.jsx'
+import Community from './pages/Community.jsx';
+import Messages from './pages/Messages.jsx';
+import Folders from './pages/Folders.jsx';
+
+import Login_register from './pages/login_register.jsx'
+import { AuthProvider, useAuth } from './context/AuthContext.jsx'
+import { ThemeProvider } from './context/ThemeContext.jsx'
+import { ToastProvider } from './context/ToastContext.jsx'
+import { LanguageProvider } from './context/LanguageContext';
+import { useEffect, useState } from "react";
+import { Navigate, Outlet, Routes, Route, useLocation } from "react-router-dom";
 import './App.css'
 
+const getPageTitle = (pathname) => {
+  const normalizedPath = pathname.toLowerCase().replace(/\/+$/, "") || "/";
+
+  if (normalizedPath === "/") return "Inicio";
+  if (normalizedPath === "/admin") return "Administración";
+  if (normalizedPath === "/admin/verify") return "Verificación administrativa";
+  if (normalizedPath === "/settings") return "Configuración";
+  if (normalizedPath === "/login") return "Iniciar sesión";
+  if (normalizedPath === "/courses") return "Cursos";
+  if (normalizedPath === "/courses/catalog") return "Catálogo de cursos";
+  if (/^\/courses\/[^/]+\/lessons$/.test(normalizedPath)) return "Lecciones del curso";
+  if (normalizedPath === "/exercises") return "Ejercicios";
+  if (normalizedPath === "/exercises/seventh-chords") return "Notas de acordes de séptima";
+  if (normalizedPath === "/community") return "Comunidad";
+  if (normalizedPath === "/messages") return "Mensajes";
+  if (normalizedPath === "/folders" || /^\/folders\/[^/]+$/.test(normalizedPath)) return "Carpetas";
+  if (/^\/user\/[^/]+$/.test(normalizedPath)) return "Perfil";
+
+  return "KnowBeat";
+};
+
+function DocumentTitle() {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    document.title = getPageTitle(pathname);
+  }, [pathname]);
+
+  return null;
+}
+
+function ProtectedRoutes() {
+  const { loggedUser, loadingAuth, suspension } = useAuth();
+
+  if (loadingAuth) return null;
+  if (!loggedUser) return <Navigate to={suspension ? "/Login" : "/"} replace />;
+
+  return <Outlet />;
+}
+
+function AdminProtectedRoutes() {
+  const {
+    loggedUser,
+    loadingAuth,
+    adminAuthorization,
+    validateAdminAuthorization,
+    clearAdminAuthorization
+  } = useAuth();
+  const location = useLocation();
+  const [validating, setValidating] = useState(true);
+  const [accessValid, setAccessValid] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    if (!adminAuthorization) return undefined;
+
+    const validate = async (showLoading = false) => {
+      if (showLoading) setValidating(true);
+      const valid = await validateAdminAuthorization();
+      if (active) {
+        setAccessValid(valid);
+        if (showLoading) setValidating(false);
+      }
+    };
+
+    validate(true);
+    const expiresIn = Math.max(0, adminAuthorization.expiresAt - Date.now());
+    const expiryTimeout = window.setTimeout(() => {
+      clearAdminAuthorization();
+      setAccessValid(false);
+    }, expiresIn);
+    const intervalId = window.setInterval(() => validate(), 30000);
+    return () => {
+      active = false;
+      window.clearTimeout(expiryTimeout);
+      window.clearInterval(intervalId);
+    };
+  }, [adminAuthorization, clearAdminAuthorization, validateAdminAuthorization]);
+
+  if (loadingAuth) return null;
+  if (!loggedUser || loggedUser.role !== "Administrator") {
+    return <Navigate to="/courses" replace />;
+  }
+  if (!adminAuthorization) {
+    return <Navigate to="/admin/verify" replace state={{ from: location }} />;
+  }
+  if (validating) return null;
+  if (!accessValid) return <Navigate to="/admin/verify" replace state={{ from: location }} />;
+
+  return <Outlet />;
+}
+
+function AdminVerificationRoute() {
+  const { loggedUser, loadingAuth, adminAuthorization } = useAuth();
+  if (loadingAuth) return null;
+  if (!loggedUser) return <Navigate to="/" replace />;
+  if (loggedUser.role !== "Administrator") return <Navigate to="/courses" replace />;
+  if (adminAuthorization) {
+    return <Navigate to="/admin" replace />;
+  }
+  return <AdminAccess />;
+}
+
+// Envuelve las rutas con una key por pathname: cada navegación remonta el
+// contenedor y dispara la animación de entrada definida en styles/base.css.
+function RouteTransition({ children }) {
+  const { pathname } = useLocation();
+  return <div key={pathname} className="kb-route">{children}</div>;
+}
+
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
+      // AuthProvider envuelve todo el árbol: el fetch del token
+      // ocurre una sola vez aquí y el resultado queda disponible
+      // en cualquier componente via useAuth()
     <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
+      <ThemeProvider>
+      <ToastProvider>
+      <AuthProvider>
+      <LanguageProvider>
+        <DocumentTitle />
+        <RouteTransition>
+        <Routes>
+          <Route path="/Login" element={<Login_register />} />
+          <Route path="/" element={<Landing />} />
+          <Route element={<ProtectedRoutes />}>
+            <Route path="/admin/verify" element={<AdminVerificationRoute />} />
+            <Route element={<AdminProtectedRoutes />}>
+              <Route path="/admin" element={<AdminView />} />
+            </Route>
+            <Route path="/settings" element={<Settings />} />
+            <Route path="/courses" element={<Courses />} />
+            <Route path="/courses/catalog" element={<CoursesCatalog />} />
+            <Route path="/courses/:courseId/lessons" element={<CourseLessonMapPage />} />
+            <Route path="/exercises" element={<Exercises />}/>
+            <Route path="/exercises/seventh-chords" element={<SeventhChordsExercise />} />
+            <Route path="/messages" element={<Messages/>} />
+            <Route path="/folders" element={<Folders />} />
+            <Route path="/folders/:folderId" element={<Folders />} />
+            <Route path="/user/:username" element={<UserProfile />} />
+            <Route path="/community" element={<Community/>} />
+          </Route>
+        </Routes>
+        </RouteTransition>
+      </LanguageProvider>
+      </AuthProvider>
+      </ToastProvider>
+      </ThemeProvider>
     </>
   )
 }
 
-export default App
+export default App;

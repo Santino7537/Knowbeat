@@ -1,0 +1,275 @@
+/*
+  La página ocupa el alto de la ventana y el que scrollea es .mainArea,
+  así la sidebar queda fija y la scrollbar dentro del contenido.
+  La Sidebar es position: fixed, por eso el margen usa --kb-sidebar-width.
+*/
+.page {
+  display: flex;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+.mainArea {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  margin-left: var(--kb-sidebar-width);
+  padding: 32px clamp(16px, 3vw, 40px) 40px;
+  overflow-y: auto;
+  transition: margin-left var(--kb-dur-slow) var(--kb-ease);
+}
+
+/* ---------- Encabezado ---------- */
+.pageHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  max-width: 1080px;
+  margin: 0 auto 28px;
+}
+
+.pageHeader h1 {
+  margin: 0 0 6px;
+  font-size: var(--kb-fs-2xl);
+}
+
+.pageHeader p {
+  margin: 0;
+  color: var(--kb-text-muted);
+}
+
+.searchWrapper {
+  composes: kb-input kb-input-pill from global;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: min(100%, 26rem);
+  padding: 0.7rem 1.1rem;
+  background: var(--kb-surface);
+}
+
+.searchIcon {
+  flex-shrink: 0;
+  width: 1.15rem;
+  height: 1.15rem;
+  color: var(--kb-text-muted);
+}
+
+.searchInput {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--kb-text);
+  font: inherit;
+}
+
+.searchInput::placeholder {
+  color: var(--kb-text-subtle);
+}
+
+.searchInput::-webkit-search-cancel-button {
+  display: none;
+}
+
+.clearSearch {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--kb-surface-3);
+  color: var(--kb-text-secondary);
+  line-height: 1;
+  cursor: pointer;
+}
+
+/* ---------- Columnas ---------- */
+.columns {
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
+  max-width: 1080px;
+  margin: 0 auto;
+}
+
+.feed {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 18px;
+  min-width: 0;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  transition: opacity var(--kb-dur-fast) var(--kb-ease);
+}
+
+.listLoading {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* ---------- Caja para publicar ---------- */
+.composer {
+  padding: 16px 18px;
+  border: 1px solid rgb(var(--kb-accent-rgb) / 0.25);
+  border-radius: var(--kb-radius-xl);
+  background:
+    radial-gradient(500px 120px at 0% 0%, rgb(var(--kb-accent-rgb) / 0.12), transparent 70%),
+    var(--kb-surface);
+  box-shadow: var(--kb-shadow-sm);
+}
+
+.composerTop {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.composerInput {
+  flex: 1;
+  min-width: 0;
+  padding: 12px 18px;
+  border: 1px solid var(--kb-border);
+  border-radius: var(--kb-radius-pill);
+  background: var(--kb-surface-inset);
+  color: var(--kb-text-muted);
+  font: inherit;
+  text-align: left;
+  cursor: text;
+  transition: border-color var(--kb-dur) var(--kb-ease), background-color var(--kb-dur) var(--kb-ease);
+}
+
+.composerInput:hover {
+  border-color: rgb(var(--kb-accent-rgb) / 0.5);
+  background: var(--kb-surface-2);
+}
+
+.composerKinds {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+  padding-left: 56px;
+}
+
+.composerKind {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 0;
+  border-radius: var(--kb-radius-pill);
+  background: transparent;
+  color: var(--kb-text-secondary);
+  font: inherit;
+  font-size: var(--kb-fs-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color var(--kb-dur-fast) var(--kb-ease);
+}
+
+.composerKind:hover {
+  background: rgb(var(--kb-tint-rgb) / 0.06);
+}
+
+.composerPublish {
+  composes: kb-btn kb-btn-primary kb-btn-sm from global;
+  margin-left: auto;
+}
+
+/* ---------- Estados ---------- */
+.statusBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 44px 24px;
+  border: 1px dashed var(--kb-border-strong);
+  border-radius: var(--kb-radius-xl);
+  text-align: center;
+}
+
+.statusBox h2 {
+  margin: 0;
+  font-size: var(--kb-fs-lg);
+}
+
+.statusText {
+  max-width: 28rem;
+  margin: 0 0 8px;
+  color: var(--kb-text-muted);
+}
+
+.retryButton {
+  composes: kb-btn kb-btn-primary from global;
+}
+
+/* Esqueletos de carga */
+.skeletonList {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.skeleton {
+  display: grid;
+  gap: 12px;
+  padding: 22px;
+  border: 1px solid var(--kb-border);
+  border-radius: var(--kb-radius-xl);
+  background: var(--kb-surface);
+}
+
+.skeletonHead {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.skCircle,
+.skLine,
+.skLineWide,
+.skLineShort {
+  display: block;
+  border-radius: var(--kb-radius-pill);
+  background: linear-gradient(90deg, var(--kb-surface-2), var(--kb-surface-3), var(--kb-surface-2));
+  background-size: 200% 100%;
+  animation: shimmer 1.2s linear infinite;
+}
+
+.skCircle { width: 44px; height: 44px; border-radius: 50%; }
+.skLine { width: 140px; height: 12px; }
+.skLineWide { width: 100%; height: 12px; }
+.skLineShort { width: 55%; height: 12px; }
+
+@media (max-width: 1100px) {
+  .columns {
+    flex-direction: column-reverse;
+  }
+
+  .feed {
+    width: 100%;
+  }
+}
+
+@media (max-width: 560px) {
+  .composerKinds {
+    padding-left: 0;
+  }
+}
+
+@keyframes shimmer {
+  to { background-position: -200% 0; }
+}

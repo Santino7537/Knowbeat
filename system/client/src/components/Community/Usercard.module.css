@@ -1,0 +1,84 @@
+.card {
+  display: block;
+  width: 100%;
+  border: 1px solid var(--kb-border);
+  border-radius: var(--kb-radius-xl);
+  background: var(--kb-surface);
+  box-shadow: var(--kb-shadow-sm);
+  animation: cardIn var(--kb-dur-slow) var(--kb-ease) both;
+}
+
+.cardLink {
+  color: inherit;
+  text-decoration: none;
+  transition: border-color var(--kb-dur) var(--kb-ease), transform var(--kb-dur) var(--kb-ease), box-shadow var(--kb-dur) var(--kb-ease);
+}
+
+.cardLink:hover {
+  border-color: rgb(var(--kb-accent-rgb) / 0.5);
+  box-shadow: var(--kb-shadow-md);
+  transform: translateY(-2px);
+}
+
+.cardLink:focus-visible {
+  outline: none;
+  box-shadow: var(--kb-ring);
+}
+
+.inner {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px;
+}
+
+.userInfo {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.username {
+  overflow: hidden;
+  color: var(--kb-text);
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.biography {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--kb-text-muted);
+  font-size: var(--kb-fs-sm);
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+.streak {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  padding: 6px 12px;
+  border-radius: var(--kb-radius-pill);
+  background: var(--kb-surface-2);
+  color: var(--kb-text-muted);
+  font-size: var(--kb-fs-sm);
+  font-weight: 700;
+}
+
+.streakActive {
+  background: var(--kb-warning-soft);
+  color: var(--kb-warning);
+}
+
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: none; }
+}

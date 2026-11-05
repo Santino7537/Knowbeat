@@ -1,0 +1,544 @@
+/* =====================================================================
+   SIDEBAR
+   Usa los tokens de styles/theme.css: funciona igual en claro y oscuro.
+   ===================================================================== */
+
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  width: var(--kb-sidebar-width);
+  height: 100vh;
+  height: 100dvh;
+  padding: 24px 16px;
+  overflow-y: auto;
+  border-right: 1px solid var(--kb-border-subtle);
+  background: var(--kb-sidebar-bg);
+  backdrop-filter: blur(16px);
+  color: var(--kb-text);
+  font-family: var(--kb-font-body);
+}
+
+/* Brillo azul tenue arriba a la izquierda, mismo lenguaje que la landing */
+.sidebar::before {
+  content: "";
+  position: absolute;
+  top: -120px;
+  left: -80px;
+  width: 260px;
+  height: 260px;
+  border-radius: 50%;
+  background: rgb(var(--kb-accent-rgb) / 0.18);
+  filter: blur(80px);
+  pointer-events: none;
+}
+
+.sidebar > * {
+  position: relative;
+}
+
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+  animation: sidebarFadeIn var(--kb-dur-slow) var(--kb-ease);
+}
+
+.sidebar-logo-button {
+  display: block;
+  width: min(100%, 200px);
+  padding: 4px;
+  border: 0;
+  border-radius: var(--kb-radius);
+  background: transparent;
+  color: var(--kb-text);
+  cursor: pointer;
+  transition: transform var(--kb-dur) var(--kb-ease), opacity var(--kb-dur) var(--kb-ease);
+}
+
+.sidebar-logo-button:hover {
+  transform: scale(1.03);
+}
+
+.sidebar-logo {
+  width: 100%;
+}
+
+.sidebar-divider {
+  height: 1px;
+  margin: 16px 0;
+  background: linear-gradient(90deg, transparent, rgb(var(--kb-accent-rgb) / 0.3), transparent);
+}
+
+.nav-label {
+  margin-bottom: 10px;
+  padding: 0 12px;
+  color: var(--kb-text-subtle);
+  font-size: var(--kb-fs-xs);
+  font-weight: 700;
+  letter-spacing: var(--kb-tracking-label);
+  text-transform: uppercase;
+}
+
+.sidebar-nav {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.nav-item,
+.profile-button,
+.settings-button {
+  border: none;
+  background: transparent;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  user-select: none;
+  transition:
+    background-color var(--kb-dur) var(--kb-ease),
+    color var(--kb-dur) var(--kb-ease),
+    box-shadow var(--kb-dur) var(--kb-ease),
+    transform var(--kb-dur) var(--kb-ease);
+}
+
+.nav-item:focus-visible,
+.profile-button:focus-visible,
+.settings-button:focus-visible,
+.sidebar-logo-button:focus-visible {
+  outline: none;
+  box-shadow: var(--kb-ring);
+}
+
+/* Ítem de navegación: pill, ícono + texto */
+.nav-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 11px 16px;
+  overflow: hidden;
+  border-radius: var(--kb-radius-pill);
+  color: var(--kb-text-muted);
+  font-size: var(--kb-fs-sm);
+  font-weight: 500;
+}
+
+/* Indicador lateral que "crece" al pasar el mouse / al estar activo */
+.nav-item::before {
+  content: "";
+  position: absolute;
+  top: 25%;
+  left: 0;
+  width: 3px;
+  height: 50%;
+  border-radius: var(--kb-radius-pill);
+  background: var(--kb-accent-glow);
+  transform: scaleY(0);
+  transition: transform var(--kb-dur) var(--kb-ease);
+}
+
+.nav-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  color: currentColor;
+  line-height: 0;
+  transition: transform var(--kb-dur) var(--kb-ease);
+}
+
+.nav-icon svg {
+  display: block;
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+}
+
+.nav-text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nav-item:hover {
+  background: rgb(var(--kb-tint-rgb) / 0.06);
+  color: var(--kb-text);
+}
+
+.nav-item:hover .nav-icon {
+  transform: scale(1.12);
+}
+
+.nav-item:hover::before,
+.nav-item.active::before {
+  transform: scaleY(1);
+}
+
+.nav-item:active {
+  transform: scale(0.98);
+}
+
+/* Activo: peso bold (DESIGN.md) + tinte azul */
+.nav-item.active {
+  background: var(--kb-accent-soft-strong);
+  color: var(--kb-text);
+  font-weight: 700;
+  box-shadow: inset 0 0 0 1px rgb(var(--kb-accent-rgb) / 0.25);
+}
+
+.nav-item.active .nav-icon {
+  color: var(--kb-accent-text);
+}
+
+.admin-nav-item .nav-icon svg {
+  fill: #fff;
+  stroke: #fff;
+}
+
+.sidebar-logout {
+  margin-top: 8px;
+}
+
+.sidebar-logout .nav-icon svg {
+  fill: none;
+}
+
+/* ---------- Parte inferior: perfil + tema + configuración ---------- */
+
+.sidebar-bottom {
+  margin-top: auto;
+  padding-top: 12px;
+}
+
+.sidebar-user-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.profile-button {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 6px 12px 6px 6px;
+  border-radius: var(--kb-radius-pill);
+  color: var(--kb-text-secondary);
+}
+
+.profile-button:hover {
+  background: rgb(var(--kb-tint-rgb) / 0.06);
+  color: var(--kb-text);
+}
+
+.profile-button.active {
+  background: var(--kb-accent-soft-strong);
+  color: var(--kb-text);
+}
+
+.profile-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  min-width: 34px;
+  overflow: hidden;
+  border: 2px solid rgb(var(--kb-accent-rgb) / 0.45);
+  border-radius: 50%;
+  background: var(--kb-surface-2);
+  color: currentColor;
+}
+
+.profile-avatar img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-avatar svg {
+  display: block;
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+}
+
+.profile-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--kb-fs-sm);
+  font-weight: 600;
+}
+
+/* Botones circulares (DESIGN.md: controles redondos) */
+.settings-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  min-width: 2.5rem;
+  border-radius: 50%;
+  color: var(--kb-text-muted);
+}
+
+.settings-button:hover {
+  background: rgb(var(--kb-tint-rgb) / 0.06);
+  color: var(--kb-text);
+}
+
+.settings-button:hover .nav-icon {
+  transform: rotate(60deg);
+}
+
+.settings-button.active {
+  background: var(--kb-accent-soft-strong);
+  color: var(--kb-accent-text);
+}
+
+.sidebar-theme-toggle {
+  flex-shrink: 0;
+}
+
+/* ---------- Mobile: botón hamburguesa + panel deslizable ---------- */
+
+.sidebar-mobile-toggle,
+.sidebar-backdrop {
+  display: none;
+}
+
+@media (max-width: 1024px) {
+  .sidebar {
+    padding: 20px 12px;
+  }
+
+  .nav-item {
+    padding: 10px 14px;
+  }
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    width: 270px;
+    transform: translateX(-100%);
+    box-shadow: var(--kb-shadow-lg);
+    transition: transform var(--kb-dur-slow) var(--kb-ease);
+  }
+
+  .sidebar.open {
+    transform: none;
+  }
+
+  .sidebar-mobile-toggle {
+    position: fixed;
+    top: 14px;
+    left: 14px;
+    z-index: 1001;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 4px;
+    width: 42px;
+    height: 42px;
+    border: 1px solid var(--kb-border);
+    border-radius: 50%;
+    background: var(--kb-surface);
+    box-shadow: var(--kb-shadow-md);
+    cursor: pointer;
+  }
+
+  .sidebar-mobile-toggle span {
+    width: 18px;
+    height: 2px;
+    border-radius: 2px;
+    background: var(--kb-text);
+    transition: transform var(--kb-dur) var(--kb-ease), opacity var(--kb-dur) var(--kb-ease);
+  }
+
+  .sidebar-mobile-toggle.is-open {
+    left: 214px;
+  }
+
+  .sidebar-mobile-toggle.is-open span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+  .sidebar-mobile-toggle.is-open span:nth-child(2) { opacity: 0; }
+  .sidebar-mobile-toggle.is-open span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+
+  .sidebar-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 999;
+    display: block;
+    background: var(--kb-overlay);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--kb-dur) var(--kb-ease);
+  }
+
+  .sidebar-backdrop.visible {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* Deja lugar para el botón hamburguesa arriba del contenido de la página */
+  body .sidebar ~ * {
+    padding-top: 72px;
+  }
+}
+
+@keyframes sidebarFadeIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* El toggle de tema en la sidebar se ve igual que el botón de configuración */
+.sidebar .sidebar-theme-toggle {
+  border-color: transparent;
+  background: transparent;
+  color: var(--kb-text-muted);
+}
+
+.sidebar .sidebar-theme-toggle:hover:not(:disabled) {
+  border-color: transparent;
+  background: rgb(var(--kb-tint-rgb) / 0.06);
+  color: var(--kb-text);
+}
+
+/* =====================================================================
+   SIDEBAR MINIMIZADA (solo íconos) — solo en escritorio/tablet
+   El ancho lo define --kb-sidebar-width en theme.css (html.kb-sidebar-collapsed)
+   ===================================================================== */
+
+.sidebar {
+  transition: width var(--kb-dur-slow) var(--kb-ease), padding var(--kb-dur-slow) var(--kb-ease);
+}
+
+/* Las páginas acompañan el cambio de ancho con la misma curva */
+.sidebar ~ * {
+  transition:
+    margin-left var(--kb-dur-slow) var(--kb-ease),
+    width var(--kb-dur-slow) var(--kb-ease),
+    padding-left var(--kb-dur-slow) var(--kb-ease);
+}
+
+.sidebar-mark {
+  display: none;
+  width: 34px;
+  margin: 0 auto;
+}
+
+/* Botón redondo para minimizar/expandir, pegado al borde */
+.sidebar-collapse {
+  position: absolute !important;
+  top: 34px;
+  right: 10px;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid var(--kb-border);
+  border-radius: 50%;
+  background: var(--kb-surface);
+  color: var(--kb-text-muted);
+  box-shadow: var(--kb-shadow-sm);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity var(--kb-dur) var(--kb-ease), color var(--kb-dur) var(--kb-ease), transform var(--kb-dur-slow) var(--kb-ease);
+}
+
+.sidebar:hover .sidebar-collapse,
+.sidebar-collapse:focus-visible,
+.sidebar.is-collapsed .sidebar-collapse {
+  opacity: 1;
+}
+
+.sidebar-collapse:hover {
+  color: var(--kb-accent-text);
+  border-color: rgb(var(--kb-accent-rgb) / 0.5);
+}
+
+.sidebar-collapse svg {
+  width: 14px;
+  height: 14px;
+}
+
+.profile-avatar-img {
+  box-shadow: 0 0 0 2px rgb(var(--kb-accent-rgb) / 0.45);
+}
+
+@media (min-width: 769px) {
+  .sidebar.is-collapsed {
+    padding: 22px 12px;
+    overflow-x: hidden;
+  }
+
+  .sidebar.is-collapsed .sidebar-collapse {
+    position: relative !important;
+    top: auto;
+    right: auto;
+    margin: 0 auto 14px;
+    transform: rotate(180deg);
+  }
+
+  .sidebar.is-collapsed .sidebar-logo {
+    display: none;
+  }
+
+  .sidebar.is-collapsed .sidebar-mark {
+    display: block;
+  }
+
+  .sidebar.is-collapsed .nav-label,
+  .sidebar.is-collapsed .nav-text,
+  .sidebar.is-collapsed .profile-name {
+    display: none;
+  }
+
+  .sidebar.is-collapsed .nav-item {
+    justify-content: center;
+    padding: 12px 0;
+  }
+
+  .sidebar.is-collapsed .nav-icon,
+  .sidebar.is-collapsed .nav-icon svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .sidebar.is-collapsed .sidebar-user-row {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .sidebar.is-collapsed .profile-button {
+    justify-content: center;
+    padding: 4px;
+  }
+}
+
+@media (max-width: 768px) {
+  .sidebar-collapse {
+    display: none;
+  }
+}

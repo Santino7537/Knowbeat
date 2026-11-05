@@ -1,0 +1,45 @@
+.pagination {
+    display: flex;
+    flex-wrap: wrap; /* en pantallas angostas baja de línea en vez de desbordar */
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+}
+
+/* Botones pill del sistema: superficie neutra y azul para la página activa. */
+.pageButton {
+  composes: kb-btn from global;
+  min-width: 2.4rem;
+  height: 2.4rem;
+  padding: 0 0.8rem;
+  border-color: var(--kb-border);
+  background: var(--kb-surface);
+  color: var(--kb-text-secondary);
+}
+
+.pageButton:hover:not(:disabled) {
+  border-color: var(--kb-accent);
+  color: var(--kb-accent-text);
+}
+
+/* Anterior/Siguiente en los extremos */
+.pageButton:disabled {
+  opacity: 0.4;
+}
+
+/* Página actual. Va después de .pageButton para ganar por orden. */
+.pageButtonActive {
+  composes: kb-btn-active from global;
+}
+
+.pageButtonActive:hover:not(:disabled) {
+  border-color: var(--kb-accent-hover);
+  background: var(--kb-accent-hover);
+  color: var(--kb-on-accent);
+}
+
+.ellipsis {
+    min-width: 1.5rem;
+    text-align: center;
+    color: var(--kb-text-muted);
+}

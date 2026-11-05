@@ -1,0 +1,205 @@
+/* Panel de filtros lateral (tamaño natural, ya no proporción fija) */
+.panel {
+  position: sticky;
+  top: 0;
+  flex-shrink: 0;
+  width: 272px;
+  border: 1px solid var(--kb-border);
+  border-radius: var(--kb-radius-xl);
+  background: var(--kb-surface);
+  box-shadow: var(--kb-shadow-sm);
+}
+
+.inner {
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 6px;
+  color: var(--kb-text);
+  font-size: var(--kb-fs-lg);
+  font-weight: 700;
+}
+
+.title svg {
+  width: 18px;
+  height: 18px;
+  color: var(--kb-accent-text);
+}
+
+.subtitle {
+  display: block;
+  margin: 18px 0 8px;
+  color: var(--kb-text-muted);
+  font-size: var(--kb-fs-sm);
+  font-weight: 600;
+}
+
+/* ---------- Tipos ---------- */
+.options {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.option {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 12px;
+  border-radius: var(--kb-radius);
+  cursor: pointer;
+  transition: background-color var(--kb-dur-fast) var(--kb-ease);
+}
+
+.option:hover {
+  background: rgb(var(--kb-tint-rgb) / 0.05);
+}
+
+.optionLabel {
+  color: var(--kb-text-secondary);
+  font-size: var(--kb-fs-sm);
+  font-weight: 600;
+}
+
+.checkboxInput {
+  position: absolute;
+  width: 0;
+  height: 0;
+  margin: 0;
+  opacity: 0;
+}
+
+.checkbox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--kb-border-strong);
+  border-radius: 6px;
+  color: #ffffff;
+  transition: all var(--kb-dur-fast) var(--kb-ease);
+}
+
+.checkboxChecked {
+  border-color: var(--kb-accent-strong);
+  background: var(--kb-accent-strong);
+}
+
+.checkboxInput:focus-visible + .checkbox {
+  box-shadow: var(--kb-ring);
+}
+
+.checkIcon {
+  width: 14px;
+  height: 14px;
+}
+
+/* ---------- Etiquetas ---------- */
+.tagsTitle {
+  margin-top: 18px;
+}
+
+.tagsField {
+  composes: kb-input from global;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  max-height: 140px;
+  padding: 6px 8px;
+  overflow-y: auto;
+}
+
+.tagChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 100%;
+  padding: 3px 6px 3px 10px;
+  border-radius: var(--kb-radius-pill);
+  background: var(--kb-accent-soft-strong);
+  color: var(--kb-accent-text);
+  font-size: var(--kb-fs-xs);
+  font-weight: 600;
+}
+
+.tagText {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tagRemoveButton {
+  padding: 0 2px;
+  border: none;
+  background: none;
+  color: inherit;
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.tagInput {
+  flex: 1;
+  min-width: 7rem;
+  padding: 4px;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--kb-text);
+  font: inherit;
+  font-size: var(--kb-fs-sm);
+}
+
+.tagInput::placeholder {
+  color: var(--kb-text-subtle);
+}
+
+.popular {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.popularTag {
+  padding: 5px 11px;
+  border: 1px solid var(--kb-border);
+  border-radius: var(--kb-radius-pill);
+  background: var(--kb-surface-inset);
+  color: var(--kb-text-secondary);
+  font: inherit;
+  font-size: var(--kb-fs-xs);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--kb-dur-fast) var(--kb-ease);
+}
+
+.popularTag:hover {
+  border-color: rgb(var(--kb-accent-rgb) / 0.5);
+  color: var(--kb-accent-text);
+}
+
+.popularTagActive,
+.popularTagActive:hover {
+  border-color: var(--kb-accent-strong);
+  background: var(--kb-accent-strong);
+  color: #ffffff;
+}
+
+@media (max-width: 1100px) {
+  .panel {
+    position: static;
+    width: 100%;
+  }
+}

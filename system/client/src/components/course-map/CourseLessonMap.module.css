@@ -1,0 +1,253 @@
+.mapShell {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.mapViewport {
+  flex: 1 1 auto;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+  outline: none;
+}
+
+.mapViewport:focus-visible {
+  box-shadow: inset 0 0 0 2px rgb(var(--kb-accent-rgb) / 0.75);
+}
+
+.lessonSvg {
+  display: block;
+  max-width: none;
+}
+
+.staffLines line {
+  stroke: var(--kb-border-strong);
+  stroke-width: 2;
+  opacity: 0.72;
+}
+
+.lessonNote {
+  cursor: pointer;
+  outline: none;
+}
+
+.noteHitTarget {
+  fill: transparent;
+  pointer-events: all;
+}
+
+.lessonNote > svg {
+  overflow: visible;
+}
+
+.noteGlyph {
+  color: inherit;
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: color var(--kb-dur-fast) var(--kb-ease), filter var(--kb-dur-fast) var(--kb-ease), transform var(--kb-dur-fast) var(--kb-ease);
+}
+
+.completed {
+  color: var(--kb-text-secondary);
+}
+
+.completed .noteGlyph {
+  animation: completedNotePulse 2.8s ease-in-out infinite alternate;
+}
+
+.available {
+  color: var(--kb-accent-text);
+}
+
+.available .noteGlyph {
+  filter: drop-shadow(0 0 5px rgb(var(--kb-accent-rgb) / 0.92)) drop-shadow(0 0 13px rgb(var(--kb-accent-rgb) / 0.58));
+}
+
+.lessonNote:hover .noteGlyph,
+.lessonNote:focus-visible .noteGlyph,
+.selected .noteGlyph {
+  color: var(--kb-text);
+  transform: scale(1.03);
+}
+
+.locked:hover .noteGlyph,
+.locked:focus-visible .noteGlyph {
+  filter: brightness(1.3);
+}
+
+.completed:hover .noteGlyph,
+.completed:focus-visible .noteGlyph {
+  animation-duration: 1.4s;
+}
+
+.locked {
+  color: var(--kb-text-subtle);
+  opacity: 0.68;
+}
+
+.available:hover .noteGlyph {
+  filter: drop-shadow(0 0 8px rgb(var(--kb-accent-rgb) / 0.98)) drop-shadow(0 0 17px rgb(var(--kb-accent-rgb) / 0.72));
+}
+
+.locked:hover {
+  opacity: 1;
+}
+
+.selected.available .noteGlyph {
+  filter: drop-shadow(0 0 8px rgb(var(--kb-accent-rgb) / 0.98)) drop-shadow(0 0 17px rgb(var(--kb-accent-rgb) / 0.72));
+}
+
+.panelBackdrop {
+  position: fixed;
+  z-index: 1090;
+  inset: 0 0 0 var(--kb-sidebar-width);
+  border: 0;
+  background: var(--kb-overlay);
+  backdrop-filter: blur(3px);
+  cursor: default;
+  animation: backdropEnter var(--kb-dur) var(--kb-ease) both;
+}
+
+.detailsPanel {
+  position: fixed;
+  z-index: 1091;
+  top: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  width: min(380px, calc(100vw - 24px));
+  height: 100vh;
+  box-sizing: border-box;
+  padding: 28px;
+  overflow-y: auto;
+  border-left: 1px solid var(--kb-border);
+  background: var(--kb-surface);
+  box-shadow: var(--kb-shadow-lg);
+  color: var(--kb-text);
+  animation: panelEnter var(--kb-dur-slow) var(--kb-ease) both;
+}
+
+.panelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.panelEyebrow {
+  composes: kb-eyebrow from global;
+}
+
+.closeButton {
+  composes: kb-btn kb-btn-secondary kb-btn-sm from global;
+}
+
+.detailsPanel h2 {
+  margin: 0 0 14px;
+  color: var(--kb-text);
+  font-size: 1.6rem;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.lessonDescription {
+  margin: 0;
+  color: var(--kb-text-secondary);
+  font-size: 0.98rem;
+  line-height: 1.65;
+}
+
+.lessonMetadata {
+  display: grid;
+  gap: 0;
+  margin: 30px 0 0;
+  border-top: 1px solid var(--kb-border);
+}
+
+.lessonMetadata div {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--kb-border);
+}
+
+.lessonMetadata dt {
+  color: var(--kb-text-muted);
+}
+
+.lessonMetadata dd {
+  margin: 0;
+  color: var(--kb-text);
+  font-weight: 600;
+  text-align: right;
+}
+
+.statusValue.completed {
+  color: var(--kb-text);
+}
+
+.statusValue.available {
+  color: var(--kb-accent-text);
+}
+
+.statusValue.locked {
+  color: var(--kb-text-muted);
+}
+
+.lockedHint {
+  margin: 22px 0 0;
+  color: var(--kb-text-muted);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.startButton {
+  composes: kb-btn kb-btn-primary kb-btn-lg from global;
+  width: 100%;
+  margin-top: auto;
+}
+
+.startButton:disabled {
+  border-color: var(--kb-surface-3);
+  background: var(--kb-surface-3);
+  color: var(--kb-text-muted);
+  opacity: 1;
+}
+
+@keyframes panelEnter {
+  from { opacity: 0; transform: translateX(24px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes backdropEnter {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes completedNotePulse {
+  from {
+    filter: drop-shadow(0 0 2px rgb(var(--kb-accent-rgb) / 0.3)) drop-shadow(0 0 7px rgb(var(--kb-accent-rgb) / 0.14));
+  }
+  to {
+    filter: drop-shadow(0 0 5px rgb(var(--kb-accent-rgb) / 0.7)) drop-shadow(0 0 12px rgb(var(--kb-accent-rgb) / 0.38)) brightness(1.08);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .detailsPanel,
+  .panelBackdrop,
+  .noteGlyph,
+  .completed .noteGlyph {
+    animation: none;
+    transition: none;
+  }
+}

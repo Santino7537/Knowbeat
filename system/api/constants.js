@@ -1,0 +1,146 @@
+const ADMINISTRATOR_ROLE = "Administrator";
+const MODERATOR_ROLE = "Moderator";
+const USER_ROLE = "User";
+
+const USER_PERMISSIONS = ['user-get-user', 'user-get-user-username', 'user-get-config',
+  'user-update-config', 'user-update-profile', 'user-create-folder', 
+  'user-update-folder', 'user-delete-folder', 'user-get-folder-files', 'user-get-folders',
+  'user-share-folder', 'user-unshare-folder', 'user-upload-file', 'user-delete-file',
+  'user-get-file', 'course-get-courses', 'user-get-progress', 'user-register-course', 'user-update-progress',
+  'user-get-stats', 'user-get-score-history', 'user-update-goal', 'user-report', 'community-search', 'community-search-thread',
+  'community-create-thread', 'community-create-response', 'community-like-thread', 'community-like-response', 'community-search-responses',
+  'friend', 'friend-request', 'friend-request-accept', 'friend-request-reject', 'friend-request-cancel', 'friend-delete', 'friend-list', 'friend-requests',
+  'chat', 'chat-send', 'chat-messages', 'chat-read'];
+
+  const ADMIN_PERMISSIONS = ['admin-reports', 'admin-sanctions', 'user-get-users', 'user-update-role', 'user-delete-user'];
+
+const ROLES_PERMISSIONS = {
+    [USER_ROLE]: USER_PERMISSIONS,
+    [MODERATOR_ROLE]: [...USER_PERMISSIONS],
+    [ADMINISTRATOR_ROLE]: [...USER_PERMISSIONS, ...ADMIN_PERMISSIONS]
+};
+const PERMISSIONS = [...new Set(Object.values(ROLES_PERMISSIONS).flat())].sort()
+
+const REPORT_STATUSES = ['PENDING', 'RESOLVED', 'REJECTED', 'ACCEPTED'];
+const REPORT_REASONS = [
+    'INAPPROPRIATE_CONTENT',
+    'HARASSMENT',
+    'THREATS',
+    'SEXUAL_CONTENT',
+    'GRAPHIC_VIOLENCE',
+    'SPAM',
+    'IDENTITY_THEFT',
+    'HATE_SPEECH',
+    'FRAUD',
+    'ILLEGAL_ACTIVITY',
+    'MISINFORMATION',
+    'OTHER'
+];
+const REPORT_FILTER_REASONS = [
+    ...REPORT_REASONS,
+    'OFFENSIVE_LANGUAGE',
+    'PERSONAL_DATA_EXPOSURE'
+];
+
+const LOG_ACTIONS = {
+    REPORT_RESOLVE: 'resolve-report',
+    USER_BAN: 'ban-user',
+    SANCTION_REVOKE: 'revoke-sanction'
+};
+
+const CONFIG_JSON = JSON.stringify({
+    privacy: {
+      private_account: false,
+      progress_visibility: "everyone",
+      restricted_messaging: false,
+      show_activity: true
+    },
+    preferences: {
+      notation: "american",
+      microphone_exercises: true,
+      listening_exercises: true,
+      notifications: {
+        streak_reminders: true,
+        emails: true,
+        mentions: true,
+        likes: true,
+        community_announcements: true
+      }
+    },
+    appearance: {
+      language: "es-AR",
+      dark_mode: true
+    }
+});
+
+const ALLOWED_CONFIGS = {
+
+    // PRIVACY
+    'privacy.private_account': 'boolean',
+    'privacy.progress_visibility': 'string',
+    'privacy.restricted_messaging': 'boolean',
+    'privacy.show_activity': 'boolean',
+
+    // PREFERENCES
+    'preferences.notation': 'string',
+    'preferences.microphone_exercises': 'boolean',
+    'preferences.listening_exercises': 'boolean',
+
+    // NOTIFICATIONS
+    'preferences.notifications.streak_reminders': 'boolean',
+    'preferences.notifications.emails': 'boolean',
+    'preferences.notifications.mentions': 'boolean',
+    'preferences.notifications.likes': 'boolean',
+    'preferences.notifications.community_announcements': 'boolean',
+
+    // APPEARANCE
+    'appearance.language': 'string',
+    'appearance.dark_mode': 'boolean'
+
+};
+
+const PENALTY_DATE = new Date("2000-01-01");
+const MAX_DAILY_GOAL = 5000;
+
+const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50 MB
+
+const VALID_FILES_FORMATS = {
+    'images': ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'],
+    'texts': ['application/pdf', 'text/plain'],
+    'audios': ['audio/mpeg', 'audio/wav', 'audio/x-wav', 'audio/ogg'],
+    'videos': ['video/mp4', 'video/webm']
+}
+
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5 MB
+const MAX_IMAGE_PIXELS = 16_000_000;
+const MIN_IMAGE_DIMENSIONS = 128; // Píxeles mínimos de ancho y alto
+const MAX_IMAGE_DIMENSIONS = 4096; // Píxeles máximos de ancho y alto
+
+const FILES_CONSTANTS = {
+    'images': {
+        MAX_IMAGE_SIZE,
+        MAX_IMAGE_PIXELS,
+        MIN_IMAGE_DIMENSIONS,
+        MAX_IMAGE_DIMENSIONS
+    }
+}
+
+
+module.exports = {
+    ADMINISTRATOR_ROLE,
+    MODERATOR_ROLE,
+    USER_ROLE,
+    ROLES_PERMISSIONS,
+    PERMISSIONS,
+    REPORT_STATUSES,
+    REPORT_REASONS,
+    REPORT_FILTER_REASONS,
+    LOG_ACTIONS,
+    PENALTY_DATE,
+    MAX_DAILY_GOAL,
+    MAX_FILE_SIZE,
+    VALID_FILES_FORMATS,
+    FILES_CONSTANTS,
+    CONFIG_JSON,
+    ALLOWED_CONFIGS
+};
