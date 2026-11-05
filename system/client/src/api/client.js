@@ -7,7 +7,7 @@ import axios from "axios";
 // Uso:  import api, { getErrorMessage } from "../api/client";
 //        const { data } = await api.get("/user/get/progress");
 
-export const API_URL = "http://localhost:3000";
+export const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 const api = axios.create({ baseURL: API_URL });
 

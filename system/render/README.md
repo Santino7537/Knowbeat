@@ -6,6 +6,10 @@ como un servicio Docker. En la configuración de cada servicio, usa:
 - **Root Directory:** `system`
 - **Dockerfile Path:** la ruta indicada en la tabla
 
+El directorio raíz es importante: las instrucciones `COPY` de estos Dockerfiles
+usan rutas relativas a `system`. No configures `render/api` como Root Directory;
+Render entonces no encontrará `api/package.json` en el contexto de construcción.
+
 | Servicio | Dockerfile Path | Observaciones |
 |---|---|---|
 | API | `render/api/Dockerfile` | Instala `ffmpeg`/`ffprobe` en la misma imagen de la API. |
@@ -41,6 +45,11 @@ que `MINIO_ENDPOINT` debe ser accesible desde el cliente web, no solo desde la r
 privada de Render. Configura `MINIO_PUBLIC_URL` con la URL pública base para los
 objetos de los buckets públicos. Protege las credenciales y evita exponer la consola
 de administración de MinIO públicamente.
+
+Para el cliente web, define `VITE_API_URL` como variable de entorno del servicio
+Static Site en Render, con la URL pública de la API. En desarrollo local también
+puedes poner `VITE_API_URL` en `system/.env`; Vite lee ese archivo y la API usa el
+valor `http://localhost:3000` como fallback cuando no se define.
 
 Los discos de los servicios deben persistir en `/var/lib/mysql` para MySQL,
 `/data/db` para MongoDB y `/data` para MinIO. Sin discos persistentes, los datos
