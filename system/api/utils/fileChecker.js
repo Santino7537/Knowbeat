@@ -20,12 +20,12 @@ const detectRealType = async (buffer) => {
 }
 
 const analyzeMedia = async (filePath) => {
-    const { stdout } = await execFileAsync('docker', [
-        'exec', 'ffmpeg', 'ffprobe', '-v', 'error',
+    const { stdout } = await execFileAsync('ffprobe', [
+        '-v', 'error',
         '-print_format', 'json',
         '-show_streams',
         '-show_format',
-        `/data/${path.basename(filePath)}`
+        filePath
     ]);
     return JSON.parse(stdout);
 }

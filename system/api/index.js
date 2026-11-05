@@ -32,8 +32,9 @@ const PORT = process.env.PORT || 3000;
 
 const allowedOrigins = [
   'http://localhost:5173',
-  'http://localhost:3000'
-]; // Origenes permitidos para CORS
+  'http://localhost:3000',
+  process.env.CLIENT_ORIGIN
+].filter(Boolean); // Origenes permitidos para CORS
 
 server.set('trust proxy', true); // Confía en el proxy para obtener la IP real del cliente
 

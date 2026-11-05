@@ -1,5 +1,14 @@
 # Directorio 'system'
 El directorio 'system' contiene la totalidad del proyecto.
+
+### Despliegue en Render
+
+Los Dockerfiles individuales para desplegar la API, MySQL, MongoDB, MinIO y FFmpeg
+en Render están en `render/`. Consulta `render/README.md` para configurar cada
+servicio, las variables de entorno y el almacenamiento persistente. Render requiere
+un servicio por imagen; esta configuración no reemplaza `docker-compose.yml` para
+el despliegue local.
+
 Los archivos y directorios importantes son:
 
 ### Directorio 'api'
