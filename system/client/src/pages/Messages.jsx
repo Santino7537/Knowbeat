@@ -8,11 +8,10 @@ import styles from './CSS/Message.module.css';
 import axios from "axios";
 import { useNavigate } from 'react-router-dom';
 import Avatar from '../components/general/Avatar.jsx';
-import { getErrorMessage } from '../api/client';
+import { API_URL, getErrorMessage } from '../api/client';
 import { io } from 'socket.io-client';
 import { useLanguage } from '../context/LanguageContext.jsx'; // <-- Importar hook de idioma
 
-const API_URL = 'http://localhost:3000';
 const MESSAGE_PAGE_SIZE = 30;
 
 const QUICK_REPLIES = ['¡Hola! 👋', '¿Practicamos juntos?', '¿Cómo vas con el curso?'];
@@ -74,7 +73,7 @@ export default function Messages() {
     const token = localStorage.getItem("token");
 
     axios.get(
-      "http://localhost:3000/friend/list",
+      `${API_URL}/friend/list`,
       { headers: { Authorization: `Bearer ${token}` } }
     ).then(({ data }) => {
         setFriendChats(data);

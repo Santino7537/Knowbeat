@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import CourseCard from "../components/CourseCard";
 import styles from "./CSS/Courses.module.css";
-import { getErrorMessage } from "../api/client";
+import { API_URL, getErrorMessage } from "../api/client";
 import { useLanguage } from "../context/LanguageContext.jsx"; // <-- Importar hook de idioma
 
 const CoursesCatalog = () => {
@@ -35,7 +35,7 @@ const CoursesCatalog = () => {
     const fetchCourses = async () => {
       try {
         const response = await axios.get(
-          "http://localhost:3000/course/get/courses",
+          `${API_URL}/course/get/courses`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         if (active) {
@@ -59,7 +59,7 @@ const CoursesCatalog = () => {
 
     try {
       await axios.post(
-        `http://localhost:3000/user/register/course/${courseId}`,
+        `${API_URL}/user/register/course/${courseId}`,
         {},
         authHeaders
       );

@@ -10,11 +10,9 @@ import Avatar from "../components/general/Avatar.jsx";
 import MusicStaff from "../components/general/MusicStaff.jsx";
 import DailyScoreActivity from "../components/profile/DailyScoreActivity.jsx";
 import { useToast } from "../context/ToastContext.jsx";
-import { getErrorMessage } from "../api/client";
+import { API_URL, getErrorMessage } from "../api/client";
 import { useLanguage } from "../context/LanguageContext.jsx"; // <-- Importar hook de idioma
 import styles from "./CSS/UserProfile.module.css";
-
-const API = "http://localhost:3000";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -39,8 +37,8 @@ function FriendButton({ profileUsername }) {
     const check = async () => {
       try {
         const [friendsRes, requestsRes] = await Promise.all([
-          axios.get(`${API}/friend/list`,     { headers: authHeaders() }),
-          axios.get(`${API}/friend/requests`, { headers: authHeaders() }),
+          axios.get(`${API_URL}/friend/list`,     { headers: authHeaders() }),
+          axios.get(`${API_URL}/friend/requests`, { headers: authHeaders() }),
         ]);
 
         if (!mounted) return;

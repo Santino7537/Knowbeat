@@ -6,7 +6,7 @@ import Sidebar from "../components/Sidebar";
 import { useTheme } from "../context/ThemeContext.jsx";
 import { useToast } from "../context/ToastContext.jsx";
 import { useLanguage } from "../context/LanguageContext.jsx"; // <-- 1. Importar el hook de idioma
-import { getErrorMessage } from "../api/client";
+import { API_URL, getErrorMessage } from "../api/client";
 
 // Etiquetas legibles para las claves de notificaciones que vienen del backend
 const notificationLabels = {
@@ -113,7 +113,7 @@ const Settings = () => {
   const updateConfig = async (body) => {
     try {
       await axios.patch(
-        "http://localhost:3000/user/update/config/",
+        `${API_URL}/user/update/config/`,
         body,
         {
           headers: {
