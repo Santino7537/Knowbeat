@@ -78,11 +78,11 @@ function FriendButton({ profileUsername }) {
     try {
       if (status === "none") {
         const { data: target } = await axios.get(
-          `${API}/user/get/user/username/${encodeURIComponent(profileUsername)}`,
+          `${API_URL}/user/get/user/username/${encodeURIComponent(profileUsername)}`,
           { headers: authHeaders() }
         );
         const { data } = await axios.post(
-          `${API}/friend/request/${target.id}`,
+          `${API_URL}/friend/request/${target.id}`,
           {},
           { headers: authHeaders() }
         );
@@ -91,7 +91,7 @@ function FriendButton({ profileUsername }) {
 
       } else if (status === "pending_sent") {
         await axios.patch(
-          `${API}/friend/request/${requestId}/cancel`,
+          `${API_URL}/friend/request/${requestId}/cancel`,
           {},
           { headers: authHeaders() }
         );
@@ -100,7 +100,7 @@ function FriendButton({ profileUsername }) {
 
       } else if (status === "friends") {
         await axios.delete(
-          `${API}/friend/${friendshipId}`,
+          `${API_URL}/friend/${friendshipId}`,
           { headers: authHeaders() }
         );
         setStatus("none");
@@ -239,7 +239,7 @@ function FriendRequestsPanel() {
 
   const fetchRequests = useCallback(async () => {
     try {
-      const { data } = await axios.get(`${API}/friend/requests`, { headers: authHeaders() });
+      const { data } = await axios.get(`${API_URL}/friend/requests`, { headers: authHeaders() });
       setRequests(data.incoming ?? []);
     } catch (err) {
       console.error("Error al cargar solicitudes:", err.response?.data ?? err.message);
@@ -251,12 +251,12 @@ function FriendRequestsPanel() {
   useEffect(() => { fetchRequests(); }, [fetchRequests]);
 
   const handleAccept = async (requestId) => {
-    await axios.patch(`${API}/friend/request/${requestId}/accept`, {}, { headers: authHeaders() });
+    await axios.patch(`${API_URL}/friend/request/${requestId}/accept`, {}, { headers: authHeaders() });
     setRequests(prev => prev.filter(r => r.id !== requestId));
   };
 
   const handleReject = async (requestId) => {
-    await axios.patch(`${API}/friend/request/${requestId}/reject`, {}, { headers: authHeaders() });
+    await axios.patch(`${API_URL}/friend/request/${requestId}/reject`, {}, { headers: authHeaders() });
     setRequests(prev => prev.filter(r => r.id !== requestId));
   };
 
@@ -473,7 +473,7 @@ export default function UserProfile() {
 
     (async () => {
       try {
-        const { data } = await axios.get(`${API}/user/get/stats`, { headers: authHeaders() });
+        const { data } = await axios.get(`${API_URL}/user/get/stats`, { headers: authHeaders() });
         const streakValue = Number(data.streak);
         const totalScore = Number(data.score);
         const goalValue = data.score_goal === null || data.score_goal === undefined ? null : Number(data.score_goal);
@@ -507,7 +507,7 @@ export default function UserProfile() {
 
     (async () => {
       try {
-        const { data } = await axios.get(`${API}/user/get/score/history?days=7`, { headers: authHeaders() });
+        const { data } = await axios.get(`${API_URL}/user/get/score/history?days=7`, { headers: authHeaders() });
         if (mounted) setScoreHistory(Array.isArray(data) ? data : []);
       } catch (err) {
         console.error("Error historial de score:", err.response?.data ?? err.message);
@@ -530,7 +530,7 @@ export default function UserProfile() {
         const token = localStorage.getItem("token");
         if (!token) throw new Error("Sin sesión");
         const { data } = await axios.get(
-          `${API}/user/get/user/username/${encodeURIComponent(username)}`,
+          `${API_URL}/user/get/user/username/${encodeURIComponent(username)}`,
           { headers: authHeaders() }
         );
         if (mounted) {
@@ -568,7 +568,7 @@ export default function UserProfile() {
     setReportError("");
     try {
       await axios.post(
-        `${API}/user/report`,
+        `${API_URL}/user/report`,
         { reported_id: profileUser.id, reason: reportReason, description },
         { headers: authHeaders() }
       );
@@ -602,7 +602,7 @@ export default function UserProfile() {
     setGoalError("");
     try {
       const { data } = await axios.patch(
-        `${API}/user/update/goal`,
+        `${API_URL}/user/update/goal`,
         { score_goal: nextGoal },
         { headers: authHeaders() }
       );
@@ -624,7 +624,7 @@ export default function UserProfile() {
     try {
       const payload = { ...form };
       if (!payload.password) delete payload.password;
-      const { data } = await axios.patch(`${API}/user/update/profile`, payload, { headers: authHeaders() });
+      const { data } = await axios.patch(`${API_URL}/user/update/profile`, payload, { headers: authHeaders() });
       setProfileUser(prev => ({ ...prev, ...payload, ...data.userPayload }));
       setForm(prev => ({ ...prev, password: "" }));
       setPanel(null);

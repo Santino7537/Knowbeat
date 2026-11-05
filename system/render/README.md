@@ -79,6 +79,8 @@ ejecuciones puntuales de esa herramienta, no como servicio web o worker permanen
 
 Los archivos que la API guarda temporalmente durante una solicitud están en
 `/app/system/temp/ffmpeg` dentro del contenedor y no necesitan persistencia.
+La imagen de la API también incluye `client/exercises_content`, que necesita para
+leer los JSON de las lecciones y calcular las recompensas al guardar el progreso.
 
 ## Límites de esta configuración
 
