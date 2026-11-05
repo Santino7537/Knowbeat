@@ -1,6 +1,7 @@
 const { MongoClient } = require("mongodb");
 
-const mongoURI = `mongodb://${process.env.MONGO_BACKEND_USER}:${process.env.MONGO_BACKEND_PASSWORD}@${process.env.MONGO_DATABASE_HOST}:${process.env.MONGO_DATABASE_PORT}/${process.env.MONGO_DATABASE_NAME}`
+const mongoURI = process.env.MONGO_URI
+    || `mongodb://${encodeURIComponent(process.env.MONGO_BACKEND_USER)}:${encodeURIComponent(process.env.MONGO_BACKEND_PASSWORD)}@${process.env.MONGO_DATABASE_HOST}:${process.env.MONGO_DATABASE_PORT}/${process.env.MONGO_DATABASE_NAME}`;
 
 const client = new MongoClient(mongoURI,
     {

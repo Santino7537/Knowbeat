@@ -26,11 +26,13 @@ también necesita `CLIENT_ORIGIN` con el origen exacto del cliente web desplegad
 (por ejemplo, `https://knowbeat.example.com`) para permitir sus solicitudes CORS.
 
 - API: `SQL_DATABASE_HOST`, `SQL_DATABASE_PORT`, `SQL_DATABASE_NAME`,
-  `SQL_BACKEND_USER`, `SQL_BACKEND_PASSWORD`, `MONGO_DATABASE_HOST`,
-  `MONGO_DATABASE_PORT`, `MONGO_DATABASE_NAME`, `MONGO_BACKEND_USER`,
-  `MONGO_BACKEND_PASSWORD`, `MINIO_ENDPOINT`, `MINIO_ACCESS_KEY`,
+  `SQL_BACKEND_USER`, `SQL_BACKEND_PASSWORD`, `MONGO_DATABASE_NAME`,
+  `MINIO_ENDPOINT`, `MINIO_ACCESS_KEY`,
   `MINIO_SECRET_KEY`, `MINIO_PUBLIC_URL`, `CLIENT_ORIGIN`, `ADMIN_USERNAME`,
-  `ADMIN_EMAIL`, `ADMIN_PASSWORD` y `SECRET`.
+  `ADMIN_EMAIL`, `ADMIN_PASSWORD` y `SECRET`. Para MongoDB Atlas configura
+  `MONGO_URI` con la URI completa `mongodb+srv://` del cluster. Para MongoDB
+  autohospedado, usa `MONGO_DATABASE_HOST`, `MONGO_DATABASE_PORT`,
+  `MONGO_BACKEND_USER` y `MONGO_BACKEND_PASSWORD`.
 - MySQL: `MYSQL_ROOT_PASSWORD`, `MYSQL_DATABASE`, `SQL_BACKEND_USER` y
   `SQL_BACKEND_PASSWORD`.
 - MongoDB: `MONGO_INITDB_DATABASE`, `MONGO_INITDB_ROOT_USERNAME`,
@@ -50,6 +52,17 @@ Para el cliente web, define `VITE_API_URL` como variable de entorno del servicio
 Static Site en Render, con la URL pública de la API. En desarrollo local también
 puedes poner `VITE_API_URL` en `system/.env`; Vite lee ese archivo y la API usa el
 valor `http://localhost:3000` como fallback cuando no se define.
+
+Como el cliente usa `BrowserRouter`, agrega una regla en **Settings → Redirects/Rewrites**
+del Static Site para que Render sirva la app al abrir o recargar rutas internas:
+
+| Source | Destination | Action |
+|---|---|---|
+| `/*` | `/index.html` | Rewrite |
+
+Debe ser una reescritura, no una redirección: así la URL de la ruta se conserva y
+React Router puede mostrar la pantalla correspondiente. Render sirve los recursos
+estáticos existentes antes de aplicar esta regla.
 
 Los discos de los servicios deben persistir en `/var/lib/mysql` para MySQL,
 `/data/db` para MongoDB y `/data` para MinIO. Sin discos persistentes, los datos
