@@ -29,17 +29,15 @@ The existing MongoDB model uses `Folder` and `FileRelation` to connect a `File` 
 
 The login form asks only for the username. The protected `GET /user/get/user/username/:username` endpoint is not used for recovery because it requires a session and must not expose another user's email.
 
-Email delivery uses Nodemailer over SMTP. It has no license or per-message cost; Gmail SMTP can be used without charge with a Google App Password (or configure any other free SMTP provider). Add these variables to `system/.env`:
+Email delivery uses the Brevo transactional email HTTPS API, avoiding SMTP ports that may time out on hosting platforms. Add these variables to the API service's environment in Render (or to `system/.env` for local development):
 
 ```env
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USER=tu-cuenta@gmail.com
-SMTP_PASSWORD=tu-clave-de-aplicacion
-SMTP_FROM=KnowBeat <tu-cuenta@gmail.com>
+BREVO_API_KEY=tu-api-key-de-brevo
+EMAIL_FROM=correo-verificado@tudominio.com
+EMAIL_FROM_NAME=KnowBeat
 CLIENT_ORIGIN=http://localhost:5173
 ```
 
-`SMTP_FROM` defaults to `SMTP_USER`. Replace the example sender and credentials with a real SMTP account; a made-up address such as `no-reply@example.com` cannot send email. For Gmail, use an App Password rather than the account's normal password. Keep SMTP credentials private and do not commit them.
+Create a Brevo account, generate an API key, and verify the sender address before sending. The free plan's quotas and sender/domain requirements are determined by Brevo and may change. Keep the API key private and do not commit it.
 
 The MySQL initialization script `system/mysql/init/002-password-reset.sql` creates the token table on a fresh database. For an existing database, run that SQL once before using password recovery; initialization scripts are not rerun automatically for an existing MySQL data volume.
