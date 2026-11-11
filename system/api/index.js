@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 
 const { login, register, getUserById, getUserByUsername, getUserByToken, getUsers, getConfig, changeConfig, changeProfile, reportUser } = require('./controllers/userController');
+const { requestPasswordReset, resetPassword } = require('./controllers/passwordResetController');
 const { changeRole, deleteUser } = require('./controllers/adminController');
 const { getReports, getReportDetail, resolveReport, revokeSanction } = require('./controllers/moderationController');
 const { verifyAdminPassword, getAdminSession, revokeAdminSession, logout } = require('./controllers/adminAccessController');
@@ -62,6 +63,8 @@ server.get('/', (req, res) => { res.status(200).send('Bienvenido a la API de Kno
 // Users
 server.post('/register', postResponseLog, register);
 server.post('/login', postResponseLog, login);
+server.post('/user/password/forgot', postResponseLog, requestPasswordReset);
+server.post('/user/password/reset', postResponseLog, resetPassword);
 server.post('/user/logout', postResponseLog, checkToken, logout);
 server.get('/user/get/user/:id', checkToken, isAuth, getUserById);
 server.get('/user/get/user/username/:username', checkToken, isAuth, getUserByUsername);

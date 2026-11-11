@@ -9,10 +9,13 @@ function Login_card({ onAuthSuccess, onAccountSuspended, switchToRegister }) {
     const [errors, setErrors] = useState({});
     const [generalError, setGeneralError] = useState("");
     const [loading, setLoading] = useState(false);
+    const [forgotPassword, setForgotPassword] = useState(false);
+    const [requestSent, setRequestSent] = useState(false);
 
     const clear = (field) => {
         setErrors((prev) => ({ ...prev, [field]: undefined }));
         setGeneralError("");
+        setRequestSent(false);
     };
 
     function validateForm() {
@@ -26,7 +29,28 @@ function Login_card({ onAuthSuccess, onAccountSuspended, switchToRegister }) {
     async function fetchLogin(event) {
         event.preventDefault();
         setGeneralError("");
-        if (!validateForm() || loading) return;
+        if (loading) return;
+
+        if (forgotPassword) {
+            const next = {};
+            if (!username.trim()) next.username = "Ingresá tu nombre de usuario.";
+            setErrors(next);
+            if (Object.keys(next).length > 0) return;
+
+            setLoading(true);
+            try {
+                const { data } = await api.post("/user/password/forgot", { username: username.trim() });
+                setRequestSent(true);
+                setGeneralError(data.message);
+            } catch (err) {
+                setGeneralError(getErrorMessage(err, "No pudimos enviar el correo de recuperación. Probá de nuevo."));
+            } finally {
+                setLoading(false);
+            }
+            return;
+        }
+
+        if (!validateForm()) return;
 
         setLoading(true);
         try {
@@ -53,8 +77,10 @@ function Login_card({ onAuthSuccess, onAccountSuspended, switchToRegister }) {
     return (
         <form className={styles.form} onSubmit={fetchLogin} noValidate>
             <div className={styles.formHead}>
-                <h2>¡Hola de nuevo! 👋</h2>
-                <p>Entrá para seguir practicando donde lo dejaste.</p>
+                <h2>{forgotPassword ? "Recuperá tu contraseña" : "¡Hola de nuevo! 👋"}</h2>
+                <p>{forgotPassword
+                    ? "Ingresá tu nombre de usuario y te enviaremos un enlace a tu correo."
+                    : "Entrá para seguir practicando donde lo dejaste."}</p>
             </div>
 
             <AuthField
@@ -63,28 +89,62 @@ function Login_card({ onAuthSuccess, onAccountSuspended, switchToRegister }) {
                 onChange={(e) => { setUsername(e.target.value); clear("username"); }}
                 error={errors.username}
             />
-            <AuthField
-                id="login-password" label="Contraseña" type="password" icon="lock"
-                value={password} autoComplete="current-password" placeholder="••••••••"
-                onChange={(e) => { setPassword(e.target.value); clear("password"); }}
-                error={errors.password}
-            />
+            {!forgotPassword && (
+                <AuthField
+                    id="login-password" label="Contraseña" type="password" icon="lock"
+                    value={password} autoComplete="current-password" placeholder="••••••••"
+                    onChange={(e) => { setPassword(e.target.value); clear("password"); }}
+                    error={errors.password}
+                />
+            )}
 
-            <div className={styles.forgot_password}>
-                <a href="#" onClick={(e) => e.preventDefault()}>¿Olvidaste tu contraseña?</a>
-            </div>
+            {!forgotPassword && (
+                <div className={styles.forgot_password}>
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setForgotPassword(true);
+                            setGeneralError("");
+                            setErrors({});
+                        }}
+                    >
+                        ¿Olvidaste tu contraseña?
+                    </button>
+                </div>
+            )}
 
-            {generalError && <div className={styles.alert} role="alert">{generalError}</div>}
+            {generalError && (
+                <div className={requestSent ? styles.successAlert : styles.alert} role={requestSent ? "status" : "alert"}>
+                    {generalError}
+                </div>
+            )}
 
-            <button type="submit" className={styles.button} disabled={loading}>
+            {!requestSent && <button type="submit" className={styles.button} disabled={loading}>
                 {loading && <span className={styles.spinner} aria-hidden="true" />}
-                {loading ? "Entrando…" : "Iniciar sesión"}
-            </button>
+                {loading ? (forgotPassword ? "Enviando…" : "Entrando…") : (forgotPassword ? "Enviar enlace" : "Iniciar sesión")}
+            </button>}
 
-            <p className={styles.switchText}>
-                ¿No tenés cuenta?{" "}
-                <button type="button" className={styles.linkButton} onClick={switchToRegister}>Creá una gratis</button>
-            </p>
+            {forgotPassword ? (
+                <p className={styles.switchText}>
+                    <button
+                        type="button"
+                        className={styles.linkButton}
+                        onClick={() => {
+                            setForgotPassword(false);
+                            setRequestSent(false);
+                            setGeneralError("");
+                            setErrors({});
+                        }}
+                    >
+                        Volver al inicio de sesión
+                    </button>
+                </p>
+            ) : (
+                <p className={styles.switchText}>
+                    ¿No tenés cuenta?{" "}
+                    <button type="button" className={styles.linkButton} onClick={switchToRegister}>Creá una gratis</button>
+                </p>
+            )}
         </form>
     );
 }

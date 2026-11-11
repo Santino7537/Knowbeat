@@ -211,20 +211,28 @@
   text-align: right;
 }
 
-.forgot_password a {
+.forgot_password button {
+  padding: 0;
+  border: 0;
+  background: none;
   color: var(--kb-accent-text);
+  font: inherit;
   font-size: var(--kb-fs-sm);
   font-weight: 500;
-  text-decoration: none;
+  cursor: pointer;
 }
 
-.forgot_password a:hover {
+.forgot_password button:hover {
   text-decoration: underline;
 }
 
 .alert {
   composes: kb-alert kb-alert-danger from global;
   animation: shake 0.35s var(--kb-ease);
+}
+
+.successAlert {
+  composes: kb-alert kb-alert-success from global;
 }
 
 .button {

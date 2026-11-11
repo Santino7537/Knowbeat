@@ -11,6 +11,7 @@ import SeventhChordsExercise from './exercises-pages/seventh-chords.jsx'
 import Community from './pages/Community.jsx';
 import Messages from './pages/Messages.jsx';
 import Folders from './pages/Folders.jsx';
+import ResetPassword from './pages/ResetPassword.jsx';
 
 import Login_register from './pages/login_register.jsx'
 import { AuthProvider, useAuth } from './context/AuthContext.jsx'
@@ -29,6 +30,7 @@ const getPageTitle = (pathname) => {
   if (normalizedPath === "/admin/verify") return "Verificación administrativa";
   if (normalizedPath === "/settings") return "Configuración";
   if (normalizedPath === "/login") return "Iniciar sesión";
+  if (normalizedPath === "/reset-password") return "Cambiar contraseña";
   if (normalizedPath === "/courses") return "Cursos";
   if (normalizedPath === "/courses/catalog") return "Catálogo de cursos";
   if (/^\/courses\/[^/]+\/lessons$/.test(normalizedPath)) return "Lecciones del curso";
@@ -145,6 +147,7 @@ function App() {
         <RouteTransition>
         <Routes>
           <Route path="/Login" element={<Login_register />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/" element={<Landing />} />
           <Route element={<ProtectedRoutes />}>
             <Route path="/admin/verify" element={<AdminVerificationRoute />} />

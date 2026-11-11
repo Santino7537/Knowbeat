@@ -310,3 +310,24 @@ CREATE TABLE IF NOT EXISTS `AdminPasswordAttempt` (
     ON DELETE CASCADE
     ON UPDATE CASCADE)
 ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table PasswordResetToken
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `PasswordResetToken` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `user_id` INT UNSIGNED NOT NULL,
+  `token_hash` CHAR(64) NOT NULL,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `expires_at` DATETIME NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE INDEX `password_reset_token_hash` (`token_hash`),
+  INDEX `password_reset_user_created` (`user_id`, `created_at`),
+  CONSTRAINT `password_reset_user_fk`
+    FOREIGN KEY (`user_id`)
+    REFERENCES `knowbeat`.`User` (`id`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4;
